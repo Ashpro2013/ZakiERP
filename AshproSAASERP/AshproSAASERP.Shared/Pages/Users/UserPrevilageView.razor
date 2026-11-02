@@ -1,0 +1,68 @@
+﻿@page "/userprevilages"
+@inject IViewService api;
+@inject ModelService Dialog
+@inject ISnackbar Snackbar
+@inject TabService TabService
+<PageTitle>@AppData.OEMAgency | User Previlages</PageTitle>
+
+<MudItem xs="12">
+    <MudCard Class="pa-4 ma-4" Elevation="3">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Class="pa-1 ma-1" Typo="Typo.h6">@Localizer("User Privileges")</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                 <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("Privilege Name")</MudText>
+                <MudTextField @ref="textField" AutoFocus=true @bind-Value="privilegeHdr.Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudTabs Class="ma-2" Elevation="3" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-2">
+                <MudTabPanel Text=@Localizer("User Privileges")>
+                    <MudStack Row="true">
+                        <MudCheckBox T="bool" ValueChanged="EnableChecked">@Localizer("Enable")</MudCheckBox>
+                        <MudSpacer />
+                        <MudCheckBox T="bool" ValueChanged="SaveChecked">@Localizer("Save")</MudCheckBox>
+                        <MudCheckBox T="bool" ValueChanged="EditChecked">@Localizer("Edit")</MudCheckBox>
+                        <MudCheckBox T="bool" ValueChanged="DeleteChecked">@Localizer("Delete")</MudCheckBox>
+                    </MudStack>
+                    <MudDataGrid Class="ma-2" T="ExUserPrivilege" Items="@userPrivilages" FixedHeader="true" Bordered="true" Dense="true" Height="500px" RowClick="@RowClicked">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Visible" Title="@Localizer("Visible")" />
+                            <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
+                            <PropertyColumn Property="x => x.MenuTitle" Title=@Localizer("Title") />
+                            <PropertyColumn Property="x => x.SaveData" Title=@Localizer("Save") />
+                            <PropertyColumn Property="x => x.EditData" Title=@Localizer("Edit") />
+                            <PropertyColumn Property="x => x.DeleteData" Title=@Localizer("Delete") />
+                        </Columns>
+                    </MudDataGrid>
+
+                </MudTabPanel>
+                <MudTabPanel Text=@Localizer("Functional Privileges")>
+                    <MudGrid>
+                        <MudCheckBox T="bool" ValueChanged="FunEnableChecked">@Localizer("Enable")</MudCheckBox>
+                    </MudGrid>
+                    <MudDataGrid Class="ma-2" T="ExFuncDetails" Items="@exFuncDetails" FixedHeader="true" Bordered="true" Dense="true" Height="600px" RowClick="@FuncRowClicked">
+                        <Columns>
+                            <PropertyColumn Property="x => x.SL" Title=@Localizer("SL") />
+                            <PropertyColumn Property="x => x.EventCaption" Title=@Localizer("Function") />
+                            <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
+                            <SelectColumn Property="x => x.Enable" Title=@Localizer("Enable") />
+                        </Columns>
+                    </MudDataGrid>
+                </MudTabPanel>
+            </MudTabs>
+        </MudCardContent>
+        <MudCardActions>
+            <MudStack Row="true" Spacing="1">
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" OnClick="SaveOrUpdate">@Localizer("Save")</MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Search" Color="Color.Secondary" OnClick="SearchMethod">@Localizer("Search")</MudButton>
+            </MudStack>
+        </MudCardActions>
+    </MudCard>
+</MudItem>

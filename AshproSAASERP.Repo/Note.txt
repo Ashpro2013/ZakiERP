@@ -1,0 +1,10 @@
+Changes Wanted to switch SQL
+1 - Change connection string of MasterDB and TransactionDB in appsettings
+2 - Change Program.cs by updating option
+3 - Change Global of Web project 
+4 - Change Global of Repo project
+5 - Remove Reference of SQL project like MSSQL from Repo project
+6 - Add New Reference  as like PSQL to Repo project
+7 - Change builder.UseSQL in ApiDbContextProvider class in Web project
+8 - Change option.UseSQl in TenantService class in Repo project
+

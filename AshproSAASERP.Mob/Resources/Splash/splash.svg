@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <!-- Modern Gradient Palettes -->
+    <linearGradient id="gradCyanBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+
+    <linearGradient id="gradIndigoPurple" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4F46E5" />
+      <stop offset="50%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+
+    <linearGradient id="gradEmeraldCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <linearGradient id="gradAmberGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+
+    <linearGradient id="gradWhiteGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+      <stop offset="100%" stop-color="#E2E8F0" stop-opacity="0.85" />
+    </linearGradient>
+
+    <!-- Filters for Glow & Shadow -->
+    <filter id="nodeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g transform="translate(0, -30)">
+    <!-- Outer Hexagonal Tech Lattice -->
+    <polygon points="256,60 366,124 366,252 256,316 146,252 146,124" 
+             fill="none" 
+             stroke="url(#gradCyanBlue)" 
+             stroke-width="9" 
+             stroke-linejoin="round" 
+             opacity="0.9" />
+
+    <!-- Network Nodes on Hexagon Vertices -->
+    <circle cx="256" cy="60" r="7" fill="#38BDF8" filter="url(#nodeGlow)" />
+    <circle cx="366" cy="124" r="7" fill="#6366F1" />
+    <circle cx="366" cy="252" r="7" fill="#A855F7" />
+    <circle cx="256" cy="316" r="7" fill="#10B981" filter="url(#nodeGlow)" />
+    <circle cx="146" cy="252" r="7" fill="#06B6D4" />
+    <circle cx="146" cy="124" r="7" fill="#38BDF8" />
+
+    <!-- Inner Shield Backdrop Glow -->
+    <polygon points="256,80 348,133 348,243 256,296 164,243 164,133" 
+             fill="#1E293B" 
+             opacity="0.6" />
+
+    <!-- Left Leg of 3D 'A' Emblem -->
+    <path d="M 256 95 L 178 245 H 213 L 235 199 H 277 L 256 95 Z" 
+          fill="url(#gradCyanBlue)" />
+
+    <!-- Right Leg & Facet of 'A' -->
+    <path d="M 256 95 L 277 199 H 299 L 334 245 H 299 L 256 95 Z" 
+          fill="url(#gradIndigoPurple)" />
+
+    <!-- Inner 'A' Triangle Cutout -->
+    <polygon points="256,128 241,183 271,183" fill="#0F172A" />
+
+    <!-- ERP Growth Chart Bars / Cross Bridge -->
+    <rect x="213" y="203" width="13" height="35" rx="3.5" fill="url(#gradEmeraldCyan)" />
+    <rect x="231" y="192" width="13" height="46" rx="3.5" fill="url(#gradCyanBlue)" />
+    <rect x="249" y="179" width="14" height="59" rx="3.5" fill="url(#gradWhiteGlow)" />
+    <rect x="268" y="188" width="13" height="50" rx="3.5" fill="url(#gradIndigoPurple)" />
+    <rect x="286" y="201" width="13" height="37" rx="3.5" fill="url(#gradAmberGold)" />
+
+    <!-- Upward Trend Growth Arrow Overlay -->
+    <path d="M 204 240 L 256 185 L 308 240 L 295 249 L 256 207 L 217 249 Z" 
+          fill="#FFFFFF" 
+          filter="url(#nodeGlow)" />
+
+    <!-- Center ERP Diamond Core -->
+    <polygon points="256,158 267,173 256,188 245,173" fill="url(#gradAmberGold)" />
+
+    <!-- Brand Name Typography: ASHPRO -->
+    <text x="256" y="380" 
+          font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+          font-size="42" 
+          font-weight="800" 
+          letter-spacing="6" 
+          fill="#FFFFFF" 
+          text-anchor="middle">ASHPRO</text>
+
+    <!-- Subtitle: ENTERPRISE ERP -->
+    <text x="256" y="415" 
+          font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+          font-size="16" 
+          font-weight="600" 
+          letter-spacing="9" 
+          fill="#38BDF8" 
+          text-anchor="middle">ENTERPRISE ERP</text>
+
+    <!-- Subtitle Decorative Lines -->
+    <line x1="120" y1="410" x2="165" y2="410" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+    <line x1="347" y1="410" x2="392" y2="410" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+  </g>
+</svg>

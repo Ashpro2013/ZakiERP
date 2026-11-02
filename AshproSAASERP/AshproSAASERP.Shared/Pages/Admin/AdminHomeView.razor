@@ -1,0 +1,96 @@
+@page "/admin"
+@layout AdminLayout
+@using AshproSAASERP.Models.Company
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+
+<PageTitle>Branch</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudText Class="pa-2 ma-2" Typo="Typo.h5">Subscription Details </MudText>
+    <EditForm Model="lCompany" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Code")</MudText>
+                <MudTextField @ref="txtCode" AutoFocus="true" @bind-Value="lCompany!.CompanyCode" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" />
+                <ValidationMessage For="@(() => lCompany.CompanyCode)" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Name")</MudText>
+                <MudTextField @ref="txtName" @bind-Value="lCompany!.CompanyName" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 2))" />
+                <ValidationMessage For="@(() => lCompany.CompanyName)" />
+            </MudItem>
+       
+            <MudItem xs="12" sm="4">
+                <MudText>Address</MudText>
+                <MudTextField @ref="txtAddress" @bind-Value="lCompany!.CompanyAddress" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 3))" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudText>Contact No</MudText>
+                <MudTextField @ref="txtContactNo" @bind-Value="lCompany!.ContactNo" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 4))" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>Email</MudText>
+                <MudTextField @ref="txtEmail" @bind-Value="lCompany!.Email" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 5))" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>Subsciption Type</MudText>
+                <MudSelect Dense="true" T="string"  @bind-Value="lCompany!.SubscriptionType" Variant="Variant.Filled" Class="mt-2" Required="true">
+                    @foreach (var item in grouplist)
+                    {
+                        <MudSelectItem Value="@item" />
+                    }
+                </MudSelect>
+                <ValidationMessage For="@(() => lCompany.SubscriptionType)" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="lCompany!.SubscriptionStartedAt" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => lCompany.SubscriptionStartedAt)" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="lCompany!.SubscriptionEndingDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => lCompany.SubscriptionEndingDate)" />
+                <MudCheckBox @bind-value="lCompany.IsExpired" Label="@Localizer("Closed")" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>User Name</MudText>
+                <MudTextField  @bind-Value="lCompany!.UserName" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 4))" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>Password</MudText>
+                <MudTextField @bind-Value="lCompany!.PassWord" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 5))" InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="ButtonTestclick" AdornmentAriaLabel="Show Password" />
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success">@Localizer("Save")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+</MudPaper>
+<MudDataGrid Class="ma-2" Elevation="3" T="LoginCompany" @ref="grid" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" RowClick="@RowClicked">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Subscription List</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.CompanyCode" Title="Company Code" />
+        <PropertyColumn Property="x => x.CompanyName" Title="Company Name" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="LoginCompany" PageSizeOptions="new int[] { 5, 10 }" />
+    </PagerContent>
+</MudDataGrid>
+
+
+
+

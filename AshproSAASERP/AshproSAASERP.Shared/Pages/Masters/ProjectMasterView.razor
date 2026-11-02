@@ -1,0 +1,234 @@
+﻿@page "/project"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject IndexDBHelper indexdbHelper
+@inject TabService TabService
+
+<MudPaper Class="pa-4" Elevation="2">
+    <MudCard Class="pa-4">
+
+        <MudStack Row="true">
+            <MudText Typo="Typo.h6" Class="mb-4">@Localizer("ProjectMaster")</MudText>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+         <EditForm Model="project" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid Spacing="3">
+
+            <!-- Project Code -->
+            <MudItem xs="12" md="3">
+                <MudTextField @bind-Value="project.Code"
+                              Label=@Localizer("Code")
+                              AutoFocus="true"
+                              Variant="Variant.Outlined"
+                              Required="true"
+                              @ref="txtCode" />
+            </MudItem>
+
+            <!-- Project Name -->
+            <MudItem xs="12" md="3">
+                <MudTextField @bind-Value="project.Name"
+                              Label=@Localizer("Name")
+                              Variant="Variant.Outlined"
+                              Required="true" />
+            </MudItem>
+
+            <!-- Contract Value -->
+            <MudItem xs="12" md="3">
+                <MudNumericField @bind-Value="project.ContractValue"
+                                 Label=@Localizer("ContractValue")
+                                 Variant="Variant.Outlined" />
+            </MudItem>
+
+
+            <!-- Expected Start Date -->
+            <MudItem xs="12" md="3">
+                <MudDatePicker @bind-Date="project.ExpectedStrtDate"
+                               Label=@Localizer("ExpectedStartDate")
+                               Variant="Variant.Outlined" />
+            </MudItem>
+
+            <!-- Expected End Date -->
+            <MudItem xs="12" md="3">
+                <MudDatePicker @bind-Date="project.ExpectedEndDate"
+                               Label=@Localizer("ExpectedEndDate")
+                               Variant="Variant.Outlined" />
+            </MudItem>
+
+            <!-- Actual Start Date -->
+            <MudItem xs="12" md="3">
+                <MudDatePicker @bind-Date="project.ActualStrtDate"
+                               Label=@Localizer("ActualStartDate")
+                               Variant="Variant.Outlined" />
+            </MudItem>
+
+            <!-- Actual End Date -->
+            <MudItem xs="12" md="3">
+                <MudDatePicker @bind-Date="project.ActualEndDate"
+                               Label=@Localizer("ActualEndDate")
+                               Variant="Variant.Outlined" />
+            </MudItem>
+
+            <!-- CUSTOMER SECTION -->
+            <MudItem xs="12" md="6">
+                <MudText>@Localizer("Customer")</MudText>
+
+                <MudStack Row="true" Spacing="1">
+
+                    <!-- Customer Code -->
+                    <MudTextField @bind-Value="strCustomerCode"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder=@Localizer("Code")
+                                  ReadOnly="true" />
+
+                    <!-- Customer Name -->
+                    <MudTextField @bind-Value="strCustomerName"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder=@Localizer("Name")
+                                  ReadOnly="true"
+                                  OnKeyDown="OnCustomerKeyDown" />
+
+                    <!-- Search Button -->
+                    <MudFab StartIcon="@Icons.Material.Rounded.Search"
+                            Color="Color.Info"
+                            Size="Size.Small"
+                            OnClick="OpenCustomerSearch" />
+                </MudStack>
+                <ValidationMessage For="@(() => project.FK_CustomerId)" />
+
+            </MudItem>
+
+            <!-- PURCHASER SECTION -->
+            <MudItem xs="12" md="6">
+                <MudText>@Localizer("Purchaser")</MudText>
+
+                <MudStack Row="true" Spacing="1">
+
+                    <MudTextField @bind-Value="strPurchaserCode"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder=@Localizer("Code")
+                                  ReadOnly="true" />
+
+                    <MudTextField @bind-Value="strPurchaserName"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder=@Localizer("Name")
+                                  ReadOnly="true"
+                                  OnKeyDown="OnPurchaserKeyDown" />
+
+                    <MudFab StartIcon="@Icons.Material.Rounded.Search"
+                            Color="Color.Info"
+                            Size="Size.Small"
+                            OnClick="OpenPurchaserSearch" />
+                </MudStack>
+
+                <ValidationMessage For="@(() => project.FK_PurchaserId)" />
+            </MudItem>
+
+            <!-- SALESMAN SECTION -->
+            <MudItem xs="12" md="6">
+                <MudText>@Localizer("Salesman")</MudText>
+
+                <MudStack Row="true" Spacing="1">
+
+                    <MudTextField @bind-Value="strSalesManCode"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder=@Localizer("Code")
+                                  ReadOnly="true" />
+
+                    <MudTextField @bind-Value="strSalesManName"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Placeholder=@Localizer("Name")
+                                  ReadOnly="true"
+                                  OnKeyDown="OnSalesManKeyDown" />
+
+                    <MudFab StartIcon="@Icons.Material.Rounded.Search"
+                            Color="Color.Info"
+                            Size="Size.Small"
+                            OnClick="OpenSalesManSearch" />
+                </MudStack>
+
+                <ValidationMessage For="@(() => project.FK_SalesmanId)" />
+            </MudItem>
+
+            <!-- Project Status -->
+            <MudItem xs="12" md="3">
+                <MudTextField @bind-Value="project.Status"
+                              Label=@Localizer("ProjectStatus")
+                              Variant="Variant.Outlined"
+                              Placeholder=@Localizer("EnterProjectStatus") />
+            </MudItem>
+
+            <!-- Remarks -->
+            <MudItem xs="12">
+                <MudTextField @bind-Value="project.Description"
+                              Label=@Localizer("Remarks")
+                              Variant="Variant.Outlined"
+                              Lines="3" />
+            </MudItem>
+
+            <!-- Action Buttons -->
+            <MudItem xs="12">
+                <MudStack Row="true" Spacing="2">
+                        <MudButton ButtonType="ButtonType.Submit"
+                               StartIcon="@(project.ProjectId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)"
+                               Color="@(project.ProjectId == 0 ? Color.Success : Color.Info)"
+                               Disabled="@_isSaving" Variant="Variant.Filled">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                        }
+                        else
+                        {
+                            @Localizer(project.ProjectId == 0 ? Localizer("Save") : Localizer("Update"))
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error"  OnClick="Delete">@Localizer("Delete")</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info"  OnClick="NewClick">@Localizer("New")</MudButton>
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+        </EditForm>
+    </MudCard>
+
+</MudPaper>
+
+<MudDataGrid Class="ma-2"
+             Elevation="3"
+             T="ProjectMaster"
+             Items="@filteredList"
+             Bordered="true"
+             Dense="true"
+             SortMode="SortMode.Multiple"
+             Filterable="true"
+             RowClick="RowClicked">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Localizer("ProjectList")</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchText" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Class="mx-3" />
+    </ToolBarContent>
+
+    <Columns>
+        <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+        <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+        <PropertyColumn Property="x => x.ContractValue" Title="@Localizer("ContractValue")" />
+        <PropertyColumn Property="x => x.Status" Title="@Localizer("Status")" />
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="ProjectMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
+    </PagerContent>
+
+</MudDataGrid>

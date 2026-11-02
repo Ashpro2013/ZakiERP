@@ -1,0 +1,330 @@
+@page "/materialtransferout"
+@inject IViewService api
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject ModelService Dialog
+@inject Downloader Downloader
+@using AshproSAASERP.Models.Transactions.Inventory
+@inject TabService TabService
+
+<PageTitle>Zaki ERP | @Localizer("MaterialTransferOUT")</PageTitle>
+
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true" Class="pa-2 ma-2">
+        <MudText Typo="Typo.h5">@Localizer("MaterialTransferOUT")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+    <EditForm Model="@hdr" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <MudTabs @bind-ActivePanelIndex="_activeTabIndex" Class="ma-2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-1">
+            <MudTabPanel Text="@Localizer("Header")">
+                <MudGrid>
+                    <MudItem xs="12" sm="3">
+                        <MudText>@Localizer("VoucherNo")</MudText>
+                        <MudTextField @ref="txtVoucherNo"
+                                      OnKeyDown="@(e => Keydown(e, 1))"
+                                      @bind-Value="hdr.VoucherNo"
+                                      Variant="Variant.Outlined"
+                                      Class="w-100" Margin="Margin.Dense"
+                                      ReadOnly="@(IsAutoCode || IsLocked)"
+                                      Adornment="IsAutoCode? Adornment.End: Adornment.None"
+                                      AdornmentIcon="@Icons.Material.Filled.AutoAwesome"
+                                      AdornmentColor="Color.Secondary" />
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudText>@Localizer("VoucherDate")</MudText>
+                        <MudDatePicker @ref="txtVoucherDate" @bind-Date="hdr.VoucherDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense" ReadOnly="@IsLocked" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="3">
+                        <MudText>@Localizer("FromBranch")</MudText>
+                        <MudSelect T="int" Value="hdr.FK_FromBranchId" Disabled="true" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                            @foreach (var x in branches)
+                            {
+                                <MudSelectItem Value="@x.BranchId">@x.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudText>@Localizer("ToBranch")</MudText>
+                        <MudSelect T="int" Value="hdr.FK_ToBranchId" ValueChanged="OnToBranchChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Disabled="@IsLocked">
+                            @foreach (var x in branches)
+                            {
+                                <MudSelectItem Value="@x.BranchId">@x.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="3">
+                        <MudText>@Localizer("EnteredBy")</MudText>
+                        <MudTextField @bind-Value="hdr.EnteredBy" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense" ReadOnly="false" />
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudText>@Localizer("ReferenceNo")</MudText>
+                        <MudTextField @bind-Value="hdr.ReferenceNo" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense" ReadOnly="@IsLocked" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText>@Localizer("Remarks")</MudText>
+                        <MudTextField @ref="txtRemarks" @bind-Value="hdr.Remarks" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense" ReadOnly="@IsLocked" />
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+            <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+                <MudTabPanel Text="@Localizer("Details")">
+                    <MudGrid Class="pa-2">
+                        <MudItem xs="12">
+                             <MudTextField id="mobile-barcode" AutoFocus=true @bind-Value="transaction.Barcode" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                          Label="@Localizer("Barcode")"
+                                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" OnAdornmentClick="@(() => MobileSearch())"
+                                          OnKeyDown="@(e => OnEnterMethod(e, transaction))" ReadOnly="@IsLocked" />
+                        </MudItem>
+                        <MudItem xs="12">
+                             <MudTextField @bind-Value="transaction.ItemName" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Label="@Localizer("ProductName")" />
+                        </MudItem>
+                         <MudItem xs="6">
+                            <MudSelect T="int" Value="@transaction.FK_FromStoreId" ValueChanged="@((int v) => OnChangeFromStore(v, transaction))"
+                                      Label="@Localizer("FromStore")" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                      Disabled="@IsLocked">
+                                @foreach(var s in stores.Where(x => x.FK_BranchId == hdr.FK_FromBranchId || x.FK_BranchId == null))
+                                {
+                                    <MudSelectItem Value="@s.StoreId">@s.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                         </MudItem>
+
+                         <MudItem xs="6">
+                            <MudSelect T="int" Value="@transaction.FK_ToStoreId" ValueChanged="@((int v) => OnChangeToStore(v, transaction))"
+                                      Label="@Localizer("ToStore")" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                      Disabled="@IsLocked">
+                                @foreach(var s in stores.Where(x => x.FK_BranchId == hdr.FK_ToBranchId || x.FK_BranchId == null))
+                                {
+                                    <MudSelectItem Value="@s.StoreId">@s.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                         </MudItem>
+                        <MudItem xs="12">
+                            <MudSelect T="int" Value="@transaction.FK_UnitId" ValueChanged="@((int v) => OnChangeUnit(v, transaction))"
+                                      Label="@Localizer("Unit")" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                      Disabled="@(PermanentSettingsData.ItemSearchMode == 2 || IsLocked)">
+                                @foreach(var u in unitlist)
+                                {
+                                    <MudSelectItem Value="@u.Id">@u.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.caption" Color="@(transaction.Quantity > transaction.FromBranchCurrentQty ? Color.Error : Color.Default)">
+                                @Localizer("FromQty"): @transaction.FromBranchCurrentQty.ToString(strQuantityFormat) | @Localizer("ToQty"): @transaction.ToBranchCurrentQty.ToString(strQuantityFormat)
+                            </MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                             <MudNumericField id="mobile-qty" @bind-Value="transaction.Quantity" Label="@Localizer("Quantity")" Variant="Variant.Outlined" Format="@strQuantityFormat" Margin="Margin.Dense" 
+                                              OnBlur="@(() => OnBlurQtEvent(transaction))" HideSpinButtons="true" ReadOnly="@IsLocked" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudNumericField @bind-Value="transaction.Rate" Label="@Localizer("Rate")" Variant="Variant.Outlined" Format="@strCurencyFormat" Margin="Margin.Dense" 
+                                             OnBlur="@(() => OnBlurQtEvent(transaction))" HideSpinButtons="true" ReadOnly="@IsLocked" />
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex justify-end mt-2">
+                             <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="@(() => AddLineItem())" Disabled="@IsLocked">Add</MudFab>
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+            </MudHidden>
+        </MudTabs>
+        
+        <MudPaper Class="pa-2 ma-2" Elevation="3">
+             <MudGrid>
+                <MudItem xs="6" sm="3">
+                    <MudText>@Localizer("TotalAmount")</MudText>
+                    <MudText Variant="Text" Margin="Margin.Dense">
+                        <b>@hdr.TotalAmount.ToString(strCurencyFormat)</b>
+                    </MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudText>@Localizer("TotalQty")</MudText>
+                    <MudText Variant="Text" Margin="Margin.Dense">
+                        <b>@TotalQty.ToString(strQuantityFormat)</b>
+                    </MudText>
+                </MudItem>
+             </MudGrid>
+             <MudHidden Breakpoint="Breakpoint.Xs">
+                <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+                    <MudButton Disabled="@(_processing || IsLocked)" Variant="Variant.Filled" StartIcon="@(hdr.MatTransOutId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" Color="Color.Success" OnClick="SaveOrUpdate">
+                        @(hdr.MatTransOutId == 0 ? Localizer("Save") : Localizer("Update"))
+                    </MudButton>
+                    <MudButton Disabled="@(_processing || hdr.MatTransOutId == 0 || IsLocked)" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Error" OnClick="Delete">@Localizer("Cancel")</MudButton>
+                    <MudButton Disabled="@_processing" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+                    <MudButton Disabled="@DisablePrintButton" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Primary" OnClick="PrintMethod">@Localizer("Print")</MudButton>
+                    <MudButton Disabled="@DisablePrintButton" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.DocumentScanner" Color="Color.Warning" OnClick="PrintPreviewMethod">@Localizer("Preview")</MudButton>
+                    <MudButton Disabled="@_processing" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Search" Color="Color.Secondary" OnClick="SearchMethod">@Localizer("Search")</MudButton>
+                </MudStack>
+             </MudHidden>
+
+             <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+                <MudGrid Class="pa-2" Spacing="1">
+                    <MudItem xs="6">
+                        <MudButton FullWidth="true" Disabled="@(_processing || IsLocked)" Variant="Variant.Filled" StartIcon="@(hdr.MatTransOutId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" Color="Color.Success" OnClick="SaveOrUpdate">
+                            @(hdr.MatTransOutId == 0 ? Localizer("Save") : Localizer("Update"))
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton FullWidth="true" Disabled="@_processing" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                         <MudButton FullWidth="true" Disabled="@DisablePrintButton" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Primary" OnClick="PrintMethod">@Localizer("Print")</MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton FullWidth="true" Disabled="@DisablePrintButton" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.DocumentScanner" Color="Color.Warning" OnClick="PrintPreviewMethod">@Localizer("Preview")</MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton FullWidth="true" Disabled="@_processing" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Search" Color="Color.Secondary" OnClick="SearchMethod">@Localizer("Search")</MudButton>
+                    </MudItem>
+                </MudGrid>
+             </MudHidden>
+       </MudPaper>
+
+    </EditForm>
+    @* Desktop Table *@
+    <MudHidden Breakpoint="Breakpoint.Xs">
+        <MudTable Class="ma-2" Elevation="3" Items="@dtls" Hover="true" Striped="true" Dense="true" FixedHeader="true" Height="400PX" OnRowClick="RowClickEvent" T="MaterialTransferOutDtls">
+            <ColGroup>
+                <col style="width: 40px;" />
+                <col style="width: 12%;" />
+                <col style="width: 16%;" />
+                <col style="width: 10%;" />
+                <col style="width: 10%;" />
+                <col style="width: 8%;" />
+                <col style="width: 9%;" />
+                <col style="width: 7%;" />
+                <col style="width: 7%;" />
+                <col style="width: 8%;" />
+                <col style="width: 8%;" />
+                <col style="width: 8%;" />
+                <col style="width: 50px;" />
+            </ColGroup>
+            <HeaderContent>
+                <MudTh>@Localizer("SL")</MudTh>
+                <MudTh>@Localizer("Barcode")</MudTh>
+                <MudTh>@Localizer("ProductName")</MudTh>
+                <MudTh>@Localizer("FromStore")</MudTh>
+                <MudTh>@Localizer("ToStore")</MudTh>
+                <MudTh>@Localizer("Unit")</MudTh>
+                <MudTh>@Localizer("QtyPerUnit")</MudTh>
+                <MudTh>@Localizer("FromQty") <span style="font-size: 10px; color: gray;">(@Localizer("Current"))</span></MudTh>
+                <MudTh>@Localizer("ToQty") <span style="font-size: 10px; color: gray;">(@Localizer("Current"))</span></MudTh>
+                <MudTh>@Localizer("Quantity")</MudTh>
+                <MudTh>@Localizer("Rate")</MudTh>
+                <MudTh>@Localizer("Amount")</MudTh>
+                <MudTh>@Localizer("Action")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="SL"><MudTextField @bind-Value="@context.SL" Disabled="true" Margin="Margin.Dense" /></MudTd>
+                <MudTd DataLabel="Barcode">
+                    <MudTextField AutoFocus=true @ref="textField" Immediate="true" @bind-Value="@context.Barcode" Margin="Margin.Dense"
+                                  Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" OnAdornmentClick="@(() => BarcodeChanged(context.Barcode, context))"
+                                  OnKeyDown="@(e => OnEnterMethod(e, context))" />
+                </MudTd>
+                <MudTd DataLabel="Product Name"><MudTextField Immediate="true" @bind-Value="@context.ItemName" Margin="Margin.Dense" /></MudTd>
+                <MudTd DataLabel="From Store">
+                    <MudSelect T="int" Value="@context.FK_FromStoreId" ValueChanged="@((int v) => OnChangeFromStore(v, context))" Margin="Margin.Dense" Dense="true" Disabled="@IsLocked" Variant="Variant.Outlined">
+                        @foreach (var s in stores.Where(x => x.FK_BranchId == hdr.FK_FromBranchId || x.FK_BranchId == null))
+                        {
+                            <MudSelectItem Value="@s.StoreId">@s.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTd>
+                <MudTd DataLabel="To Store">
+                    <MudSelect T="int" Value="@context.FK_ToStoreId" ValueChanged="@((int v) => OnChangeToStore(v, context))" Margin="Margin.Dense" Dense="true" Disabled="@IsLocked" Variant="Variant.Outlined">
+                        @foreach (var s in stores.Where(x => x.FK_BranchId == hdr.FK_ToBranchId || x.FK_BranchId == null))
+                        {
+                            <MudSelectItem Value="@s.StoreId">@s.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTd>
+                <MudTd DataLabel="Unit">
+                    @if (transaction == context)
+                    {
+                        <MudSelect T="int" Disabled="@(PermanentSettingsData.ItemSearchMode == 2 || IsLocked)" Value="@context.FK_UnitId" ValueChanged="@((int v) => OnChangeUnit(v, context))" Margin="Margin.Dense" Dense="true">
+                            @foreach (var u in unitlist)
+                            {
+                                <MudSelectItem Value="@u.Id">@u.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                    else
+                    {
+                        <MudTextField Value="@context.UnitName" ReadOnly="true" Margin="Margin.Dense" DisableUnderLine="true" />
+                    }
+                </MudTd>
+                <MudTd DataLabel="QtyPerUnit">
+                    <MudNumericField HideSpinButtons="true" Format="@strQuantityFormat" @bind-Value="@context.QtyPerUnit" ReadOnly="true" Margin="Margin.Dense"
+                                     OnBlur="@(() => OnBlurQtyPerUnit(context))" />
+                </MudTd>
+                <MudTd DataLabel="From Qty">
+                    <MudText Typo="Typo.body2" Align="Align.Center"><b>@context.FromBranchCurrentQty.ToString(strQuantityFormat)</b></MudText>
+                </MudTd>
+                <MudTd DataLabel="To Qty">
+                    <MudText Typo="Typo.body2" Align="Align.Center"><b>@context.ToBranchCurrentQty.ToString(strQuantityFormat)</b></MudText>
+                </MudTd>
+                <MudTd DataLabel="Quantity">
+                    <MudNumericField id="@($"qty-{dtls.IndexOf(context)}")" HideSpinButtons="true" Format="@strQuantityFormat" @ref="txtQuantity" @bind-Value="@context.Quantity"
+                                     Validation="@((decimal v) => ValidateQuantity(v, context))"
+                                     Style="@(context.Quantity > context.FromBranchCurrentQty ? "color: red; font-weight: bold;" : "")"
+                                     OnBlur="@(() => OnBlurQtEvent(context))"
+                                     OnKeyDown="@(e => TaskOnEnterMethod(e, 2, context))"
+                                     ReadOnly="@IsLocked"
+                                     Margin="Margin.Dense" />
+                </MudTd>
+                <MudTd DataLabel="Rate">
+                    <MudNumericField id="@($"rate-{dtls.IndexOf(context)}")" HideSpinButtons="true" Format="@strCurencyFormat" @ref="txtRate" @bind-Value="@context.Rate"
+                                     Margin="Margin.Dense" OnBlur="@(() => OnBlurQtEvent(context))" OnKeyDown="@(e => TaskOnEnterMethod(e, 4, context))" ReadOnly="@IsLocked" />
+                </MudTd>
+                <MudTd DataLabel="Amount">
+                    <MudNumericField HideSpinButtons="true" Format="@strCurencyFormat" @bind-Value="@context.Amount" ReadOnly="true" Margin="Margin.Dense" />
+                </MudTd>
+                <MudTd DataLabel="Action">
+                    <MudIconButton Disabled="@IsLocked" OnClick="@(() => DltTransaction(@context))" Color="@Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" />
+                </MudTd>
+            </RowTemplate>
+            <FooterContent>
+                <MudTd ColSpan="12" Class="text-right"></MudTd>
+                <MudTd>
+                    <MudButton Disabled="@IsLocked" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCircle" OnClick="AddNewRow" Size="Size.Small" Style="white-space: nowrap;">
+                        @Localizer("AddRow")
+                    </MudButton>
+                </MudTd>
+            </FooterContent>
+        </MudTable>
+    </MudHidden>
+    @* Mobile View *@
+    <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+        <MudDataGrid Class="ma-2" Elevation="3" T="MaterialTransferOutDtls" Items="@dtls.Where(x => !string.IsNullOrEmpty(x.ItemName))"
+                     Bordered="true" Dense="true" RowClick="@RowClicked">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("ProductList")</MudText>
+                <MudSpacer />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Barcode" Title=@Localizer("Barcode") Sortable="false" />
+                <PropertyColumn Property="x => x.ItemName" Title=@Localizer("Product") />
+                <PropertyColumn Property="x => x.Quantity.ToString(strQuantityFormat)" Title=@Localizer("Qty") Sortable="false" />
+                <PropertyColumn Property="x => x.UnitName" Title=@Localizer("Unit") Sortable="false" />
+                <TemplateColumn Title=@Localizer("Action") CellClass="d-flex justify-end" Sortable="false" Filterable="false">
+                    <CellTemplate Context="cellContext">
+                        <MudIconButton OnClick="@(() => DltTransaction(cellContext.Item))" Color="@Color.Default" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="MaterialTransferOutDtls" PageSizeOptions="new int[] { 25, 100 }" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudHidden>
+</MudPaper>
+
+

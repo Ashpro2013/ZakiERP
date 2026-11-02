@@ -1,0 +1,169 @@
+﻿@page "/category"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+<PageTitle>@Localizer("CategoryMaster")</PageTitle>
+<MudPaper Class="pa-4 ma-2" Elevation="3">
+    <MudStack Spacing="2">
+        <MudStack Row="true">
+            <MudText Typo="Typo.h5">@Localizer("CategoryMaster")</MudText>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+        <EditForm Model="category" OnValidSubmit="SaveOrUpdate">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <!-- Basic Details -->
+            <MudGrid Class="mb-2">
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Code")</MudText>
+                    <MudTextField @bind-Value="category.Code" AutoFocus="true"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  ReadOnly="@(IsAutoCode && category.CategoryId == 0)"
+                                  Adornment="@(IsAutoCode && category.CategoryId == 0 ? Adornment.End : Adornment.None)"
+                                  AdornmentIcon="@Icons.Material.Filled.AutoAwesome"
+                                  AdornmentColor="Color.Info"
+                                   @ref="txtCode" OnKeyDown="@(e => KeyDown(e, 1))"
+                                  />
+                    <ValidationMessage For="@(() => category.Code)" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Name")</MudText>
+                    <MudStack Row>
+                        <MudTextField @bind-Value="category.Name"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" />
+                        <ValidationMessage For="@(() => category.Name)" />
+                        <MudFab StartIcon="@Icons.Material.Rounded.Translate"
+                                Color="Color.Info"
+                                Size="Size.Small"
+                                OnClick="ToArabic" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("ArabicName")</MudText>
+                    <MudTextField @bind-Value="category.NameArabic"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtNameArabic" OnKeyDown="@(e => KeyDown(e, 3))" />
+                </MudItem>
+            </MudGrid>
+            <!-- Remarks + Fixed Asset -->
+            <MudGrid Class="mb-2">
+                <MudItem xs="12" sm="8">
+                    <MudText>@Localizer("Remarks")</MudText>
+                    <MudTextField @bind-Value="category.Remarks"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  TextArea="true"
+                                  Lines="1"
+                                  AutoGrow="true" @ref="txtRemarks" OnKeyDown="@(e => KeyDown(e, 4))" />
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-center mt-5">
+                    <MudCheckBox T="bool"
+                                 Value="category.IsFixedAsset"
+                                 ValueChanged="@(v => category.IsFixedAsset = v)"
+                                 Color="Color.Primary"
+                                 Label="@Localizer("IsFixedAsset")" />
+                </MudItem>
+            </MudGrid>
+            <!-- Image Upload -->
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" sm="4">
+                    <MudText Class="mb-1">@Localizer("CategoryImage")</MudText>
+                    <!-- Upload button -->
+                    <MudFileUpload T="IBrowserFile"
+                                   FilesChanged="UploadCategoryImage"
+                                   Accept=".png,.jpg,.jpeg"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Image"
+                                       Class="mb-2">
+                                @Localizer("UploadImage")
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    @if (!string.IsNullOrWhiteSpace(itemImagePreview))
+                    {
+                        <MudPaper Elevation="3"
+                                  Class="pa-2 mt-1 d-inline-block position-relative"
+                                  Style="display:inline-block; width:150px; border-radius:12px;">
+
+                            <!-- Remove button -->
+                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           Class="position-absolute"
+                                           Style="top:-8px; right:-8px; background:white; border-radius:50%;"
+                                           OnClick="RemoveCategoryImage" />
+                            <!-- Image -->
+                            <img src="@itemImagePreview"
+                                 width="140"
+                                 style="cursor:pointer; border-radius:8px;"
+                                 @onclick="@(() => CrudHelper.ShowImagePopup(Dialog, DialogService, itemImagePreview))" />
+                        </MudPaper>
+                    }
+                </MudItem>
+            </MudGrid>
+            <!-- Buttons -->
+            <MudStack Row="true" Spacing="3" Class="ma-2">
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="@(category.CategoryId == 0 ? Color.Success : Color.Info)"
+                           StartIcon="@(category.CategoryId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)"
+                           Disabled="@_isSaving">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                    }
+                    else
+                    {
+                        @Localizer(category.CategoryId == 0 ? "Save" : "Update")
+                    }
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Delete"
+                           OnClick="Delete">
+                    @Localizer("Delete")
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="NewClick">
+                    @Localizer("New")
+                </MudButton>
+            </MudStack>
+        </EditForm>
+    </MudStack>
+</MudPaper>
+<!-- List Section -->
+<MudPaper Class="ma-2 pa-2" Elevation="3">
+    <MudDataGrid T="CategoryMaster"
+                 @ref="grid"
+                 ServerData="LoadServerData"
+                 RowClick="@RowClicked"
+                 Dense="true"
+                 Bordered="true" SortMode="SortMode.Multiple" Filterable="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("CategoryList")</MudText>
+            <MudSpacer />
+            <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+            <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+            <PropertyColumn Property="x => x.NameArabic" Title="@Localizer("ArabicName")" />
+            <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")"  Sortable="false" Filterable="false"/>
+            <PropertyColumn Property="x => x.IsFixedAsset" Title="@Localizer("IsFixedAsset")" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="CategoryMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

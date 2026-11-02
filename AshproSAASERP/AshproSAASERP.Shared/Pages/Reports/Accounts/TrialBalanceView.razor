@@ -1,0 +1,85 @@
+@page "/trialbalancereport"
+@using AshproSAASERP.Shared.Pages.Component
+@using AshproSAASERP.Shared.SubWindows
+@inject IViewService api;
+@inject Downloader downloader
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService TabService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Trial Balance Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Trial Balance Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Date Range *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+
+            @* Branch *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var branch in branchList)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Show Zero Balance *@
+            <MudItem xs="12" sm="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Checked="ShowZeroBalance" Label="@Localizer("Show Zero Balance")" Color="Color.Primary" />
+            </MudItem>
+
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Success" OnClick="ReportGenerate">@Localizer("Generate")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.TableView" Color="Color.Primary" OnClick="ExcelExportMethod">@Localizer("Excel")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Error" OnClick="PDFExportMethod">@Localizer("PDF")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Warning" OnClick="ClearMethod">@Localizer("Clear")</MudButton>
+        </MudStack>
+    </MudCardActions>
+</MudCard>
+
+@if (reportData.Any())
+{
+@* Result Grid *@
+<MudTable T="TrialBalanceReportDtls" Items="@reportData" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px" Class="ma-2" Elevation="3" OnRowClick="RowClickEvent">
+    <HeaderContent>
+        <MudTh>@Localizer("Code")</MudTh>
+        <MudTh>@Localizer("Name")</MudTh>
+        <MudTh>@Localizer("Opening")</MudTh>
+        <MudTh>@Localizer("Debit")</MudTh>
+        <MudTh>@Localizer("Credit")</MudTh>
+        <MudTh>@Localizer("Balance")</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Code">@(context.AccountCode)</MudTd>
+        <MudTd DataLabel="Name">@context.AccountName</MudTd>
+        <MudTd DataLabel="Opening">@context.Opening</MudTd>
+        <MudTd DataLabel="Debit" Style="color:green">@((context.TransactionDebit == 0) ? "" : PermanentSettingsData.FormatCurrency(context.TransactionDebit))</MudTd>
+        <MudTd DataLabel="Credit" Style="color:red">@((context.TransactionCredit == 0) ? "" : PermanentSettingsData.FormatCurrency(context.TransactionCredit))</MudTd>
+        <MudTd DataLabel="Balance" Style="font-weight:bold">@PermanentSettingsData.FormatCurrency(context.Closing)</MudTd>
+    </RowTemplate>
+
+</MudTable>
+}

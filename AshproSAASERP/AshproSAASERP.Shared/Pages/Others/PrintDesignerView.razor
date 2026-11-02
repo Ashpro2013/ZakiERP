@@ -1,0 +1,405 @@
+@page "/printdesigner"
+@using AshproSAASERP.Models.Enums
+@using AshproSAASERP.Models.Others
+@inject IViewService api;
+@inject IDialogService DialogService;
+@inject ModelService Dialog;
+@inject NavigationManager navManager
+@inject Downloader downloader
+@inject IJSRuntime JS
+@inject TabService TabService
+
+@* Title*@
+<PageTitle>@AppData.OEMAgency | Print Designer</PageTitle>
+@*End Title*@
+<MudPaper Elevation="3" Class="ma-2">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="pa-2 ma-2">
+        <MudText Typo="Typo.h6">Print Designer</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+
+    <MudGrid>
+        <MudItem xs="3" md="3">
+            <MudPaper Class="pa-2" Elevation="3" Height="100%">
+                <MudItem xs="12" sm="12">
+                    <MudSelect Value="hdr.FormType" ValueChanged="OnFormTypeChanged" Label="Design Type" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var item in FormType)
+                        {
+                            <MudSelectItem Value=@item>@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudSelect Value="hdr.VoucherType" ValueChanged="OnChangeVoucherType" Label="Invoice" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @{
+                            var enumType = hdr.FormType == "Invoice" ? typeof(InvoiceTypes) : hdr.FormType == "Report" ? typeof(ReportTypes) : typeof(VoucherTypes);
+                        }
+                        @foreach (var item in Enum.GetValues(enumType))
+                        {
+                            <MudSelectItem Value="@item.ToString()">@item.ToString()!.Replace("_", " ")</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudSelect Value="hdr.PrintType" ValueChanged="OnPrintTypeChanged" Label="Print Type" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var item in PrintType)
+                        {
+                            <MudSelectItem Value=@item>@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudStack Row=true>
+                        <MudTextField T="string" Label="Design Name" @bind-Value="hdr.DesignName" Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        <MudCheckBox @bind-value="@hdr.IsDefault" @bind-Checked="@hdr.IsDefault">Default</MudCheckBox>
+                    </MudStack>
+                </MudItem>
+                <MudGrid>
+                    <MudItem xs="6" sm="6">
+                        <MudTextField Immediate="true" Label="Paper Width" @bind-Value="hdr.PageWidth" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="6" sm="6">
+                        <MudTextField Immediate="true" Label="Paper Height" @bind-Value="hdr.PageHeight" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                </MudGrid>
+                <MudGrid>
+                    <MudItem xs="6" sm="6">
+                        <MudTextField Immediate="true" Label="Space Between Lines" @bind-Value="hdr.SpaceBtwnLines" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="6" sm="6">
+                        <MudTextField Immediate="true" Label="Lines Per Page" @bind-Value="hdr.LinesPerPage" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                </MudGrid>
+                <MudDivider Class="mt-3 mb-3" />
+                <MudItem xs="12" sm="12">
+                    <MudSelect Value="sPosition" ValueChanged="OnPositionChanged" Label="Position" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @{
+                            var enumLabelType = hdr.FormType == "Invoice" ? typeof(InvoiceLabelPosition) : typeof(ReportLabelPosition);
+                        }
+                        @foreach (var item in Enum.GetValues(enumLabelType))
+                        {
+                            <MudSelectItem Value=@item.ToString()>@item.ToString()!.Replace('_', ' ')</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudSelect Value="sControleType" ValueChanged="OnControlTypeChanged" Label="Type" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var item in ControlTypeList)
+                        {
+                            <MudSelectItem Value=@item>@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudStack Row=true>
+                        @if (sControleType == "ValueControl")
+                        {
+                            <MudSelect Value="sControl" ValueChanged="OnValueChanged" Label="Field" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                                @if (listControl.Any())
+                                {
+                                    @foreach (var item in listControl)
+                                    {
+                                        <MudSelectItem Value=@item>@item</MudSelectItem>
+                                    }
+                                }
+                            </MudSelect>
+                        }
+                        else
+                        {
+                            <MudTextField T="string" Label="Field" @bind-Value="sControl" Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        }
+                        <MudFab Color="Color.Info" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="AddControl" />
+                    </MudStack>
+                </MudItem>
+                <MudDivider Class="mt-3 mb-3" />
+                <MudStack Row="true" Spacing="2" Class="ma-2">
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" OnClick="SaveOrUpdate">Save</MudButton>
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">Delete</MudButton>
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">New</MudButton>
+                    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Visibility" Color="Color.Primary" OnClick="PreviewDesign" Disabled="@isLoadingPreview">Preview</MudButton>
+                </MudStack>
+                <MudDivider Class="mt-3 mb-3" />
+                <MudStack Row="true" Spacing="3" Class="ma-2">
+                    <MudFileUpload T="IBrowserFile"
+                                   FilesChanged="UploadFiles"
+                                   Accept=".json"
+                                   Hidden="true">
+                        <ActivatorContent>
+                            <MudFab Color="Color.Primary"
+                                    StartIcon="@Icons.Material.Filled.Upload"
+                                    Label="Import" />
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    <MudFab StartIcon="@Icons.Material.Filled.ImportExport"
+                            Color="Color.Warning"
+                            OnClick="DownloadJson"
+                            Label="Export" />
+                    <MudFab StartIcon="@Icons.Material.Filled.Search"
+                            Color="Color.Error"
+                            OnClick="SearchDesign"
+                            Label="Search" />
+                </MudStack>
+                <MudDivider Class="mt-3 mb-3" />
+                <MudDataGrid Elevation="3" T="PrintDesignDtls" Items="@Controls" SortMode="SortMode.Multiple" Bordered="true" Dense="true" Filterable="true" Height="300px" RowClick="@RowClicked">
+                    <ToolBarContent>
+                        <MudTextField @bind-Value="_searchString" Placeholder="Search Control" Adornment="Adornment.Start" Immediate="true"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Property="x => x.ControlName" Title="Control" HeaderStyle="background-color:dodgerblue;color:white;font-weight:bold" />
+                        <PropertyColumn Property="x => x.FieldText" Title="Text" HeaderStyle="background-color:dodgerblue;color:white;font-weight:bold" />
+                        <PropertyColumn Property="x => x.Location" Title="Position" HeaderStyle="background-color:dodgerblue;color:white;font-weight:bold" />
+                        <PropertyColumn Property="x => x.ControlType" Title="Type" HeaderStyle="background-color:dodgerblue;color:white;font-weight:bold" />
+                        <TemplateColumn CellClass="d-flex justify-end" Title="Delete" Sortable="false" Filterable="false" HeaderStyle="background-color:dodgerblue;color:white;font-weight:bold">
+                            <CellTemplate>
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" OnClick="() => DeleteItem(context.Item)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                </MudDataGrid>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="7" md="7">
+            <MudTabs @bind-ActivePanelIndex="activeTabIndex" Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-2">
+                <MudTabPanel Text="Design Canvas" Icon="@Icons.Material.Filled.DesignServices">
+                    @* Canvas Toolbar *@
+                    <div class="d-flex align-center justify-space-between flex-wrap gap-2 mb-2 px-2 py-1" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px;">
+                        <div class="d-flex align-center gap-2">
+                            <MudChip T="string" Size="Size.Small" Color="@(SelectedControls.Count > 0 ? Color.Primary : Color.Default)" Variant="Variant.Filled">
+                                @(SelectedControls.Count > 0 ? $"{SelectedControls.Count} Items Selected" : (dtls != null && Controls.Contains(dtls) ? "1 Item Selected" : "No Selection"))
+                            </MudChip>
+
+                            <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Primary" StartIcon="@Icons.Material.Filled.SelectAll" OnClick="SelectAll" Title="Select All (Ctrl+A)">
+                                Select All
+                            </MudButton>
+
+                            @if (SelectedControls.Count > 0)
+                            {
+                                <MudButton Variant="Variant.Outlined" Size="Size.Small" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Deselect" OnClick="ClearSelection" Title="Clear Selection (Esc)">
+                                    Clear
+                                </MudButton>
+                            }
+                        </div>
+
+                        @* Arrow Nudge Controls *@
+                        <div class="d-flex align-center gap-1">
+                            <MudText Typo="Typo.caption" Style="font-weight:600; color:#64748b;" Class="mr-1">Nudge (@nudgeStep px):</MudText>
+                            
+                            <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined">
+                                <MudButton Variant="@(nudgeStep == 1 ? Variant.Filled : Variant.Outlined)" Color="Color.Primary" OnClick="@(() => nudgeStep = 1)">1px</MudButton>
+                                <MudButton Variant="@(nudgeStep == 5 ? Variant.Filled : Variant.Outlined)" Color="Color.Primary" OnClick="@(() => nudgeStep = 5)">5px</MudButton>
+                                <MudButton Variant="@(nudgeStep == 10 ? Variant.Filled : Variant.Outlined)" Color="Color.Primary" OnClick="@(() => nudgeStep = 10)">10px</MudButton>
+                            </MudButtonGroup>
+
+                            <MudTooltip Text="Move Left (Key Previous / ArrowLeft)">
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" OnClick="@(() => MoveSelected(-nudgeStep, 0))" />
+                            </MudTooltip>
+                            <MudTooltip Text="Move Up (KeyUp / ArrowUp)">
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" OnClick="@(() => MoveSelected(0, -nudgeStep))" />
+                            </MudTooltip>
+                            <MudTooltip Text="Move Down (KeyDown / ArrowDown)">
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" OnClick="@(() => MoveSelected(0, nudgeStep))" />
+                            </MudTooltip>
+                            <MudTooltip Text="Move Right (Key Next / ArrowRight)">
+                                <MudIconButton Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" OnClick="@(() => MoveSelected(nudgeStep, 0))" />
+                            </MudTooltip>
+                        </div>
+
+                        @* Alignment Tools (when multiple items selected) *@
+                        @if (SelectedControls.Count > 1)
+                        {
+                            <div class="d-flex align-center gap-1">
+                                <MudTooltip Text="Align Left">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AlignHorizontalLeft" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" OnClick="AlignLeft" />
+                                </MudTooltip>
+                                <MudTooltip Text="Align Right">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AlignHorizontalRight" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" OnClick="AlignRight" />
+                                </MudTooltip>
+                                <MudTooltip Text="Align Top">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AlignVerticalTop" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" OnClick="AlignTop" />
+                                </MudTooltip>
+                                <MudTooltip Text="Align Bottom">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AlignVerticalBottom" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" OnClick="AlignBottom" />
+                                </MudTooltip>
+                            </div>
+                        }
+                    </div>
+
+                    <div tabindex="0"
+                         @onkeydown="HandleKeyDown"
+                         style="overflow:auto; max-height:calc(100vh - 250px); padding:10px; background-color:#f5f5f5; border-radius:6px; display:flex; justify-content:center; outline:none;">
+                        <MudPaper Style="@GetCanvasStyle()"
+                                  @onclick="OnCanvasClick"
+                                  @onmousedown="OnCanvasMouseDown"
+                                  @onmousemove="OnCanvasMouseMove"
+                                  @onmouseup="OnCanvasMouseUp">
+                            @foreach (var c in Controls)
+                            {
+                                bool isSelected = SelectedControls.Contains(c) || (SelectedControls.Count == 0 && dtls == c);
+                                @if (c.ControlType == "Image" || c.ControlType == "QRCode" || c.ControlType == "Barcode")
+                                {
+                                    <div @onmousedown="(e) => StartDrag(e, c)"
+                                         @onmousedown:stopPropagation="true"
+                                         @onclick="(e) => SelectControl(e, c)"
+                                         @onclick:stopPropagation="true"
+                                         style="
+                                            position:absolute;
+                                            left:@($"{c.PositionX}px");
+                                            top:@($"{c.PositionY}px");
+                                            width:@($"{c.Width}px");
+                                            height:@($"{c.Height}px");
+                                            border:@(isSelected ? "2px solid #2563eb" : "2px solid black");
+                                            outline:@(isSelected ? "1px solid #2563eb" : "none");
+                                            box-shadow:@(isSelected ? "0 0 0 2px rgba(37, 99, 235, 0.25)" : "none");
+                                            cursor:move;
+                                            user-select:none;">
+                                        <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:11px; background:@(isSelected ? "#dbeafe" : "#e2e8f0"); color:#334155; font-weight:bold;">
+                                            @c.ControlType
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div @onmousedown="(e) => StartDrag(e, c)"
+                                         @onmousedown:stopPropagation="true"
+                                         @onclick="(e) => SelectControl(e, c)"
+                                         @onclick:stopPropagation="true"
+                                         style="@GetStyle(c)">
+                                        @c.FieldText
+                                    </div>
+                                }
+                            }
+
+                            @if (isMarqueeSelecting)
+                            {
+                                var mLeft = Math.Min(marqueeStartX, marqueeCurrentX);
+                                var mTop = Math.Min(marqueeStartY, marqueeCurrentY);
+                                var mWidth = Math.Abs(marqueeCurrentX - marqueeStartX);
+                                var mHeight = Math.Abs(marqueeCurrentY - marqueeStartY);
+
+                                <div style="position:absolute; left:@($"{mLeft}px"); top:@($"{mTop}px"); width:@($"{mWidth}px"); height:@($"{mHeight}px"); border:1.5px dashed #2563eb; background-color:rgba(37,99,235,0.12); pointer-events:none; z-index:9999;"></div>
+                            }
+                        </MudPaper>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="PDF Preview" Icon="@Icons.Material.Filled.PictureAsPdf">
+                    <MudPaper Elevation="0" Style="height:calc(100vh - 210px); display:flex; flex-direction:column; padding:8px;">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh" OnClick="PreviewDesign" Disabled="@isLoadingPreview">
+                                Refresh Preview
+                            </MudButton>
+                            @if (pdfData is not null)
+                            {
+                                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.OpenInNew" OnClick="OpenPreviewDialog">
+                                    Pop-out Window
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Success" StartIcon="@Icons.Material.Filled.Download" OnClick="DownloadPreviewPdf">
+                                    Download PDF
+                                </MudButton>
+                            }
+                            <MudSpacer />
+                            <MudChip T="string" Color="@(hdr.PrintType == "Thermal" ? Color.Warning : Color.Info)" Size="Size.Small" Variant="Variant.Filled">
+                                @(hdr.PrintType == "Thermal" ? "Thermal (80mm Receipt)" : "A4 Standard Invoice")
+                            </MudChip>
+                        </MudStack>
+
+                        @if (isLoadingPreview)
+                        {
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex-grow:1;">
+                                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                                <MudText Typo="Typo.body1" Class="mt-3">Generating PDF preview with sample data...</MudText>
+                            </div>
+                        }
+                        else if (pdfData is not null)
+                        {
+                            <embed src="@($"data:application/pdf;base64,{Convert.ToBase64String(pdfData)}")"
+                                   type="application/pdf"
+                                   style="width: 100%; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px;" />
+                        }
+                        else
+                        {
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex-grow:1; color:#888;">
+                                <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Style="font-size: 64px;" Class="mb-2" />
+                                <MudText Typo="Typo.h6">No Preview Generated Yet</MudText>
+                                <MudText Typo="Typo.body2" Class="mb-4">Click "Preview" to render the invoice with realistic sample data.</MudText>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="PreviewDesign">
+                                    Generate Preview Now
+                                </MudButton>
+                            </div>
+                        }
+                    </MudPaper>
+                </MudTabPanel>
+            </MudTabs>
+        </MudItem>
+        <MudItem xs="2" md="2">
+            <MudPaper Class="pa-2" Elevation="3" Height="100%">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <MudFab StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteItem())" Title="Delete Selected" />
+                    @if (SelectedControls.Count > 1)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
+                            @SelectedControls.Count selected
+                        </MudChip>
+                    }
+                </div>
+                <MudItem xs="12" sm="12">
+                    <MudTextField ReadOnly="true" Label="Field" @bind-Value="dtls.ControlName" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudTextField Immediate="true" Label="Text" @bind-Value="dtls.FieldText" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudTextField Immediate="true" Label="Type" @bind-Value="dtls.ControlType" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudTextField Immediate="true" Label="Location" @bind-Value="dtls.Location" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudNumericField T="int" Label="X" TextChanged="OnDtlsChanged" Immediate="true" @bind-Value="dtls.PositionX" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudNumericField T="int" Label="Y" TextChanged="OnDtlsChanged" Immediate="true" @bind-Value="dtls.PositionY" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudNumericField T="int" Label="Width" Immediate="true" TextChanged="OnDtlsChanged" @bind-Value="dtls.Width" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudNumericField T="int" Label="Height" Immediate="true" TextChanged="OnDtlsChanged" @bind-Value="dtls.Height" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudSelect @bind-Value="dtls.Alignment" Label="Alignment" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var item in AlignmentList)
+                        {
+                            <MudSelectItem Value=@item>@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudTextField Immediate="true" Label="Spec" @bind-Value="dtls.Spec" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudStack Row="true">
+                        <MudTextField Immediate="true" Label="Font Size" @bind-Value="dtls.FontSize" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        <MudItem xs="6">
+                            <MudSelect @bind-Value="dtls.FStyle" Label="Font Style" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                                @foreach (var item in FontStyle)
+                                {
+                                    <MudSelectItem Value="@item">@item</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" sm="12">
+                    <MudSelect @bind-Value="dtls.Font" Label="Font" T="string" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var item in FontFamilies)
+                        {
+                            <MudSelectItem Value=@item>@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudPaper>

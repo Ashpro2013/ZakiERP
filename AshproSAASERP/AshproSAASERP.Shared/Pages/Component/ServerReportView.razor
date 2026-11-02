@@ -1,0 +1,11 @@
+@if (!string.IsNullOrEmpty(sReportURL))
+{
+    <object data="@sReportURL
+     " type="application/pdf" width="100%" height="1200px">
+        <embed src="@sReportURL" type="application/pdf" />
+    </object>
+}
+@code {
+    [Parameter]
+    public string sReportURL { get; set; }
+}

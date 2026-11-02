@@ -1,0 +1,26 @@
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudText Typo="Typo.body1">@ContentText</MudText>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton OnClick="Discard" Color="Color.Error" Variant="Variant.Text">Discard Changes</MudButton>
+        <MudButton OnClick="SaveAndClose" Color="Color.Success" Variant="Variant.Filled">Save & Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public string ContentText { get; set; } = "You have unsaved changes. What would you like to do?";
+
+    private void Cancel() => MudDialog.Cancel();
+    
+    private void Discard() => MudDialog.Close(DialogResult.Ok("discard"));
+    
+    private void SaveAndClose() => MudDialog.Close(DialogResult.Ok("save"));
+}

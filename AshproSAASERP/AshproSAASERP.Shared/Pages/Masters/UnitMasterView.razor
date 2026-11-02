@@ -1,0 +1,73 @@
+﻿@page "/unit"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject TabService TabService
+<PageTitle>Product Unit</PageTitle>
+
+<MudContainer Class="mb-16 mt-4">
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("UnitTitle")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+    <EditForm Model="unitMaster" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Code")</MudText>
+                <MudTextField @ref="txtCode" AutoFocus="true" @bind-Value="unitMaster.Code" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" />
+                <ValidationMessage For="@(() => unitMaster.Code)" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Name")</MudText>
+                <MudStack Row>
+                    <MudTextField @bind-Value="unitMaster.Name" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" />
+                    <ValidationMessage For="@(() => unitMaster.Name)" />
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Remarks")</MudText>
+                <MudTextField @bind-Value="unitMaster.Remarks" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtRemarks" OnKeyDown="@(e => KeyDown(e, 3))" />
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       StartIcon="@(unitMaster.UnitId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)"
+                       Color="@(unitMaster.UnitId == 0 ? Color.Success : Color.Info)"
+                       Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @Localizer(unitMaster.UnitId == 0 ? "Save" : "Update")
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+    <MudDataGrid Class="ma-2" @ref="grid" T="UnitMaster" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" RowClick="@RowClicked">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("UnitList")</MudText>
+            <MudSpacer />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Code" Title=@Localizer("Code") />
+            <PropertyColumn Property="x => x.Name" Title=@Localizer("Name") />
+            <PropertyColumn Property="x => x.Remarks" Title=@Localizer("Remarks") />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="UnitMaster" PageSizeOptions="new int[] { 5, 10 }" />
+        </PagerContent>
+    </MudDataGrid>
+
+</MudPaper>
+</MudContainer>
+

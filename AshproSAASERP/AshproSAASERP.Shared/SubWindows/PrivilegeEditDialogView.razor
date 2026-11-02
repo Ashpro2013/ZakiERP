@@ -1,0 +1,18 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudCheckBox @bind-value="@privilegeDtl.Visible" @bind-Checked="@privilegeDtl.Visible">Visible</MudCheckBox>
+        <MudCheckBox @bind-value="@privilegeDtl.SaveData" @bind-Checked="@privilegeDtl.SaveData">Save</MudCheckBox>
+        <MudCheckBox @bind-value="@privilegeDtl.EditData" @bind-Checked="@privilegeDtl.EditData">Edit</MudCheckBox>
+        <MudCheckBox @bind-value="@privilegeDtl.DeleteData" @bind-Checked="@privilegeDtl.DeleteData">Delete</MudCheckBox>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public ExUserPrivilege privilegeDtl { get; set; }
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

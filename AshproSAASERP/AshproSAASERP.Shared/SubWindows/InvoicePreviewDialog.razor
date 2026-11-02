@@ -1,0 +1,19 @@
+<MudDialog>
+    <DialogContent>
+
+        @if (pdfData is not null)
+        {
+            <embed src="@($"data:application/pdf;base64,{Convert.ToBase64String(pdfData)}")" type="application/pdf" width="100%" height="600px" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public byte[] pdfData { get; set; }
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+}

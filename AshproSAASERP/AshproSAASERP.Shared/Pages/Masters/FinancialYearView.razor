@@ -1,0 +1,75 @@
+﻿@page "/financialyear"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>@Localizer("FinancilaYearTitle")</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("FinancilaYearTitle")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+    <EditForm Model="finYear" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("Code")</MudText>
+                <MudNumericField @ref="txtCode" AutoFocus="true" @bind-Value="finYear!.RefNo" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => finYear.RefNo)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("Name")</MudText>
+                <MudDatePicker Date="@_selectedYearDate" DateChanged="OnYearChanged" OpenTo="OpenTo.Year" FixDay="1" FixMonth="1" DateFormat="yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => finYear.Name)" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="finYear!.FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => finYear.FromDate)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="finYear!.ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => finYear.ToDate)" />
+                <MudCheckBox @bind-value="finYear.IsClosed" Label="@Localizer("Closed")" />
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@(finYear.FinancialYearId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" Color="@(finYear.FinancialYearId == 0 ? Color.Success : Color.Info)" Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @Localizer(finYear.FinancialYearId == 0 ? "Save" : "Update")
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+</MudPaper>
+<MudDataGrid Class="ma-2" Elevation="3" T="FinancialYear" @ref="grid" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" RowClick="@RowClicked">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Localizer("FYearList")</MudText>
+        <MudSpacer />
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.RefNo" Title=@Localizer("Code") />
+        <PropertyColumn Property="x => x.Name" Title=@Localizer("Name") />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="FinancialYear" PageSizeOptions="new int[] { 5, 10 }" />
+    </PagerContent>
+</MudDataGrid>
+
+

@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>7.0.9466</ProductVersion>
+    <SchemaVersion>1.0</SchemaVersion>
+    <ProjectGuid>{18EB27A3-351B-46A8-9066-7FD2142156A3}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon />
+    <AssemblyKeyContainerName />
+    <AssemblyName>ZatcaIntegrationSDK</AssemblyName>
+    <AssemblyOriginatorKeyFile />
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <OutputType>Library</OutputType>
+    <RootNamespace>ZatcaIntegrationSDK</RootNamespace>
+    <StartupObject />
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>0.0</OldToolsVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile />
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile />
+    <DebugSymbols>true</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>false</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>full</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    <ConfigurationOverrideFile />
+    <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile />
+    <DebugSymbols>false</DebugSymbols>
+    <FileAlignment>4096</FileAlignment>
+    <Optimize>true</Optimize>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <RemoveIntegerChecks>false</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <DebugType>none</DebugType>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <BaseAddress>285212672</BaseAddress>
+    <FileAlignment>4096</FileAlignment>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <BaseAddress>285212672</BaseAddress>
+    <Optimize>true</Optimize>
+    <FileAlignment>4096</FileAlignment>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Core, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Text, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\IKVM.OpenJDK.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Util, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\IKVM.OpenJDK.Util.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.XML.API, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\IKVM.OpenJDK.XML.API.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.Runtime, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\IKVM.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.3, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp.pdfa, Version=5.5.13.3, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\itextsharp.pdfa.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="saxon-he-10.8, Version=10.8.0.0, Culture=neutral, PublicKeyToken=e1fdd002d5083fe6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\saxon-he-10.8.dll</HintPath>
+    </Reference>
+    <Reference Include="saxon-he-api-10.8, Version=10.8.0.0, Culture=neutral, PublicKeyToken=e1fdd002d5083fe6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\saxon-he-api-10.8.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.Data">
+      <Name>System.Data</Name>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.XML">
+      <Name>System.XML</Name>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AccountingCustomerParty.cs" />
+    <Compile Include="AccountingSupplierParty.cs" />
+    <Compile Include="AdditionalDocumentReference.cs" />
+    <Compile Include="AllowanceCharge.cs" />
+    <Compile Include="GeneralLogic\SchematronResult.cs" />
+    <Compile Include="HelperContracts\ExtensionsMethods.cs" />
+    <Compile Include="IInvoiceDocumentReferenceCollection.cs" />
+    <Compile Include="InvoiceDocumentReference.cs" />
+    <Compile Include="BLL\CSIDGenerator.cs" />
+    <Compile Include="BLL\ECKeyPairGenerator.cs" />
+    <Compile Include="BLL\ErrorMessageHelper.cs" />
+    <Compile Include="APIHelper\GlobalVariables.cs" />
+    <Compile Include="AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BillingReference.cs" />
+    <Compile Include="BLL\ApiRequestLogic.cs" />
+    <Compile Include="BLL\EInvoiceSigningLogic.cs" />
+    <Compile Include="BLL\EInvoiceValidator.cs" />
+    <Compile Include="BLL\HashingValidator.cs" />
+    <Compile Include="BLL\QRValidator.cs" />
+    <Compile Include="ClassifiedTaxCategory.cs" />
+    <Compile Include="ContractDocumentReference.cs" />
+    <Compile Include="Country.cs" />
+    <Compile Include="CSIDInfo.cs" />
+    <Compile Include="Delivery.cs" />
+    <Compile Include="DocumentReference.cs" />
+    <Compile Include="GeneralLogic\IResultCollection.cs" />
+    <Compile Include="GeneralLogic\PDFA3Result.cs" />
+    <Compile Include="GeneralLogic\Result.cs" />
+    <Compile Include="GeneralLogic\SettingsParams.cs" />
+    <Compile Include="GeneralLogic\Utility.cs" />
+    <Compile Include="GeneralLogic\ZatcaErrorMessage.cs" />
+    <Compile Include="HelperContracts\CertificateRenewalRequest.cs" />
+    <Compile Include="HelperContracts\CertificateRequest.cs" />
+    <Compile Include="HelperContracts\CertificateResponse.cs" />
+    <Compile Include="HelperContracts\CertificatesErrorsResponse.cs" />
+    <Compile Include="HelperContracts\ClearedInvoiceResultModel.cs" />
+    <Compile Include="HelperContracts\ComplianceCsrResponse.cs" />
+    <Compile Include="HelperContracts\CSIDRequest.cs" />
+    <Compile Include="HelperContracts\CSRRequest.cs" />
+    <Compile Include="HelperContracts\ErrorModel.cs" />
+    <Compile Include="HelperContracts\InfoModel.cs" />
+    <Compile Include="HelperContracts\InvoiceClearanceResponse.cs" />
+    <Compile Include="HelperContracts\InvoiceReportingResponse.cs" />
+    <Compile Include="HelperContracts\InvoiceReportingRequest.cs" />
+    <Compile Include="HelperContracts\ValidationResults.cs" />
+    <Compile Include="HelperContracts\InvoiceRequest.cs" />
+    <Compile Include="HelperContracts\InvoiceResultModel.cs" />
+    <Compile Include="HelperContracts\WarningModel.cs" />
+    <Compile Include="IAllowanceChargeCollection.cs" />
+    <Compile Include="IPaymentMeansCollection.cs" />
+    <Compile Include="IDocumentReferenceCollection.cs" />
+    <Compile Include="IInvoiceLineCollection.cs" />
+    <Compile Include="Invoice.cs" />
+    <Compile Include="InvoiceLine.cs" />
+    <Compile Include="InvoiceTypeCode.cs" />
+    <Compile Include="ITaxSubtotalCollection.cs" />
+    <Compile Include="Item.cs" />
+    <Compile Include="InvoiceTotal.cs" />
+    <Compile Include="LegalMonetaryTotal.cs" />
+    <Compile Include="OrderReference.cs" />
+    <Compile Include="PartyIdentification.cs" />
+    <Compile Include="PartyLegalEntity.cs" />
+    <Compile Include="PartyTaxScheme.cs" />
+    <Compile Include="PayeeFinancialAccount.cs" />
+    <Compile Include="PaymentMeans.cs" />
+    <Compile Include="Contact.cs" />
+    <Compile Include="PostalAddress.cs" />
+    <Compile Include="Price.cs" />
+    <Compile Include="TaxCategory.cs" />
+    <Compile Include="TaxScheme.cs" />
+    <Compile Include="TaxSubtotal.cs" />
+    <Compile Include="TaxTotal.cs" />
+    <Compile Include="UBLXML.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="XMLPDF.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\xsd\common\CCTS_CCT_SchemaModule-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-CommonAggregateComponents-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-CommonBasicComponents-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-CommonExtensionComponents-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-CommonSignatureComponents-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-CoreComponentParameters-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-ExtensionContentDataType-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-QualifiedDataTypes-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-SignatureAggregateComponents-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-SignatureBasicComponents-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-UnqualifiedDataTypes-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-XAdESv132-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-XAdESv141-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\common\UBL-xmldsig-core-schema-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\xsd\maindoc\UBL-Invoice-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <EmbeddedResource Include="Data\UBL-Invoice-2.1.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Data\addQRElement.xsl" />
+    <EmbeddedResource Include="Data\addSignatureElement.xsl" />
+    <EmbeddedResource Include="Data\addUBLElement.xsl" />
+    <EmbeddedResource Include="Data\CEN-EN16931-UBL.xsl">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\invoice.xsl">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Data\qr.xml" />
+    <EmbeddedResource Include="Data\removeElements.xsl" />
+    <EmbeddedResource Include="Data\signature.xml" />
+    <EmbeddedResource Include="Data\ubl.xml" />
+    <EmbeddedResource Include="Data\ZATCA_Validation_Rules.xsl">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent />
+    <PostBuildEvent />
+  </PropertyGroup>
+</Project>

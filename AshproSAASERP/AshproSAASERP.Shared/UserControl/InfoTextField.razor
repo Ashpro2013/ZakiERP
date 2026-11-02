@@ -1,0 +1,80 @@
+@typeparam T
+@inject IJSRuntime JSRuntime
+
+<MudTextField T="T"
+              @ref="_inputRef"
+              Margin="@Margin"
+              Value="@Value"
+              ValueChanged="OnValueChanged"
+              @attributes="AdditionalAttributes"
+              Label="@Label"
+              Variant="@Variant"
+              Immediate="@Immediate"
+              Class="@Class"
+              TabIndex="@TabIndex"
+              Required="@Required"
+              @onkeydown="HandleKeyDown" />
+@code {
+    private MudTextField<T>? _inputRef;
+
+    [Parameter] public T? Value { get; set; }
+    [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    [Parameter] public bool Immediate { get; set; } = true;
+    [Parameter] public int TabIndex { get; set; }
+    [Parameter] public bool Required { get; set; } = false;
+    [Parameter] public bool ExAutoNext { get; set; } = false;
+    [Parameter] public bool AutoFocus { get; set; } = false;
+    [Parameter] public Margin Margin { get; set; } = Margin.None;
+    [Parameter] public EventCallback<KeyboardEventArgs> OnEnter { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    private bool _firstRender = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (AutoFocus)
+                await FocusAsync();
+        }
+    }
+
+    private async Task OnValueChanged(T newValue)
+    {
+        Value = newValue;
+        if (ValueChanged.HasDelegate)
+            await ValueChanged.InvokeAsync(newValue);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Code == "ArrowDown")
+        {
+            if (OnEnter.HasDelegate)
+            {
+                await OnEnter.InvokeAsync(e);
+            }
+            else if (ExAutoNext)
+            {
+                await JSRuntime.InvokeVoidAsync("Ash.focusNext");
+            }
+        }
+    }
+
+    // ? FIXED: always return Task
+    public Task FocusAsync()
+    {
+        return _inputRef is not null ? _inputRef.FocusAsync().AsTask() : Task.CompletedTask;
+    }
+
+    public Task SelectAsync()
+    {
+        return _inputRef is not null ? _inputRef.SelectAsync().AsTask() : Task.CompletedTask;
+    }
+
+}

@@ -1,0 +1,57 @@
+@page "/datewiseprofitreport"
+@inject IViewService api
+@inject ModelService Dialog
+@inject Downloader downloader
+@inject IJSRuntime JS
+@inject TabService TabService
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Date Wise Profit Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="req.FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="req.ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="req.BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="0">@Localizer("All")</MudSelectItem>
+                    @foreach (var branch in branches)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Description</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudGrid Class="ma-2">
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Success" OnClick="ReportGenerate">@Localizer("Generate")</MudButton>
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.TableView" Color="Color.Primary" OnClick="ExcelExportMethod">@Localizer("Excel")</MudButton>
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Error" OnClick="PDFExportMethod">@Localizer("PDF")</MudButton>
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Warning" OnClick="ClearMethod">@Localizer("Clear")</MudButton>
+        </MudGrid>
+    </MudCardActions>
+</MudCard>
+
+@if (pdfData is not null)
+{
+    <ReportView pdfData="@pdfData" />
+}
+@if (IsLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}

@@ -1,0 +1,33 @@
+<MudDialog>
+    <DialogContent>
+        <DynamicComponent Type="@ComponentType"
+                          Parameters="@ComponentParameters" />
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">
+            @Localizer("Close")
+        </MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">
+            @Localizer("Ok")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public Type ComponentType { get; set; }
+
+    private Dictionary<string, object?> ComponentParameters =>
+        new()
+        {
+            { "IsDialog", true }
+        };
+
+    void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(AppData.PassingValue));
+    }
+
+    void CloseDialog() => MudDialog.Cancel();
+}

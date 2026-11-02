@@ -1,0 +1,95 @@
+﻿@page "/vat"
+@inject IViewService api
+@inject IDialogService DialogService
+@inject ModelService Dialog
+@inject TabService TabService
+@inject ISnackbar snackbar
+
+<PageTitle>VAT Master</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("VatMaster")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+
+    <EditForm Model="vatMaster" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+     <MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudText>@Localizer("Code")</MudText>
+        <MudTextField @ref="txtCode" AutoFocus="true" @bind-Value="vatMaster.Code"
+                      Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" />
+        <ValidationMessage For="@(() => vatMaster.Code)" />
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+        <MudText>@Localizer("Name")</MudText>
+        <MudTextField @bind-Value="vatMaster.Name" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" />
+        <ValidationMessage For="@(() => vatMaster.Name)" />
+    </MudItem>
+</MudGrid>
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudText>@Localizer("Percentage")</MudText>
+        <MudNumericField @bind-Value="vatMaster.Percentage" Format="N2" Variant="Variant.Outlined"
+                         Margin="Margin.Dense" DecimalPlaces="2" @ref="numPercentage" OnKeyDown="@(e => KeyDown(e, 3))" />
+        <ValidationMessage For="@(() => vatMaster.Percentage)" />
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+                <MudText>@Localizer("DefaultVAT")</MudText>
+                <MudSwitch @bind-Value="vatMaster.IsDefault" Color="Color.Primary" Label="@Localizer("SetDefaultVAT")" />
+    </MudItem>
+</MudGrid>
+
+
+        <MudStack Row="true" Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@(vatMaster.VatId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" Color="@(vatMaster.VatId == 0 ? Color.Success : Color.Info)" Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @Localizer(vatMaster.VatId == 0 ? "Save" : "Update")
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+</MudPaper>
+
+<MudPaper Class="ma-2 pa-2" Elevation="3">
+    <MudDataGrid T="VatMaster"
+                 ServerData="LoadServerData"
+                 RowClick="@RowClicked"
+                 Dense="true"
+                 Bordered="true" SortMode="SortMode.Multiple" Filterable="true">
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("VatList")</MudText>
+            <MudSpacer />
+        </ToolBarContent>
+
+        <Columns>
+            <PropertyColumn Property="x => x.Code" Title=@Localizer("Code") />
+            <PropertyColumn Property="x => x.Name" Title=@Localizer("Name") />
+            <PropertyColumn Property="x => x.Percentage" Format="N2" Title=@Localizer("Percentage") />
+            <PropertyColumn Property="x => x.IsDefault" Title=@Localizer("Default") />
+        </Columns>
+            
+        <PagerContent>
+            <MudDataGridPager T="VatMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
+        </PagerContent>
+
+    </MudDataGrid>
+
+</MudPaper>
+

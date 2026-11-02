@@ -1,0 +1,788 @@
+@namespace AshproSAASERP.Shared.SubWindows
+@using MudBlazor
+@using AshproSAASERP.Models.Settings
+@using AshproSAASERP.Shared.Services
+@inject ISnackbar Snackbar
+
+<MudDialog Class="pos-settings-dialog-root" DefaultFocus="DefaultFocus.None">
+    <TitleContent>
+        <div class="d-flex align-center gap-3">
+            <div class="pos-settings-badge">
+                <MudIcon Icon="@Icons.Material.Filled.PointOfSale" Size="Size.Medium" Style="color: #2563eb;" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 700; color: #0f172a; letter-spacing: -0.3px;">
+                    POS Display &amp; Layout Settings
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color: #64748b;">
+                    Configure table columns, button dimensions, panel sizing, and touch interface preferences (saved locally)
+                </MudText>
+            </div>
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+        <MudTabs Rounded="true"
+                 Border="true"
+                 ApplyEffectsToContainer="true"
+                 Class="pos-settings-tabs"
+                 Color="Color.Primary"
+                 Elevation="0"
+                 PanelClass="pa-3">
+
+            @* TAB 1: DATAGRID COLUMNS & EDITING *@
+            <MudTabPanel Text="Grid Columns &amp; Editing" Icon="@Icons.Material.Filled.TableChart">
+                <div class="settings-tab-container">
+                    <div class="d-flex justify-space-between align-center mb-3">
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;">
+                                Datagrid Column Visibility
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="color: #64748b;">
+                                Toggle which information is displayed in the active POS transaction table.
+                            </MudText>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <MudButton Variant="Variant.Outlined"
+                                       Size="Size.Small"
+                                       Color="Color.Primary"
+                                       OnClick="SelectAllColumns">
+                                Select All
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Size="Size.Small"
+                                       Color="Color.Secondary"
+                                       OnClick="ResetDefaultColumns">
+                                Default Columns
+                            </MudButton>
+                        </div>
+                    </div>
+
+                    <div class="columns-grid">
+                        @* Product Code *@
+                        <div class="column-card @(Model.ShowItemCode ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowItemCode"
+                                       Color="Color.Primary"
+                                       Label="Product Code"
+                                       T="bool" />
+                            <span class="card-caption">Display item code (e.g. 00042)</span>
+                        </div>
+
+                        @* Barcode *@
+                        <div class="column-card @(Model.ShowBarcode ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowBarcode"
+                                       Color="Color.Primary"
+                                       Label="Barcode"
+                                       T="bool" />
+                            <span class="card-caption">Display scanned product barcode</span>
+                        </div>
+
+                        @* Product Arabic Name *@
+                        <div class="column-card @(Model.ShowArabicName ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowArabicName"
+                                       Color="Color.Primary"
+                                       Label="Product Arabic Name"
+                                       T="bool" />
+                            <span class="card-caption">Secondary Arabic title</span>
+                        </div>
+
+                        @* Ex. Rate *@
+                        <div class="column-card @(Model.ShowExRate ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowExRate"
+                                       Color="Color.Primary"
+                                       Label="Exclusive Rate (ExRate)"
+                                       T="bool" />
+                            <span class="card-caption">Sales rate excluding VAT</span>
+                        </div>
+
+                        @* Inc. Rate *@
+                        <div class="column-card @(Model.ShowIncRate ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowIncRate"
+                                       Color="Color.Primary"
+                                       Label="Inclusive Rate (IncRate)"
+                                       T="bool" />
+                            <span class="card-caption">Sales rate including VAT</span>
+                        </div>
+
+                        @* Gross *@
+                        <div class="column-card @(Model.ShowGross ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowGross"
+                                       Color="Color.Primary"
+                                       Label="Gross Amount"
+                                       T="bool" />
+                            <span class="card-caption">Quantity &times; Rate before discount</span>
+                        </div>
+
+                        @* Disc % *@
+                        <div class="column-card @(Model.ShowDiscPercentage ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowDiscPercentage"
+                                       Color="Color.Primary"
+                                       Label="Discount Percentage (%)"
+                                       T="bool" />
+                            <span class="card-caption">Line item discount percentage</span>
+                        </div>
+
+                        @* Disc Amount *@
+                        <div class="column-card @(Model.ShowDiscAmount ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowDiscAmount"
+                                       Color="Color.Primary"
+                                       Label="Discount Amount"
+                                       T="bool" />
+                            <span class="card-caption">Calculated line discount total</span>
+                        </div>
+
+                        @* Taxable Amount *@
+                        <div class="column-card @(Model.ShowTaxableAmount ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowTaxableAmount"
+                                       Color="Color.Primary"
+                                       Label="Taxable Amount"
+                                       T="bool" />
+                            <span class="card-caption">Gross minus discount value</span>
+                        </div>
+
+                        @* Tax % *@
+                        <div class="column-card @(Model.ShowTaxPercentage ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowTaxPercentage"
+                                       Color="Color.Primary"
+                                       Label="Tax % (VAT %)"
+                                       T="bool" />
+                            <span class="card-caption">VAT rate percentage applied</span>
+                        </div>
+
+                        @* Tax Amount *@
+                        <div class="column-card @(Model.ShowTaxAmount ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowTaxAmount"
+                                       Color="Color.Primary"
+                                       Label="Tax Amount (VAT Amount)"
+                                       T="bool" />
+                            <span class="card-caption">Calculated tax value per item</span>
+                        </div>
+
+                        @* Unit *@
+                        <div class="column-card @(Model.ShowUnit ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowUnit"
+                                       Color="Color.Primary"
+                                       Label="Measurement Unit"
+                                       T="bool" />
+                            <span class="card-caption">Unit of measure (Pcs, Box, etc.)</span>
+                        </div>
+
+                        @* Amount *@
+                        <div class="column-card @(Model.ShowAmount ? "card-active" : "")">
+                            <MudSwitch @bind-Value="Model.ShowAmount"
+                                       Color="Color.Primary"
+                                       Label="Net Line Amount"
+                                       T="bool" />
+                            <span class="card-caption">Final line total after tax</span>
+                        </div>
+                    </div>
+
+                    @* Inline Grid Editing Permissions *@
+                    <div class="mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
+                        <div class="d-flex align-center gap-2 mb-1">
+                            <MudIcon Icon="@Icons.Material.Filled.EditNote" Size="Size.Small" Style="color: #2563eb;" />
+                            <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;">
+                                Inline Grid Editing Permissions
+                            </MudText>
+                        </div>
+                        <MudText Typo="Typo.caption" Style="color: #64748b;" Class="d-block mb-3">
+                            Control which prices and discount columns cashiers are permitted to edit directly in the table.
+                        </MudText>
+
+                        <div class="columns-grid">
+                            @* Edit ExcRate *@
+                            <div class="column-card @(Model.AllowEditExcRate ? "card-active-edit" : "")">
+                                <MudSwitch @bind-Value="Model.AllowEditExcRate"
+                                           Color="Color.Success"
+                                           Label="Edit Exclusive Rate (ExcRate)"
+                                           T="bool" />
+                                <span class="card-caption">Allow direct editing of Ex. Rate in grid rows</span>
+                            </div>
+
+                            @* Edit IncRate *@
+                            <div class="column-card @(Model.AllowEditIncRate ? "card-active-edit" : "")">
+                                <MudSwitch @bind-Value="Model.AllowEditIncRate"
+                                           Color="Color.Success"
+                                           Label="Edit Inclusive Rate (IncRate)"
+                                           T="bool" />
+                                <span class="card-caption">Allow direct editing of Inc. Rate in grid rows</span>
+                            </div>
+
+                            @* Edit DiscPer *@
+                            <div class="column-card @(Model.AllowEditDiscPer ? "card-active-edit" : "")">
+                                <MudSwitch @bind-Value="Model.AllowEditDiscPer"
+                                           Color="Color.Success"
+                                           Label="Edit Discount % (DiscPer)"
+                                           T="bool" />
+                                <span class="card-caption">Allow direct editing of Discount % in grid rows</span>
+                            </div>
+
+                            @* Edit DiscAmount *@
+                            <div class="column-card @(Model.AllowEditDiscAmount ? "card-active-edit" : "")">
+                                <MudSwitch @bind-Value="Model.AllowEditDiscAmount"
+                                           Color="Color.Success"
+                                           Label="Edit Discount Amount (DiscAmount)"
+                                           T="bool" />
+                                <span class="card-caption">Allow direct editing of Discount Amount in grid rows</span>
+                            </div>
+
+                            @* Readonly Invoice Number *@
+                            <div class="column-card @(Model.ReadonlyInvoiceNumber ? "card-active-edit" : "")">
+                                <MudSwitch @bind-Value="Model.ReadonlyInvoiceNumber"
+                                           Color="Color.Primary"
+                                           Label="Readonly Invoice Number"
+                                           T="bool" />
+                                <span class="card-caption">Make invoice number field read-only in POS header</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </MudTabPanel>
+
+            @* TAB 2: LAYOUT & SIZING *@
+            <MudTabPanel Text="Layout &amp; Sizing" Icon="@Icons.Material.Filled.AspectRatio">
+                <div class="settings-tab-container">
+                    <MudGrid Spacing="3">
+                        @* Left Column: Category Controls *@
+                        <MudItem xs="12" md="6">
+                            <div class="settings-group-card">
+                                <div class="d-flex align-center gap-2 mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Category" Color="Color.Primary" Size="Size.Small" />
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Category Navigation Panel</MudText>
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Panel Width</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryPanelWidth)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.CategoryPanelWidth" Min="70" Max="220" Step="2" Color="Color.Primary" />
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Button Height</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryButtonHeight)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.CategoryButtonHeight" Min="45" Max="110" Step="2" Color="Color.Primary" />
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Icon / Image Size</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryIconSize)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.CategoryIconSize" Min="20" Max="56" Step="2" Color="Color.Primary" />
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Font Size</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryFontSize)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.CategoryFontSize" Min="9" Max="16" Step="1" Color="Color.Primary" />
+                                </div>
+
+                                <MudSwitch @bind-Value="Model.ShowCategoryImages"
+                                           Color="Color.Primary"
+                                           Label="Show Category Images/Icons"
+                                           T="bool" />
+                            </div>
+                        </MudItem>
+
+                        @* Right Column: Product Catalog & Split Controls *@
+                        <MudItem xs="12" md="6">
+                            <div class="settings-group-card">
+                                <div class="d-flex align-center gap-2 mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Inventory2" Color="Color.Primary" Size="Size.Small" />
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Product Catalog Area &amp; Cards</MudText>
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Product Area Height (Split %)</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Filled">@(Model.ProductAreaHeight)%</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.ProductAreaHeight" Min="25" Max="75" Step="5" Color="Color.Secondary" />
+                                    <span class="helper-text">Grid gets @(100 - Model.ProductAreaHeight)%, Products get @(Model.ProductAreaHeight)%</span>
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Product Card Min Width</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.ProductButtonWidth)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.ProductButtonWidth" Min="90" Max="240" Step="4" Color="Color.Primary" />
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Product Card Min Height</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.ProductButtonHeight)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.ProductButtonHeight" Min="90" Max="240" Step="4" Color="Color.Primary" />
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Product Title Font Size</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.ProductFontSize)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.ProductFontSize" Min="10" Max="18" Step="1" Color="Color.Primary" />
+                                </div>
+
+                                <div class="slider-control mb-3">
+                                    <div class="d-flex justify-space-between align-center mb-1">
+                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Product Price Font Size</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.ProductPriceFontSize)px</MudChip>
+                                    </div>
+                                    <MudSlider @bind-Value="Model.ProductPriceFontSize" Min="10" Max="18" Step="1" Color="Color.Primary" />
+                                </div>
+
+                                <MudSwitch @bind-Value="Model.ShowProductImages"
+                                           Color="Color.Primary"
+                                           Label="Show Product Images on Cards"
+                                           T="bool" />
+
+                                <div class="mt-3 pt-3" style="border-top: 1px solid #e2e8f0;">
+                                    <div class="d-flex align-center justify-space-between mb-2">
+                                        <div class="d-flex align-center gap-2">
+                                            <MudIcon Icon="@Icons.Material.Filled.AutoAwesomeMotion" Color="Color.Primary" Size="Size.Small" />
+                                            <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Product Pagination</MudText>
+                                        </div>
+                                        <MudSwitch @bind-Value="Model.EnableProductPagination"
+                                                   Color="Color.Primary"
+                                                   Label="Enable"
+                                                   T="bool" />
+                                    </div>
+
+                                    @if (Model.EnableProductPagination)
+                                    {
+                                        <div class="slider-control mb-2">
+                                            <div class="d-flex justify-space-between align-center mb-1">
+                                                <MudText Typo="Typo.caption" Style="font-weight: 600;">Products Page Size</MudText>
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.ProductPageSize) items/page</MudChip>
+                                            </div>
+                                            <MudSlider @bind-Value="Model.ProductPageSize" Min="4" Max="60" Step="2" Color="Color.Primary" />
+                                            <div class="d-flex gap-1 flex-wrap mt-2">
+                                                @foreach (var size in new[] { 8, 10, 12, 16, 20, 24, 30, 40 })
+                                                {
+                                                    <MudChip T="string"
+                                                             Size="Size.Small"
+                                                             Variant="@(Model.ProductPageSize == size ? Variant.Filled : Variant.Outlined)"
+                                                             Color="Color.Primary"
+                                                             OnClick="@(() => Model.ProductPageSize = size)"
+                                                             Class="cursor-pointer">
+                                                        @size
+                                                    </MudChip>
+                                                }
+                                            </div>
+                                            <span class="helper-text mt-1">Controls how many product cards are displayed per page in the catalog</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </MudItem>
+
+                        @* Live Interactive Preview Box *@
+                        <MudItem xs="12">
+                            <div class="preview-box">
+                                <div class="preview-header">
+                                    <MudIcon Icon="@Icons.Material.Filled.Preview" Size="Size.Small" Class="mr-1" />
+                                    <span>Interactive Live Preview</span>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-cat-col" style="@($"width: {Model.CategoryPanelWidth}px;")">
+                                        <div class="preview-cat-btn" style="@($"min-height: {Model.CategoryButtonHeight}px;")">
+                                            @if (Model.ShowCategoryImages)
+                                            {
+                                                <div class="preview-icon-wrap" style="@($"width: {Model.CategoryIconSize}px; height: {Model.CategoryIconSize}px;")">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Fastfood" Style="@($"font-size: {(int)(Model.CategoryIconSize * 0.65)}px !important; color: #2563eb;")" />
+                                                </div>
+                                            }
+                                            <span style="@($"font-size: {Model.CategoryFontSize}px; font-weight: 600; color: #1e293b;")">Beverages</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="preview-prod-col">
+                                        <div class="preview-prod-card" style="@($"width: {Model.ProductButtonWidth}px; min-height: {Model.ProductButtonHeight}px;")">
+                                            @if (Model.ShowProductImages)
+                                            {
+                                                <div class="preview-prod-media">
+                                                    <MudIcon Icon="@Icons.Material.Filled.LocalCafe" Style="font-size: 32px; color: #94a3b8;" />
+                                                </div>
+                                            }
+                                            <div class="preview-prod-body">
+                                                <span style="@($"font-size: {Model.ProductFontSize}px; font-weight: 700; color: #0f172a;")">Cold Coffee</span>
+                                                <div class="d-flex justify-space-between align-center mt-1">
+                                                    <span style="@($"font-size: {Model.ProductPriceFontSize}px; font-weight: 800; color: #2563eb;")">14.50</span>
+                                                    <MudIcon Icon="@Icons.Material.Filled.AddCircle" Size="Size.Small" Color="Color.Primary" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </MudItem>
+                    </MudGrid>
+                </div>
+            </MudTabPanel>
+
+            @* TAB 3: GENERAL & BEHAVIOR *@
+            <MudTabPanel Text="Preferences" Icon="@Icons.Material.Filled.Tune">
+                <div class="settings-tab-container">
+                    <MudGrid Spacing="3">
+                        <MudItem xs="12" md="6">
+                            <div class="settings-group-card">
+                                <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;" Class="mb-2">
+                                    Touch &amp; Input Behavior
+                                </MudText>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.ShowNumPadByDefault"
+                                               Color="Color.Primary"
+                                               Label="Show Numeric Keypad by Default"
+                                               T="bool" />
+                                    <span class="helper-text">Keep the touch number pad visible on POS launch</span>
+                                </div>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.AutoFocusBarcode"
+                                               Color="Color.Primary"
+                                               Label="Auto-Focus Barcode Input"
+                                               T="bool" />
+                                    <span class="helper-text">Automatically return focus to barcode scan input after item selection</span>
+                                </div>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.ReadonlyInvoiceNumber"
+                                               Color="Color.Primary"
+                                               Label="Readonly Invoice Number"
+                                               T="bool" />
+                                    <span class="helper-text">Make invoice number field read-only in POS header (default: enabled)</span>
+                                </div>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.AllowEditExcRate"
+                                               Color="Color.Success"
+                                               Label="Allow Editing Exclusive Rate (ExcRate)"
+                                               T="bool" />
+                                    <span class="helper-text">Enables inline rate before VAT input in table rows</span>
+                                </div>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.AllowEditIncRate"
+                                               Color="Color.Success"
+                                               Label="Allow Editing Inclusive Rate (IncRate)"
+                                               T="bool" />
+                                    <span class="helper-text">Enables inline rate including VAT input in table rows</span>
+                                </div>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.AllowEditDiscPer"
+                                               Color="Color.Success"
+                                               Label="Allow Editing Discount % (DiscPer)"
+                                               T="bool" />
+                                    <span class="helper-text">Enables inline discount % input in table rows</span>
+                                </div>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.AllowEditDiscAmount"
+                                               Color="Color.Success"
+                                               Label="Allow Editing Discount Amount (DiscAmount)"
+                                               T="bool" />
+                                    <span class="helper-text">Enables inline discount amount input in table rows</span>
+                                </div>
+                            </div>
+                        </MudItem>
+
+                        <MudItem xs="12" md="6">
+                            <div class="settings-group-card">
+                                <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;" Class="mb-2">
+                                    Checkout &amp; Presentation
+                                </MudText>
+
+                                <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.AutoPrintBill"
+                                               Color="Color.Primary"
+                                               Label="Auto-Print Bill upon Save"
+                                               T="bool" />
+                                    <span class="helper-text">Automatically launch receipt printing after payment completion</span>
+                                </div>
+
+                                <div class="pref-item mt-3">
+                                    <MudText Typo="Typo.caption" Style="font-weight: 700;">Default Payment Mode</MudText>
+                                    <MudRadioGroup @bind-Value="Model.DefaultPaymentMode" T="string" Class="d-flex gap-4 mt-1">
+                                        <MudRadio Value="@("Cash")" Color="Color.Primary">Cash</MudRadio>
+                                        <MudRadio Value="@("Bank")" Color="Color.Secondary">Bank / Card</MudRadio>
+                                    </MudRadioGroup>
+                                </div>
+
+                                <div class="pref-item mt-3">
+                                    <MudText Typo="Typo.caption" Style="font-weight: 700;">Table Row Density</MudText>
+                                    <MudRadioGroup @bind-Value="Model.GridRowDensity" T="string" Class="d-flex gap-4 mt-1">
+                                        <MudRadio Value="@("Dense")" Color="Color.Primary">Compact (Dense)</MudRadio>
+                                        <MudRadio Value="@("Normal")" Color="Color.Default">Standard (Spacious)</MudRadio>
+                                    </MudRadioGroup>
+                                </div>
+                            </div>
+                        </MudItem>
+                    </MudGrid>
+                </div>
+            </MudTabPanel>
+        </MudTabs>
+    </DialogContent>
+
+    <DialogActions>
+        <div class="d-flex justify-space-between align-center w-100 px-4 py-2">
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Warning"
+                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                       OnClick="ResetToDefaults">
+                Reset All Defaults
+            </MudButton>
+
+            <div class="d-flex gap-2">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Secondary"
+                           OnClick="Cancel">
+                    Cancel
+                </MudButton>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CheckCircle"
+                           OnClick="Submit">
+                    Save &amp; Apply Settings
+                </MudButton>
+            </div>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .pos-settings-dialog-root {
+        max-width: 880px !important;
+        width: 100% !important;
+        border-radius: 12px !important;
+    }
+
+    .pos-settings-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #bfdbfe;
+    }
+
+    .settings-tab-container {
+        padding: 4px;
+        max-height: 520px;
+        overflow-y: auto;
+    }
+
+    .columns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 10px;
+    }
+
+    .column-card {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .column-card:hover {
+        border-color: #93c5fd;
+        background: #f8fafc;
+    }
+
+    .column-card.card-active {
+        border-color: #3b82f6;
+        background: #f0fdf4;
+    }
+
+    .column-card.card-active-edit {
+        border-color: #10b981;
+        background: #ecfdf5;
+    }
+
+    .card-caption {
+        font-size: 0.72rem;
+        color: #64748b;
+        margin-left: 36px;
+        margin-top: -6px;
+    }
+
+    .settings-group-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px;
+        background: #ffffff;
+        height: 100%;
+    }
+
+    .slider-control {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 8px 12px;
+    }
+
+    .helper-text {
+        font-size: 0.72rem;
+        color: #64748b;
+        display: block;
+    }
+
+    .pref-item {
+        margin-bottom: 12px;
+    }
+
+    .preview-box {
+        border: 1px dashed #3b82f6;
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 12px;
+        margin-top: 4px;
+    }
+
+    .preview-header {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .preview-content {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        padding: 10px;
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        overflow-x: auto;
+    }
+
+    .preview-cat-btn {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .preview-icon-wrap {
+        border-radius: 6px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 4px;
+    }
+
+    .preview-prod-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .preview-prod-media {
+        height: 70px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .preview-prod-body {
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public POSSettings Settings { get; set; } = new();
+
+    private POSSettings Model { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        Model = Settings.Clone();
+    }
+
+    private void SelectAllColumns()
+    {
+        Model.ShowItemCode = true;
+        Model.ShowBarcode = true;
+        Model.ShowItemName = true;
+        Model.ShowArabicName = true;
+        Model.ShowUnit = true;
+        Model.ShowExRate = true;
+        Model.ShowIncRate = true;
+        Model.ShowGross = true;
+        Model.ShowDiscPercentage = true;
+        Model.ShowDiscAmount = true;
+        Model.ShowTaxableAmount = true;
+        Model.ShowTaxPercentage = true;
+        Model.ShowTaxAmount = true;
+        Model.ShowAmount = true;
+    }
+
+    private void ResetDefaultColumns()
+    {
+        var def = new POSSettings();
+        Model.ShowItemCode = def.ShowItemCode;
+        Model.ShowBarcode = def.ShowBarcode;
+        Model.ShowItemName = def.ShowItemName;
+        Model.ShowArabicName = def.ShowArabicName;
+        Model.ShowUnit = def.ShowUnit;
+        Model.ShowExRate = def.ShowExRate;
+        Model.ShowIncRate = def.ShowIncRate;
+        Model.ShowGross = def.ShowGross;
+        Model.ShowDiscPercentage = def.ShowDiscPercentage;
+        Model.ShowDiscAmount = def.ShowDiscAmount;
+        Model.ShowTaxableAmount = def.ShowTaxableAmount;
+        Model.ShowTaxPercentage = def.ShowTaxPercentage;
+        Model.ShowTaxAmount = def.ShowTaxAmount;
+        Model.ShowAmount = def.ShowAmount;
+    }
+
+    private void ResetToDefaults()
+    {
+        Model = new POSSettings();
+        Snackbar.Add("Settings reset to defaults. Click 'Save & Apply' to commit.", Severity.Info);
+    }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

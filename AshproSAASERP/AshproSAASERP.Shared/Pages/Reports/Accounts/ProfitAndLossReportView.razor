@@ -1,0 +1,115 @@
+@page "/profitandlossreport"
+@using AshproSAASERP.Shared.Pages.Component
+@using AshproSAASERP.Shared.SubWindows
+@inject IViewService api;
+@inject Downloader downloader
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService TabService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Profit and Loss Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Profit and Loss Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Date Range *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+
+            @* Branch *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var branch in branchList)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Success" OnClick="ReportGenerate">@Localizer("Generate")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.TableView" Color="Color.Primary" OnClick="ExcelExportMethod">@Localizer("Excel")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Error" OnClick="PDFExportMethod">@Localizer("PDF")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Warning" OnClick="ClearMethod">@Localizer("Clear")</MudButton>
+        </MudStack>
+    </MudCardActions>
+    <MudOverlay Visible="IsLoading" DarkBackground="true" Absolute="true">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+    </MudOverlay>
+</MudCard>
+
+@if (reportData.Any())
+{
+    <MudTable Items="@reportData" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px" Class="ma-2" Elevation="3">
+        <HeaderContent>
+            <MudTh>@Localizer("Particulars (Debit)")</MudTh>
+            <MudTh Style="text-align:right">@Localizer("Amount")</MudTh>
+            <MudTh>@Localizer("Particulars (Credit)")</MudTh>
+            <MudTh Style="text-align:right">@Localizer("Amount")</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Particulars (Dr)">
+                @if (context.DrAccount == "Total" || context.DrAccount == "Gross Profit c/d" || context.DrAccount == "Net Profit" || context.DrAccount == "Gross Loss b/d")
+                {
+                    <b>@context.DrAccount</b>
+                }
+                else
+                {
+                    @context.DrAccount
+                }
+            </MudTd>
+            <MudTd DataLabel="Amount (Dr)" Style="text-align:right">
+                @if (context.DrAccount == "Total")
+                {
+                    <b>@context.DrAmount</b>
+                }
+                else
+                {
+                    @context.DrAmount
+                }
+            </MudTd>
+            <MudTd DataLabel="Particulars (Cr)">
+                @if (context.CrAccount == "Total" || context.CrAccount == "Gross Loss c/d" || context.CrAccount == "Net Loss" || context.CrAccount == "Gross Profit b/d")
+                {
+                    <b>@context.CrAccount</b>
+                }
+                else
+                {
+                    @context.CrAccount
+                }
+            </MudTd>
+            <MudTd DataLabel="Amount (Cr)" Style="text-align:right">
+                @if (context.CrAccount == "Total")
+                {
+                    <b>@context.CrAmount</b>
+                }
+                else
+                {
+                    @context.CrAmount
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+<ReportView pdfData="@pdfData" />

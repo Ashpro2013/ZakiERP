@@ -1,0 +1,109 @@
+@page "/customerdisplay"
+@layout CustomerDisplayLayout
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+
+<MudPaper Class="pa-6">
+
+    <MudText Typo="Typo.h3"
+             Align="Align.Center"
+             Class="mb-4">
+        Zaki ERP
+    </MudText>
+
+    <MudTable Items="@Display.Items"
+              Dense="true"
+              Hover="false"
+              Striped="true"
+              Bordered="true"
+              Elevation="0">
+
+        <HeaderContent>
+            <MudTh>Item</MudTh>
+            <MudTh Align="Align.Center">Qty</MudTh>
+            <MudTh Align="Align.Right">Price</MudTh>
+            <MudTh Align="Align.Right">Total</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+
+            <MudTd DataLabel="Item">
+                @context.ItemName
+            </MudTd>
+
+            <MudTd DataLabel="Qty" Align="Align.Center">
+                @PermanentSettingsData.FormatQuantity(context.Qty)
+            </MudTd>
+
+            <MudTd DataLabel="Price" Align="Align.Right">
+                @PermanentSettingsData.FormatCurrency(context.Rate)
+            </MudTd>
+
+            <MudTd DataLabel="Total" Align="Align.Right">
+                @PermanentSettingsData.FormatCurrency(context.Total)
+            </MudTd>
+
+        </RowTemplate>
+
+    </MudTable>
+
+    <MudDivider Class="my-4" />
+
+    <MudStack Row="true" Justify="Justify.FlexEnd">
+
+        <MudText Typo="Typo.h4">
+            Total :
+        </MudText>
+
+        <MudText Typo="Typo.h4"
+                 Color="Color.Primary"
+                 Class="ms-4">
+
+            @PermanentSettingsData.FormatCurrency(Display.Total)
+
+        </MudText>
+
+    </MudStack>
+
+</MudPaper>
+
+@code {
+
+    CustomerDisplayDto Display = new();
+
+    DotNetObjectReference<CustomerDisplay>? objRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+
+            await JS.InvokeVoidAsync(
+                "customerDisplay.register",
+                objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveData(string json)
+    {
+        Console.WriteLine(json);
+
+        Display = System.Text.Json.JsonSerializer.Deserialize<CustomerDisplayDto>(
+            json,
+            new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new CustomerDisplayDto();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        objRef?.Dispose();
+    }
+
+}

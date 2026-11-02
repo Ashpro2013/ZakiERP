@@ -1,0 +1,89 @@
+@page "/enquiryregistrationreport"
+@using AshproSAASERP.Shared.Pages.Component
+@using AshproSAASERP.Shared.SubWindows
+@inject IViewService api;
+@inject Downloader downloader
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService TabService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Enquiry Registration Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Enquiry Registration Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Date Range *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+
+            @* Branch *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="0">@Localizer("All")</MudSelectItem>
+                    @foreach (var branch in branchList)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Salesman *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("SalesMan")</MudText>
+                <MudSelect T="int" @bind-Value="SalesManId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="0">@Localizer("All")</MudSelectItem>
+                    @foreach (var sman in salesmanList)
+                    {
+                        <MudSelectItem Value="@sman.Id">@sman.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Customer *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Customer")</MudText>
+                <MudStack Row>
+                    <MudTextField @bind-Value="CustomerName" Variant="Variant.Outlined"
+                                  Class="w-100" Margin="Margin.Dense" Clearable="true" Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  OnAdornmentClick="PartySearchMethod" ReadOnly="true" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => { CustomerId = 0; CustomerName = ""; })" Disabled="@(CustomerId == 0)" />
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudGrid Class="pa-4 ma-2">
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Success" OnClick="ReportGenerate">@Localizer("Generate")</MudButton>
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.TableView" Color="Color.Primary" OnClick="ExcelExportMethod">@Localizer("Excel")</MudButton>
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Error" OnClick="PDFExportMethod">@Localizer("PDF")</MudButton>
+            <MudButton Style="margin:5px;" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Warning" OnClick="ClearMethod">@Localizer("Clear")</MudButton>
+        </MudGrid>
+    </MudCardActions>
+</MudCard>
+@if (pdfData is not null)
+{
+    <ReportView pdfData="@pdfData" />
+}
+@if (IsLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}

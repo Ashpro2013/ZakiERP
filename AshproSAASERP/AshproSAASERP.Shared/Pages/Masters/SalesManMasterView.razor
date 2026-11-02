@@ -1,0 +1,284 @@
+﻿@page "/salesman"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>Salesman Master</PageTitle>
+
+<MudPaper Class="pa-4 ma-2" Elevation="3">
+    <MudStack Spacing="2">
+        <MudStack Row="true">
+            <MudText Typo="Typo.h5">@Localizer("SalesManMaster")</MudText>
+            <MudSpacer />
+            @if (!IsDialog)
+            {
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            }
+        </MudStack>
+
+        <EditForm Model="salesman" OnValidSubmit="SaveOrUpdate">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <!-- Basic Details -->
+            <MudGrid Class="mb-2">
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Code")</MudText>
+                    <MudTextField @ref="txtCode"
+                                  AutoFocus="true"
+                                  @bind-Value="salesman.Code"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" />
+                    <ValidationMessage For="@(() => salesman.Code)" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Name")</MudText>
+                    <MudStack Row>
+                        <MudTextField @bind-Value="salesman.Name" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" />
+                        <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="ToArabic" />
+                        <ValidationMessage For="@(() => salesman.Name)" />
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("ArabicName")</MudText>
+                    <MudTextField @bind-Value="salesman.NameArabic"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtNameArabic" OnKeyDown="@(e => KeyDown(e, 3))" />
+                </MudItem>
+            </MudGrid>
+
+            <!-- Contact + Designation -->
+            <MudGrid Class="mb-2">
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Mobile")</MudText>
+                    <MudTextField @bind-Value="salesman.Mobile"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtMobile" OnKeyDown="@(e => KeyDown(e, 4))" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Email")</MudText>
+                    <MudTextField @bind-Value="salesman.Email"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtEmail" OnKeyDown="@(e => KeyDown(e, 5))" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Designation")</MudText>
+                    <MudTextField @bind-Value="salesman.Designation"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtDesignation" OnKeyDown="@(e => KeyDown(e, 6))" />
+                </MudItem>
+            </MudGrid>
+
+            <!-- Remarks -->
+            <MudGrid Class="mb-2">
+                <MudItem xs="12" sm="8">
+                    <MudText>@Localizer("Remarks")</MudText>
+                    <MudTextField @bind-Value="salesman.Remarks"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  TextArea="true"
+                                  Lines="1"
+                                  AutoGrow="true" @ref="txtRemarks" OnKeyDown="@(e => KeyDown(e, 7))" />
+                </MudItem>
+
+            </MudGrid>
+
+            <!-- Images -->
+            <MudGrid Class="mb-4">
+
+                <!-- Salesman Photo -->
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("Photo")</MudText>
+
+                    <MudFileUpload T="IBrowserFile"
+                                   FilesChanged="UploadSalesmanImage"
+                                   Accept=".png,.jpg,.jpeg"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Image">
+                                @Localizer("UploadPhoto")
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+
+                    @if (!string.IsNullOrEmpty(salesmanImagePreview))
+                    {
+                        <MudPaper Elevation="3"
+                                  Class="pa-1 mt-2 d-inline-block position-relative"
+                                  Style="display:inline-block;">
+
+                            <!-- Remove button -->
+                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           Class="position-absolute"
+                                           Style="top:-8px; right:-8px; background:white; border-radius:50%;"
+                                           OnClick="@RemoveSalesmanImage" />
+
+                            <!-- Clickable image -->
+                            <img src="@salesmanImagePreview"
+                                 width="120"
+                                 style="cursor:pointer;"
+                                 @onclick="@(() => ShowImagePopup(salesmanImagePreview))" />
+                        </MudPaper>
+                    }
+                </MudItem>
+
+
+                <!-- Signature Image -->
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("SignatureImage")</MudText>
+
+                    <MudFileUpload T="IBrowserFile"
+                                   FilesChanged="UploadSignature"
+                                   Accept=".png,.jpg,.jpeg"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.BorderColor">
+                                @Localizer("UploadSignature")
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+
+                    @if (!string.IsNullOrEmpty(signaturePreview))
+                    {
+                        <MudPaper Elevation="3"
+                                  Class="pa-1 mt-2 d-inline-block position-relative"
+                                  Style="display:inline-block;">
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           Class="position-absolute"
+                                           Style="top:-8px; right:-8px; background:white; border-radius:50%;"
+                                           OnClick="@RemoveSignature" />
+
+                            <img src="@signaturePreview"
+                                 width="120"
+                                 style="cursor:pointer;"
+                                 @onclick="@(() => ShowImagePopup(signaturePreview))" />
+                        </MudPaper>
+                    }
+                </MudItem>
+
+
+                <!-- Seal Image -->
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("SealImage")</MudText>
+
+                    <MudFileUpload T="IBrowserFile"
+                                   FilesChanged="UploadSeal"
+                                   Accept=".png,.jpg,.jpeg"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Fingerprint">
+                                @Localizer("UploadSeal")
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+
+                    @if (!string.IsNullOrEmpty(sealPreview))
+                    {
+                        <MudPaper Elevation="3"
+                                  Class="pa-1 mt-2 d-inline-block position-relative"
+                                  Style="display:inline-block;">
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                           Size="Size.Small"
+                                           Color="Color.Error"
+                                           Class="position-absolute"
+                                           Style="top:-8px; right:-8px; background:white; border-radius:50%;"
+                                           OnClick="@RemoveSeal" />
+
+                            <img src="@sealPreview"
+                                 width="120"
+                                 style="cursor:pointer;"
+                                 @onclick="@(() => ShowImagePopup(sealPreview))" />
+                        </MudPaper>
+                    }
+                </MudItem>
+
+            </MudGrid>
+
+
+            <!-- Buttons -->
+            <MudStack Row="true" Spacing="3" Class="ma-2">
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           StartIcon="@(salesman.SalesmanId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)"
+                           Color="@(salesman.SalesmanId == 0 ? Color.Success : Color.Info)"
+                           Disabled="@_isSaving">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                    }
+                    else
+                    {
+                        @Localizer(salesman.SalesmanId == 0 ? "Save" : "Update")
+                    }
+                </MudButton>
+                @if (!IsDialog)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Delete"
+                               OnClick="Delete">
+                        @Localizer("Delete")
+                    </MudButton>
+                }
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Info"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="NewClick">
+                    @Localizer("New")
+                </MudButton>
+            </MudStack>
+        </EditForm>
+    </MudStack>
+</MudPaper>
+
+<!-- List -->
+@if (!IsDialog)
+{
+    <MudPaper Class="ma-2 pa-2" Elevation="3">
+        <MudDataGrid T="SalesManMaster"
+                     @ref="grid"
+                     ServerData="LoadServerData"
+                     RowClick="@RowClicked"
+                     Dense="true"
+                     Bordered="true" SortMode="SortMode.Multiple" Filterable="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("SalesManList")</MudText>
+                <MudSpacer />
+                <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+                <PropertyColumn Property="x => x.Mobile" Title="@Localizer("Mobile")" />
+                <PropertyColumn Property="x => x.Email" Title="@Localizer("Email")" />
+                <PropertyColumn Property="x => x.Designation" Title="@Localizer("Designation")" />
+                <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="SalesManMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudPaper>
+}

@@ -1,0 +1,301 @@
+@page "/customerreceipt"
+@page "/customerreceipt/{Id:int}"
+@inject Downloader downloader
+@namespace AshproSAASERP.Shared.Pages.Transactions.Accounts
+
+<PageTitle>@Localizer("CustomerReceipt")</PageTitle>
+@inject TabService TabService
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Spacing="2">
+        <MudStack Row="true">
+            <MudText Typo="Typo.h5">@Localizer("CustomerReceipt")</MudText>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+
+        <EditForm Model="receiptDto">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            
+            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                <MudGrid>
+                    <!-- First row: Receipt info -->
+                    <MudItem xs="12" md="3">
+                        <MudTextField T="string" @bind-value="receiptDto.ReceiptNo" Label="@Localizer("ReceiptNo")" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"/>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudDatePicker @bind-Date="receiptDate" Label="@(Localizer("ReceiptDate") + " *")" Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd/MM/yyyy" Required="true"/>
+                    </MudItem>
+                    
+                    <!-- Account Selection -->
+                    <MudItem xs="12" md="3">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                            <MudTextField T="string" @bind-Value="_accountCode"
+                                         Label="@(Localizer("AccountCode") + " *")"
+                                         Variant="Variant.Outlined"
+                                         Margin="Margin.Dense"
+                                         ReadOnly="true" />
+                            <MudFab StartIcon="@Icons.Material.Rounded.Search"
+                                    Color="Color.Info"
+                                    Size="Size.Small"
+                                    OnClick="AccountSearchMethod" />
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField T="string" @bind-value="_accountName"
+                                      Label="@Localizer("AccountName")"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      ReadOnly="true" />
+                    </MudItem>
+                    
+                    <!-- Customer Selection -->
+                    <MudItem xs="12" md="2">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                            <MudTextField T="string" @ref="txtCustomerSearch"
+                                         @bind-Value="_customerCode"
+                                         Label="@(Localizer("CustomerCode") + " *")"
+                                         Variant="Variant.Outlined"
+                                         Margin="Margin.Dense"
+                                         Clearable="true" />
+                            <MudFab StartIcon="@Icons.Material.Rounded.Search"
+                                   Color="Color.Info"
+                                   Size="Size.Small"
+                                   OnClick="PartySearchMethod" />
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudTextField T="string" @bind-value="_customerName"
+                                     Label="@Localizer("CustomerName")"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense"
+                                     ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField T="decimal" Value="receiptDto.CustomerBalance" Label="@Localizer("CustomerBalance")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" ReadOnly="true" Style="@(receiptDto.CustomerBalance > 0 ? "color: red;" : "color: green;")"/>
+                    </MudItem>
+                    
+                    <!-- Salesman Selection -->
+                    <MudItem xs="12" md="2">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                            <MudTextField T="string" @bind-Value="_salesManCode"
+                                         Label="@Localizer("SalesMan")"
+                                         Variant="Variant.Outlined"
+                                         Margin="Margin.Dense"
+                                         ReadOnly="true" Clearable="true" />
+                            <MudFab StartIcon="@Icons.Material.Rounded.Search"
+                                    Color="Color.Info"
+                                    Size="Size.Small"
+                                    OnClick="SalesManSearchMethod" />
+                        </MudStack>
+                    </MudItem>
+                    
+                    <!-- Second row: Payment mode and project -->
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="string" Value="receiptDto.PaymentMode" ValueChanged="OnPaymentModeChanged" Label="@(Localizer("PaymentMode") + " *")" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                            <MudSelectItem T="string" Value="@("Cash")">@Localizer("Cash")</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Bank")">@Localizer("Bank")</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Cheque")">@Localizer("Cheque")</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Card")">@Localizer("Card")</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="int?" @bind-Value="receiptDto.FK_ProjectId" Label="@Localizer("Project")" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="true">
+                            @if (projects is not null)
+                            {
+                                @foreach (var project in projects)
+                                {
+                                    <MudSelectItem T="int?" Value="@project.ProjectId">@project.Name</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" @bind-value="receiptDto.RvNumber" Label="@Localizer("RvNumber")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="100" />
+                    </MudItem>
+                    
+                    <!-- Conditional fields based on payment mode -->
+                    @if (receiptDto.PaymentMode == "Bank")
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudTextField T="string" @bind-value="receiptDto.BankName" Label="@Localizer("BankName")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="200"/>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField T="string" @bind-value="receiptDto.BankAccountNo" Label="@Localizer("BankAccountNo")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="50"/>
+                        </MudItem>
+                    }
+                    @if (receiptDto.PaymentMode == "Cheque")
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudTextField T="string" @bind-value="receiptDto.ChequeNo" Label="@Localizer("ChequeNo")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="50"/>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudDatePicker @bind-Date="chequeDate" Label="@Localizer("ChequeDate")" Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd/MM/yyyy"/>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField T="string" @bind-value="receiptDto.BankName" Label="@Localizer("BankName")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="200"/>
+                        </MudItem>
+                    }
+                    
+                    <!-- Remarks row -->
+                    <MudItem xs="12">
+                        <MudTextField T="string" @bind-value="receiptDto.Remarks" Label="@Localizer("Remarks")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="2000" Lines="2"/>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                <MudTabs Elevation="0" ApplyEffectsToContainer="true" PanelClass="pa-2">
+                    <MudTabPanel Text="@Localizer("InvoicePayment")">
+                        <MudToolBar Dense="true" Class="pa-0 mb-2">
+                            <MudText Typo="Typo.h6">@Localizer("OutstandingInvoices")</MudText>
+                            <MudSpacer />
+                        </MudToolBar>
+
+                        <MudDataGrid T="CustomerReceiptDtls" Items="@invoicePayments" Dense="true" Bordered="true" Striped="true" Elevation="0" Style="max-height: 400px; overflow-y: auto;" FixedHeader="true" Loading="@_isLoading" LoadingProgressColor="Color.Info">
+                            <Columns>
+                                <TemplateColumn Title="#" Sortable="false" CellStyle="width: 50px;">
+                                    <CellTemplate Context="det">
+                                        @(invoicePayments.IndexOf(det.Item) + 1)
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                
+                                <TemplateColumn Title="Select" Sortable="false" CellStyle="width: 70px;">
+                                    <HeaderTemplate Context="header">
+                                        <MudCheckBox T="bool" Value="selectAll" ValueChanged="OnSelectAllChanged" Color="Color.Primary" />
+                                    </HeaderTemplate>
+                                    <CellTemplate Context="det">
+                                        <MudCheckBox T="bool" Value="det.Item.IsSelected" ValueChanged="@((bool v) => OnCheckboxChanged(det.Item, v))" Color="Color.Primary" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                
+                                <TemplateColumn Title="@Localizer("InvoiceNo")" Sortable="false">
+                                    <CellTemplate Context="det">
+                                        @det.Item.InvoiceNo
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                
+                                <PropertyColumn Property="x => x.InvoiceDate" Title="@Localizer("InvoiceDate")" Format="dd/MM/yyyy" />
+                                <PropertyColumn Property="x => x.InvoiceAmount" Title="@Localizer("InvoiceAmount")" Format="N3" />
+                                <PropertyColumn Property="x => x.PaidAmount" Title="@Localizer("PaidAmount")" Format="N3" />
+                                <PropertyColumn Property="x => x.ReturnAmount" Title="@Localizer("ReturnAmount")" Format="N3" />
+                                <PropertyColumn Property="x => x.OutstandingAmount" Title="@Localizer("OutstandingAmount")" Format="N3" />
+                                
+                                <TemplateColumn Title="@Localizer("PaymentAmount")" Sortable="false">
+                                    <CellTemplate Context="det">
+                                        <MudNumericField T="decimal" Value="det.Item.PaymentAmount" ValueChanged="@((decimal v) => OnAmountChanged(det.Item, v))" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" Min="0" Max="@det.Item.OutstandingAmount" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                
+                                <TemplateColumn Title="@Localizer("Discount")" Sortable="false">
+                                    <CellTemplate Context="det">
+                                        <MudNumericField T="decimal" Value="det.Item.Discount" ValueChanged="@((decimal v) => OnDiscountChanged(det.Item, v))" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" Min="0" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                
+                                <TemplateColumn Title="@Localizer("Remaining")" Sortable="false">
+                                    <CellTemplate Context="det">
+                                        <MudText Typo="Typo.body2" Style="@(det.Item.RemainingAmount < 0 ? "color: red;" : "")">@det.Item.RemainingAmount.ToString("N3")</MudText>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                
+                                <TemplateColumn Title="@Localizer("Narration")" Sortable="false">
+                                    <CellTemplate Context="det">
+                                        <MudTextField T="string" Value="det.Item.Narration" ValueChanged="@((string v) => { det.Item.Narration = v; })" Variant="Variant.Text" Margin="Margin.Dense" MaxLength="500" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    </MudTabPanel>
+                    
+                    <MudTabPanel Text="@Localizer("AdvancePayment")">
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudNumericField T="decimal" Value="receiptDto.AdvanceAmount" ValueChanged="@((decimal v) => { receiptDto.AdvanceAmount = v; CalculateTotals(); })" Label="@Localizer("AdvanceAmount")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" Min="0" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudTabPanel>
+                </MudTabs>
+            </MudPaper>
+
+            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudNumericField T="decimal" Value="receiptDto.AllocatedAmount" ValueChanged="OnAllocatedAmountChanged" Label="@Localizer("AllocatedAmount")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" Min="0" Style="font-weight: bold;" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudNumericField T="decimal" @bind-value="receiptDto.AdvanceAmount" Label="@Localizer("AdvanceAmount")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" ReadOnly="true" Style="font-weight: bold;" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudNumericField T="decimal" @bind-value="receiptDto.TotalAmount" Label="@Localizer("TotalAmount")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" ReadOnly="true" Style="font-weight: bold; color: green;" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudStack Row="true" Spacing="3" Class="d-flex justify-start mt-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => Clear(false))" StartIcon="@Icons.Material.Filled.Add">@Localizer("New")</MudButton>
+                @if(Id == 0)
+                {
+                    <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Save" Disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                        }
+                        else
+                        {
+                            @Localizer("Save")
+                        }
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton OnClick="Update" Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Edit" Disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                        }
+                        else
+                        {
+                            @Localizer("Update")
+                        }
+                    </MudButton>
+                }
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Delete" StartIcon="@Icons.Material.Filled.Delete" Disabled="@(Id == 0)">@Localizer("Delete")</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Print" OnClick="PrintMethod" Disabled="@(Id == 0)">@Localizer("Print")</MudButton>
+            </MudStack>
+        </EditForm>
+    </MudStack>
+</MudPaper>
+
+<MudPaper Class="ma-2 pa-2 mt-0" Elevation="3">
+    <MudDataGrid T="CustomerReceiptHdr"
+                 @ref="grid"
+                 ServerData="LoadServerData"
+                 RowClick="@RowClicked"
+                 Dense="true"
+                 Bordered="true"
+                 Striped="true"
+                 Hover="true"
+                 SortMode="SortMode.Multiple" Filterable="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("CustomerReceiptList")</MudText>
+            <MudSpacer />
+            <MudTextField T="string" Value="@searchText" ValueChanged="OnSearch" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.ReceiptNo" Title="@Localizer("ReceiptNo")" />
+            <PropertyColumn Property="x => x.ReceiptDate" Title="@Localizer("ReceiptDate")" Format="dd/MM/yyyy" />
+            <PropertyColumn Property="x => x.Customer!.Name" Title="@Localizer("Customer")" />
+            <PropertyColumn Property="x => x.PaymentMode" Title="@Localizer("PaymentMode")" />
+            <PropertyColumn Property="x => x.TotalAmount" Title="@Localizer("TotalAmount")" Format="@PermanentSettingsData.CurrencyFormat" />
+            <PropertyColumn Property="x => x.AllocatedAmount" Title="@Localizer("AllocatedAmount")" Format="@PermanentSettingsData.CurrencyFormat" />
+            <PropertyColumn Property="x => x.AdvanceAmount" Title="@Localizer("AdvanceAmount")" Format="@PermanentSettingsData.CurrencyFormat" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="CustomerReceiptHdr" PageSizeOptions="new int[] { 5, 10, 20 }" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

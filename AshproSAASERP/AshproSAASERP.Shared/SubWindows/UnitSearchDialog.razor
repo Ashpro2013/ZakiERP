@@ -1,0 +1,184 @@
+@using AshproSAASERP.Models.Masters
+@inject IViewService api
+
+<MudDialog @onkeydown="OnDialogKeyDown">
+    <DialogContent>
+
+        <MudDataGrid T="UnitMaster"
+                  ServerData="LoadServerData"
+                  @ref="grid"
+                  RowClick="RowClickEvent"
+                  Hover="true"
+                  Dense="true"
+                  Bordered="true"
+                  RowStyleFunc="@RowStyleFunc"
+                  Striped="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("UnitList")</MudText>
+                <MudSpacer />
+
+                <MudTextField @ref="_searchRef"
+                              Value="@strSearch"
+                              ValueChanged="@(async (string s) => await OnSearch(s))"
+                              Immediate="true"
+                              AutoFocus="true"
+                              Placeholder="@Localizer("SearchUnit")"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0" />
+
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="UnitMaster" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    
+    private string strSearch = "";
+    private MudDataGrid<UnitMaster> grid;
+
+    private UnitMaster selectedUnit = new();
+    private List<UnitMaster> pUnits = new();
+    private int selectedIndex = 0;
+    private bool _isSubmitted = false;
+
+	private MudTextField<string> _searchRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(100);
+            if (_searchRef != null)
+            {
+                await _searchRef.FocusAsync();
+            }
+        }
+    }
+
+    private async Task<GridData<UnitMaster>> LoadServerData(GridState<UnitMaster> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch
+        );
+        var result = await api.GetUnitPDetails(pagination);
+        pUnits = result.PUnits ?? new List<UnitMaster>();
+        selectedIndex = 0; // Reset on load
+        return new GridData<UnitMaster>
+        {
+            Items = pUnits,
+            TotalItems = result.TotalCount
+        };
+    }
+    
+    private string RowStyleFunc(UnitMaster item, int index)
+    {
+        if (index == selectedIndex)
+        {
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<UnitMaster> args)
+    {
+        selectedUnit = args.Item;
+        selectedIndex = pUnits.IndexOf(args.Item);
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if (_isSubmitted) return;
+
+        if (selectedUnit is null || selectedUnit.UnitId == 0)
+        {
+            if (pUnits.Count > 0 && selectedIndex >= 0 && selectedIndex < pUnits.Count)
+            {
+                selectedUnit = pUnits[selectedIndex];
+            }
+        }
+
+        if (selectedUnit is not null && selectedUnit.UnitId != 0)
+        {
+            _isSubmitted = true;
+            MudDialog.Close(DialogResult.Ok(selectedUnit));
+        }
+        else
+        {
+            MudDialog.Cancel();
+        }
+    }
+
+    private async Task OnSearch(string text)
+    {
+        strSearch = text;
+        if(grid is not null)
+             await grid.ReloadServerData();
+    }
+
+    private void OnDialogKeyDown(KeyboardEventArgs e)
+    {
+        HandleKey(e);
+    }
+
+    private void HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < pUnits.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (pUnits.Count > 0 && selectedIndex >= 0 && selectedIndex < pUnits.Count)
+            {
+                selectedUnit = pUnits[selectedIndex];
+                Submit();
+            }
+        }
+        else if (e.Key == "Escape")
+        {
+            CloseDialog();
+        }
+    }
+}

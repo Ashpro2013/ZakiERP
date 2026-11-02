@@ -1,0 +1,135 @@
+@page "/userdetails"
+@using AshproSAASERP.Models.User
+@using AshproSAASERP.Models.Masters
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject TabService TabService
+
+<PageTitle>User Management</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("UserTitle")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+    <EditForm Model="userDetails" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("UserName")</MudText>
+                <MudTextField @ref="txtUserName" AutoFocus="true" @bind-Value="userDetails.UserName" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" autocomplete="off" />
+                <ValidationMessage For="@(() => userDetails.UserName)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("Password")</MudText>
+                <MudTextField @ref="txtPassword" @bind-Value="userDetails.PassWord" InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 2))" autocomplete="new-password" />
+                <ValidationMessage For="@(() => userDetails.PassWord)" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("UserPrivilege")</MudText>
+                <MudSelect @bind-Value="userDetails.PrevilageId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+                    <MudSelectItem Value="0" Disabled="true">@Localizer("Select Privilege")</MudSelectItem>
+                    @foreach (var privilege in privileges)
+                    {
+                        <MudSelectItem Value="@privilege.Id">@privilege.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.h6" Class="mb-2">@Localizer("SelectBranches")</MudText>
+        <MudDropContainer T="BranchDropItem" Items="_dropZoneItems" ItemsSelector="@((item, dropzone) => item.Zone == dropzone)" ItemDropped="ItemDropped" Class="d-flex flex-wrap flex-grow-1">
+            <ChildContent>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="2" Class="pa-3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Storefront" Color="Color.Default" />
+                                    <MudText Typo="Typo.subtitle1"><b>@Localizer("AvailableBranches")</b> (@_dropZoneItems.Count(x => x.Zone == "available"))</MudText>
+                                </MudStack>
+                                <MudButton Variant="Variant.Outlined" 
+                                           Color="Color.Primary" 
+                                           Size="Size.Small" 
+                                           StartIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
+                                           OnClick="SelectAllBranches">
+                                    @Localizer("SelectAll")
+                                </MudButton>
+                            </MudStack>
+                            <MudDropZone T="BranchDropItem" Identifier="available" Class="mud-height-full pa-2" Style="min-height: 220px; max-height: 380px; overflow-y: auto; border: 2px dashed var(--mud-palette-lines-default); border-radius: 4px;">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2 d-block">@Localizer("DragBranchesToSelect") (Click branch or '+' button to select)</MudText>
+                            </MudDropZone>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudPaper Elevation="2" Class="pa-3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" />
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Primary"><b>@Localizer("SelectedBranches")</b> (@_dropZoneItems.Count(x => x.Zone == "selected"))</MudText>
+                                </MudStack>
+                                <MudButton Variant="Variant.Outlined" 
+                                           Color="Color.Error" 
+                                           Size="Size.Small" 
+                                           StartIcon="@Icons.Material.Filled.KeyboardDoubleArrowLeft"
+                                           OnClick="ClearAllBranches">
+                                    @Localizer("ClearAll")
+                                </MudButton>
+                            </MudStack>
+                            <MudDropZone T="BranchDropItem" Identifier="selected" Class="mud-height-full pa-2" Style="min-height: 220px; max-height: 380px; overflow-y: auto; border: 2px dashed var(--mud-palette-primary); border-radius: 4px; background-color: var(--mud-palette-primary-lighten);">
+                                <MudText Typo="Typo.caption" Color="Color.Primary" Class="mb-2 d-block">@Localizer("DropBranchesHere") (Click branch or '✕' button to remove)</MudText>
+                            </MudDropZone>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </ChildContent>
+            <ItemRenderer Context="item">
+                <MudCard Class="ma-1 user-select-none" Elevation="1" Style="@(item.Zone == "selected" ? "background-color: var(--mud-palette-success-lighten); cursor: pointer; transition: all 0.2s;" : "cursor: pointer; transition: all 0.2s;")" @onclick="() => ToggleBranch(item)">
+                    <MudCardContent Class="pa-2">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@(item.Zone == "selected" ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Business)" Size="Size.Small" Color="@(item.Zone == "selected" ? Color.Success : Color.Default)" />
+                            <MudText Typo="Typo.body2" Style="font-weight: 500;">@item.Branch.Code - @item.Branch.Name</MudText>
+                            </MudStack>
+                            <div @onclick:stopPropagation="true">
+                                <MudIconButton Icon="@(item.Zone == "selected" ? Icons.Material.Filled.Close : Icons.Material.Filled.ArrowForward)" 
+                                               Size="Size.Small" 
+                                               Color="@(item.Zone == "selected" ? Color.Error : Color.Primary)" 
+                                               OnClick="@(() => ToggleBranch(item))"
+                                               Title="@(item.Zone == "selected" ? "Remove from selected" : "Add to selected")" />
+                            </div>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </ItemRenderer>
+        </MudDropContainer>
+
+        <MudStack Row="true" Spacing="3" Class="ma-2 mt-4">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success">@Localizer("Save")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+    <MudDataGrid Class="ma-2" @ref="grid" Elevation="3" T="UserDetails" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" RowClick="@RowClicked">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("UserList")</MudText>
+            <MudSpacer />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.UserName" Title=@Localizer("UserName") />
+            <PropertyColumn Property="x => x.PrevilageId" Title=@Localizer("UserPrivilege") />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="UserDetails" PageSizeOptions="new int[] { 5, 10, 20 }" />
+        </PagerContent>
+    </MudDataGrid>
+
+</MudPaper>

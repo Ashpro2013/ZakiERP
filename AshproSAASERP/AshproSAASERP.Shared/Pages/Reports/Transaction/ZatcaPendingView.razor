@@ -1,0 +1,117 @@
+﻿@page "/pendingzatca"
+@inject IViewService api;
+@inject ModelService Dialog;
+@inject AppBarState appBar;
+@inject TabService TabService
+
+<PageTitle>@AppData.OEMAgency | Unit</PageTitle>
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h6">@Localizer("PendingZATCAInvoices")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudText>@Localizer("FromDate")</MudText>
+            <MudDatePicker DateFormat="dd-MM-yyyy" @bind-Date="dtmFrom" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudText>@Localizer("ToDate")</MudText>
+            <MudDatePicker DateFormat="dd-MM-yyyy" @bind-Date="dtmTo" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudButton class="mt-sm-7" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success"  OnClick="Generate">@Localizer("Generate")</MudButton>
+        </MudItem>
+    </MudGrid>
+    @if (ShowFirst)
+    {
+        <MudGrid Class="mt-5">
+            <MudItem xs="12" sm="4">
+                <MudButton class="mt-sm-7" Variant="Variant.Outlined" Color="Color.Error" style="width: 80%;" OnClick="@(() => FirstClick(2))">@Localizer("SalesInvoice") - @SalesCount</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudButton class="mt-sm-7" Variant="Variant.Outlined" Color="Color.Error" style="width: 80%;" OnClick="@(() => FirstClick(3))">@Localizer("CreditNote") - @CreditNoteCount</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudButton class="mt-sm-7" Variant="Variant.Outlined" Color="Color.Error" style="width: 80%;" OnClick="@(() => FirstClick(0))">@Localizer("DebitNote") - @DebitNoteCount</MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+    <MudGrid>
+        <MudItem xs="12" sm="6" Class="mt-5">
+            @if (ShowSecond)
+            {
+                <MudStack>
+                    <MudItem xs="12" sm="4">
+                        <MudButton class="mt-sm-7 mb-5" Variant="Variant.Filled" Color="Color.Primary" style="width: 80%;" OnClick="@(() => SecondClick(1))">@Localizer("Standard") - @StandardCount</MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudButton class="mt-sm-7 mb-5" Variant="Variant.Filled" Color="Color.Secondary" style="width: 80%;" OnClick="@(() => SecondClick(2))">@Localizer("Simplified") - @SimplifiedCount</MudButton>
+                    </MudItem>
+                </MudStack>
+            }
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="mt-5">
+            @if (ShowLast)
+            {
+                <MudStack>
+                    <MudItem xs="12" sm="4">
+                        <MudButton class="mt-sm-7 mb-5" Variant="Variant.Filled" Color="Color.Primary" style="width: 80%;" OnClick="@(() => LastClick(1))">@Localizer("Success") - @SuccessCount</MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudButton class="mt-sm-7 mb-5" Variant="Variant.Filled" Color="Color.Secondary" style="width: 80%;" OnClick="@(() => LastClick(2))">@Localizer("Warnings") - @WarningCount</MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudButton class="mt-sm-7 mb-5" Variant="Variant.Filled" Color="Color.Error" style="width: 80%;" OnClick="@(() => LastClick(3))">@Localizer("Failed") - @FailedCount</MudButton>
+                    </MudItem>
+                </MudStack>
+            }
+        </MudItem>
+    </MudGrid>
+
+</MudPaper>
+@if (ShowGrid)
+{
+    <style>
+    .selected-zatca-row,
+    .selected-zatca-row td,
+    tr.selected-zatca-row,
+    tr.selected-zatca-row td {
+        background-color: rgba(var(--mud-palette-primary-rgb), 0.25) !important;
+        font-weight: bold;
+    }
+    .selected-zatca-row:hover,
+    .selected-zatca-row:hover td,
+    tr.selected-zatca-row:hover,
+    tr.selected-zatca-row:hover td {
+        background-color: rgba(var(--mud-palette-primary-rgb), 0.35) !important;
+    }
+</style>
+<MudDataGrid Class="ma-2" @ref="grid" Elevation="3" T="ExInvoiceICV" ServerData="LoadServerData" Bordered="true" Dense="true" Hover="true" SortMode="SortMode.Multiple" Filterable="true" RowClick="@RowClicked" RowStyleFunc="@RowStyleFunc" RowClassFunc="@RowClassFunc">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("PendingList")</MudText>
+            <MudSpacer />
+            @if (ShowingFailed)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="UploadAll">@Localizer("ReuploadAll")</MudButton>
+            }
+              <MudSpacer />
+            @if (ShowSelected && ShowingFailed)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="UploadSelected">@Localizer("UploadSelected")</MudButton>
+            }
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.InvICVNo" Title=@Localizer("DocNo") />
+            <PropertyColumn Property="x => x.VoucherType" Title=@Localizer("DocType") />
+            <PropertyColumn Property="x => x.InvICVDate" Title=@Localizer("DocDate") />
+            <PropertyColumn Property="x => x.DetailedStatus" Title=@Localizer("Status") />
+            <PropertyColumn Property="x => x.Message" Title=@Localizer("Message") />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="ExInvoiceICV" PageSizeOptions="new int[] { 5, 10 }" />
+        </PagerContent>
+    </MudDataGrid>
+}
+

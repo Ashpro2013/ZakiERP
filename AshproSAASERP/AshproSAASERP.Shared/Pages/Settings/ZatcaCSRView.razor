@@ -1,0 +1,182 @@
+@page "/zatcacsr"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject TabService TabService
+
+<PageTitle>ZATCA CSR</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-2">
+    <MudPaper Elevation="2" Class="pa-3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+            <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Small" Class="mr-1" />
+            <MudText Typo="Typo.h6">Generate CSR</MudText>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+
+        <EditForm Model="@csrModel" OnValidSubmit="GenerateCSR">
+            <DataAnnotationsValidator />
+            
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.OTP" 
+                                  Label="OTP" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Required="true"
+                                  AutoFocus="true"
+                                  @ref="txtOTP" />
+                </MudItem>
+                
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.CommonName" 
+                                  Label="Common Name" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Placeholder="Enter Common Name"
+                                  Required="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.Organization" 
+                                  Label="Organization" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.UnitName" 
+                                  Label="Unit Name" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.CountryCode" 
+                                  Label="Country Code" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.SerialNumber" 
+                                  Label="Serial Number" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.OrganizationIdentifier" 
+                                  Label="Organization Identifier" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Required="true" />
+                </MudItem>
+                
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.Location" 
+                                  Label="Location" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.BusinessCategory" 
+                                  Label="Business Category" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  Placeholder="Enter Business Category" />
+                </MudItem>
+                
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.InvoiceType" 
+                                  Label="INVOICE TYPE" 
+                                  Variant="Variant.Outlined" 
+                                  Placeholder="B2B - 0100, B2C - 1000, Both - 1100"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudTextField @bind-Value="csrModel.CSRGenerationType"
+                                  Label="INVOICE TYPE"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="B2B - 0100, B2C - 1000, Both - 1100"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+            </MudGrid>
+
+            <MudStack Row="true" Spacing="2" Class="mt-3">
+                <MudButton ButtonType="ButtonType.Submit" 
+                           Variant="Variant.Filled" 
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Send">
+                    Generate
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.Cancel"
+                           OnClick="Cancel">
+                    Cancel
+                </MudButton>
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+    <MudPaper Elevation="2" Class="pa-3 mt-3">
+        <MudText Typo="Typo.h6" Class="mb-3" Style="background-color: #2196F3; color: white; padding: 8px; margin: -12px -12px 12px -12px;">
+            CSR Response
+        </MudText>
+
+        <MudGrid Spacing="2">
+            <MudItem xs="12" sm="3">
+                <MudTextField Value="csrResponse.ZatcaCSR"
+                              Label="Zatca CSR"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              ReadOnly="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudTextField Value="csrResponse.CSRSecret"
+                              Label="CSR Secret"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              ReadOnly="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudTextField Value="csrResponse.CSIDToken"
+                              Label="CSID Token"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              ReadOnly="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="3">
+                <MudTextField Value="csrResponse.CSIDSecret"
+                              Label="CSID Secret"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              ReadOnly="true" />
+            </MudItem>
+        </MudGrid>
+
+        <MudStack Row="true" Spacing="2" Class="mt-3">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Success"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="SaveDetails">
+                Save Details
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.Cancel"
+                       OnClick="CancelResponse">
+                Cancel
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+</MudContainer>

@@ -1,0 +1,249 @@
+@page "/dbbackup"
+@namespace AshproSAASERP.Shared.Pages.Settings
+@using AshproSAASERP.Shared.Services
+@inject IFormFactor FormFactor
+@inject ISnackbar Snackbar
+@inject TabService TabService
+
+<PageTitle>@Localizer("DBBackup")</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-2">
+    <MudPaper Elevation="3" Class="pa-4" Style="position: relative; border-radius: 12px;">
+        @if (isBackingUp)
+        {
+            <MudOverlay Visible="true" DarkBackground="true" Absolute="true" Style="border-radius: 12px; z-index: 10;">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    <MudText Typo="Typo.subtitle1" Color="Color.Surface">
+                        @(AppData.IsArabic ? "جاري إنشاء النسخة الاحتياطية لقاعدة البيانات، يرجى الانتظار..." : "Creating database backup, please wait...")
+                    </MudText>
+                </MudStack>
+            </MudOverlay>
+        }
+
+        <!-- Header -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                <MudIcon Icon="@Icons.Material.Filled.Backup" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">@Localizer("DBBackup")</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @(AppData.IsArabic
+                        ? "إنشاء وإدارة النسخ الاحتياطية لقاعدة البيانات الخاصة بالنظام."
+                        : "Create and manage on-demand backups of your database.")
+                </MudText>
+            </div>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+
+        <MudDivider Class="mb-4" />
+
+        @if (!AppData.IsWindows)
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-4">
+                @(AppData.IsArabic
+                    ? "النسخ الاحتياطي لقاعدة البيانات متاح فقط في تطبيق سطح المكتب (Windows Desktop)."
+                    : "Database backup is only available in the Windows Desktop application.")
+            </MudAlert>
+        }
+        else
+        {
+            <!-- Database Info Section -->
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-3" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@(AppData.IsArabic ? "نوع قاعدة البيانات" : "Database Provider")</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Storage" Color="Color.Primary" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">@dbProvider</MudText>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-3" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@(AppData.IsArabic ? "اسم قاعدة البيانات" : "Database Name")</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.FolderSpecial" Color="Color.Info" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">@dbName</MudText>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-3" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@(AppData.IsArabic ? "الخادم / الجهاز" : "Server / Host")</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
+                            <MudIcon Icon="@Icons.Material.Filled.Dns" Color="Color.Secondary" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">@dbServer</MudText>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Elevation="1" Class="pa-3" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@(AppData.IsArabic ? "حالة الاتصال" : "Status")</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mt-1">
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">
+                                @(AppData.IsArabic ? "متصل" : "Ready / Connected")
+                            </MudChip>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Backup Action Card -->
+            <MudPaper Elevation="2" Class="pa-4 mb-4" Style="border-radius: 8px;">
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Size="Size.Small" Class="mr-1" />
+                    @(AppData.IsArabic ? "تنفيذ النسخ الاحتياطي" : "Perform Database Backup")
+                </MudText>
+
+                <MudGrid Spacing="2" AlignItems="Center">
+                    <MudItem xs="12" md="8">
+                        <MudTextField @bind-Value="targetFolder"
+                                      Label="@Localizer("BackupLocation")"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.Folder"
+                                      OnAdornmentClick="OpenFolderInExplorer"
+                                      HelperText="@(AppData.IsArabic ? "مجلد حفظ النسخ الاحتياطية (.bak / .db). اتركه افتراضياً إذا رغبت." : "Target directory for backup files (.bak / .db). Leave as default or edit path.")" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Backup"
+                                       OnClick="PerformBackupAsync"
+                                       Disabled="isBackingUp"
+                                       Size="Size.Medium">
+                                @Localizer("BackupNow")
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Secondary"
+                                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                                       OnClick="OpenFolderInExplorer"
+                                       Size="Size.Medium">
+                                @Localizer("OpenFolder")
+                            </MudButton>
+                            <MudButton Variant="Variant.Text"
+                                       Color="Color.Default"
+                                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                                       OnClick="ResetToDefaultFolder"
+                                       Size="Size.Small">
+                                @(AppData.IsArabic ? "استعادة الافتراضي" : "Reset")
+                            </MudButton>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+
+                @if (lastBackupResult != null)
+                {
+                    <MudDivider Class="my-3" />
+                    @if (lastBackupResult.Value.Success)
+                    {
+                        <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="mt-2" ShowCloseIcon="true" CloseIconClicked="() => lastBackupResult = null">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <div>
+                                    <MudText Typo="Typo.subtitle2">@lastBackupResult.Value.Message</MudText>
+                                    @if (!string.IsNullOrWhiteSpace(lastBackupResult.Value.BackupPath))
+                                    {
+                                        <MudText Typo="Typo.caption" Style="word-break: break-all;">@lastBackupResult.Value.BackupPath</MudText>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(lastBackupResult.Value.BackupPath))
+                                {
+                                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Surface" OnClick="() => FormFactor.OpenFolder(lastBackupResult.Value.BackupPath!)">
+                                        @(AppData.IsArabic ? "عرض الملف" : "Show File")
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mt-2" ShowCloseIcon="true" CloseIconClicked="() => lastBackupResult = null">
+                            <MudText Typo="Typo.subtitle2">@lastBackupResult.Value.Message</MudText>
+                        </MudAlert>
+                    }
+                }
+            </MudPaper>
+
+            <!-- Existing Backups Table -->
+            <MudPaper Elevation="1" Class="pa-3" Style="border-radius: 8px;">
+                <MudTable Items="@FilteredBackups"
+                          Dense="true"
+                          Hover="true"
+                          Striped="true"
+                          Elevation="0"
+                          Loading="@isLoadingList"
+                          LoadingProgressColor="Color.Primary">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">@Localizer("ExistingBackups")</MudText>
+                        <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="ml-2">@existingBackups.Count</MudChip>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="searchString"
+                                      Placeholder="@(AppData.IsArabic ? "بحث في الملفات..." : "Search backups...")"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      IconSize="Size.Medium"
+                                      Class="mt-0"
+                                      Clearable="true"
+                                      Immediate="true" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Primary"
+                                       OnClick="LoadExistingBackupsAsync"
+                                       Title="@(AppData.IsArabic ? "تحديث القائمة" : "Refresh list")" />
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>@Localizer("FileName")</MudTh>
+                        <MudTh>@Localizer("FileSize")</MudTh>
+                        <MudTh>@Localizer("CreatedDate")</MudTh>
+                        <MudTh Style="text-align: right;">@Localizer("OpenFolder")</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="FileName">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@(context.FileName.EndsWith(".bak", StringComparison.OrdinalIgnoreCase) ? Icons.Material.Filled.Storage : Icons.Material.Filled.InsertDriveFile)"
+                                         Color="Color.Primary"
+                                         Size="Size.Small" />
+                                <div>
+                                    <MudText Typo="Typo.body2" Style="font-weight: 500;">@context.FileName</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-size: 11px;">@context.FullPath</MudText>
+                                </div>
+                            </MudStack>
+                        </MudTd>
+                        <MudTd DataLabel="FileSize">
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">
+                                @context.FileSizeFormatted
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="CreatedDate">
+                            @context.CreatedDate.ToString("yyyy-MM-dd hh:mm:ss tt")
+                        </MudTd>
+                        <MudTd DataLabel="Action" Style="text-align: right;">
+                            <MudButton Variant="Variant.Text"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.FolderOpen"
+                                       Size="Size.Small"
+                                       OnClick="() => FormFactor.OpenFolder(context.FullPath)">
+                                @Localizer("OpenFolder")
+                            </MudButton>
+                        </MudTd>
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText Typo="Typo.body2" Align="Align.Center" Class="pa-4 text-muted">
+                            @(AppData.IsArabic
+                                ? "لم يتم العثور على أي ملفات نسخ احتياطي."
+                                : "No backup files found.")
+                        </MudText>
+                    </NoRecordsContent>
+                    <PagerContent>
+                        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50 }" />
+                    </PagerContent>
+                </MudTable>
+            </MudPaper>
+        }
+    </MudPaper>
+</MudContainer>
+

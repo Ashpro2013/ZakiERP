@@ -1,0 +1,715 @@
+@namespace AshproSAASERP.Shared.SubWindows
+@using Microsoft.AspNetCore.Components.Web
+@using MudBlazor
+@using AshproSAASERP.Models.DTO
+@using Microsoft.JSInterop
+@inject IJSRuntime js
+
+<MudDialog Class="pos-payment-dialog">
+    <TitleContent>
+        <div class="d-flex align-center justify-space-between w-100">
+            <div class="d-flex align-center gap-2">
+                <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                    <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Small" />
+                </MudAvatar>
+                <div>
+                    <MudText Typo="Typo.h6" Class="dialog-title-text">Cash Payment</MudText>
+                    <MudText Typo="Typo.caption" Class="dialog-subtitle-text">Enter customer tender amount to calculate change</MudText>
+                </div>
+            </div>
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="Cancel" />
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <div @onkeydown="HandleKeyDown" @onkeydown:stopPropagation="true" class="payment-dialog-body">
+            <div class="payment-main-grid">
+                
+                @* LEFT COLUMN: Payment Summary & Fast Chips *@
+                <div class="payment-left-col">
+                    @* Total Payable Card *@
+                    <div class="total-payable-card">
+                        <div class="total-header">
+                            <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Small" Class="mr-1" />
+                            <span>TOTAL AMOUNT TO PAY</span>
+                        </div>
+                        <div class="total-amount-display">
+                            @PermanentSettingsData.FormatCurrency(TotalAmount)
+                        </div>
+                    </div>
+
+                    @* Tender Amount Input Card *@
+                    <div class="tender-card mt-3">
+                        <div class="tender-card-header">
+                            <div class="d-flex align-center gap-1">
+                                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Small" Style="color: #2563eb;" />
+                                <span class="tender-lbl">Cash Received (Tendered)</span>
+                            </div>
+                            <span class="tender-mode-badge">Cash</span>
+                        </div>
+                        <div class="tender-input-wrap">
+                            <input id="payment-tender-input"
+                                   type="text"
+                                   class="payment-cash-input"
+                                   value="@_tenderBuffer"
+                                   @oninput="OnTenderInputDirect"
+                                   placeholder="0.00"
+                                   autocomplete="off" />
+                        </div>
+                    </div>
+
+                    @* Change / Balance Display Card *@
+                    <div class="mt-3">
+                        @if (IsValid)
+                        {
+                            <div class="balance-card valid-balance">
+                                <div class="balance-header">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-1" />
+                                    <span>CHANGE TO RETURN</span>
+                                </div>
+                                <div class="balance-amount-display">
+                                    @PermanentSettingsData.FormatCurrency(ChangeAmount)
+                                </div>
+                                <div class="balance-footer-text">
+                                    Customer paid in full. Change: @PermanentSettingsData.FormatCurrency(ChangeAmount)
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="balance-card invalid-balance">
+                                <div class="balance-header">
+                                    <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Error" Size="Size.Small" Class="mr-1" />
+                                    <span>SHORTAGE (INSUFFICIENT)</span>
+                                </div>
+                                <div class="balance-amount-display">
+                                    @PermanentSettingsData.FormatCurrency(ShortageAmount)
+                                </div>
+                                <div class="balance-footer-text">
+                                    Payment must be at least @PermanentSettingsData.FormatCurrency(TotalAmount)
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Quick Tender Presets *@
+                    <div class="quick-presets-section mt-3">
+                        <div class="quick-label mb-1">
+                            <MudIcon Icon="@Icons.Material.Filled.TouchApp" Size="Size.Small" Class="mr-1" />
+                            <span>Quick Presets:</span>
+                        </div>
+                        <div class="quick-chips-grid">
+                            <button type="button" class="quick-chip-btn exact-chip @(_tendered == TotalAmount ? "active" : "")" @onclick="SetExact">
+                                Exact (@PermanentSettingsData.FormatCurrency(TotalAmount))
+                            </button>
+                            @foreach (var note in GetCommonNotes())
+                            {
+                                <button type="button" class="quick-chip-btn @(_tendered == note ? "active" : "")" @onclick="() => SetTendered(note)">
+                                    @note.ToString("G29")
+                                </button>
+                            }
+                        </div>
+                        <div class="quick-add-grid mt-2">
+                            <span class="quick-add-lbl">Add:</span>
+                            <button type="button" class="quick-add-btn" @onclick="() => AddTendered(5)">+5</button>
+                            <button type="button" class="quick-add-btn" @onclick="() => AddTendered(10)">+10</button>
+                            <button type="button" class="quick-add-btn" @onclick="() => AddTendered(20)">+20</button>
+                            <button type="button" class="quick-add-btn" @onclick="() => AddTendered(50)">+50</button>
+                            <button type="button" class="quick-add-btn" @onclick="() => AddTendered(100)">+100</button>
+                        </div>
+                    </div>
+                </div>
+
+                @* RIGHT COLUMN: Number Keyboard (Touchpad with POSView Theme) *@
+                <div class="payment-right-col">
+                    <div class="pos-numpad-grid">
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("7")'>7</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("8")'>8</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("9")'>9</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => HandleNumKey("Backspace")' title="Backspace">⌫</MudButton>
+
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("4")'>4</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("5")'>5</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("6")'>6</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => HandleNumKey("Clear")' title="Clear (C)">Clear</MudButton>
+
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("1")'>1</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("2")'>2</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("3")'>3</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => HandleNumKey("Exact")' title="Set Exact Amount">Exact</MudButton>
+
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("0")'>0</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey("00")'>00</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => HandleNumKey(".")'>.</MudButton>
+                        <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn ok-btn" OnClick='() => HandleNumKey("Enter")' Disabled="@(!IsValid)" title="Confirm Payment">Enter</MudButton>
+                    </div>
+                </div>
+
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">
+                    @_errorMessage
+                </MudAlert>
+            }
+
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div class="d-flex justify-space-between align-center w-100 px-4 py-2">
+            <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Default" Class="px-4">
+                Cancel (Esc)
+            </MudButton>
+            <div class="d-flex align-center gap-2">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Bolt"
+                           OnClick="SetExact">
+                    Exact Amount
+                </MudButton>
+                <MudButton Color="Color.Success"
+                           Variant="Variant.Filled"
+                           OnClick="Submit"
+                           Disabled="@(!IsValid)"
+                           StartIcon="@Icons.Material.Filled.CheckCircle"
+                           Class="px-6 pay-submit-btn">
+                    OK (Enter)
+                </MudButton>
+            </div>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .pos-payment-dialog {
+        max-width: 780px !important;
+        width: 100% !important;
+        border-radius: 16px !important;
+    }
+
+    .payment-dialog-body {
+        padding: 4px 0;
+    }
+
+    .payment-main-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        gap: 16px;
+    }
+
+    @@media (max-width: 680px) {
+        .payment-main-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+    }
+
+    .payment-left-col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .payment-right-col {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #eef2f6;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    .dialog-title-text {
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+
+    .dialog-subtitle-text {
+        color: #64748b;
+    }
+
+    /* Total Card */
+    .total-payable-card {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: #ffffff;
+        padding: 14px 18px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .total-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 2px;
+    }
+
+    .total-amount-display {
+        font-size: 2.1rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #ffffff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Tender Amount Card */
+    .tender-card {
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 8px 12px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .tender-card:focus-within {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .tender-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+    }
+
+    .tender-lbl {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .tender-mode-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        background-color: #dbeafe;
+        color: #1e40af;
+        border-radius: 9999px;
+    }
+
+    .payment-cash-input {
+        width: 100%;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #0f172a;
+        text-align: right;
+        border: none;
+        outline: none;
+        background: transparent;
+    }
+
+    /* Balance Cards */
+    .balance-card {
+        padding: 10px 14px;
+        border-radius: 8px;
+        text-align: center;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .valid-balance {
+        background-color: #ecfdf5;
+        border: 1.5px solid #10b981;
+        color: #065f46;
+    }
+
+    .invalid-balance {
+        background-color: #fef2f2;
+        border: 1.5px solid #f87171;
+        color: #991b1b;
+    }
+
+    .balance-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+
+    .balance-amount-display {
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .balance-footer-text {
+        font-size: 0.72rem;
+        margin-top: 2px;
+        opacity: 0.9;
+    }
+
+    /* Quick Tender Presets */
+    .quick-presets-section {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 10px;
+    }
+
+    .quick-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+    }
+
+    .quick-chips-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .quick-chip-btn {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #1e293b;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+
+    .quick-chip-btn:hover {
+        background-color: #e2e8f0;
+        border-color: #94a3b8;
+    }
+
+    .quick-chip-btn.exact-chip {
+        background-color: #eff6ff;
+        border-color: #93c5fd;
+        color: #1d4ed8;
+    }
+
+    .quick-chip-btn.exact-chip:hover {
+        background-color: #dbeafe;
+    }
+
+    .quick-chip-btn.active {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border-color: #1d4ed8 !important;
+    }
+
+    .quick-add-grid {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .quick-add-lbl {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #94a3b8;
+    }
+
+    .quick-add-btn {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 3px 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .quick-add-btn:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+
+    /* Touch Number Keyboard (Right Column) - exact theme from POSView */
+    .pos-numpad-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        width: 100%;
+        background-color: #eef2f6;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    .pos-numpad-grid .numpad-btn {
+        height: 55px !important;
+        min-width: 50px !important;
+        font-size: 1.2rem !important;
+        font-weight: bold !important;
+        border-radius: 4px !important;
+        background-color: #cbd5e1 !important; /* slate-300 */
+        color: #1e293b !important; /* slate-800 */
+        text-transform: none !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid #94a3b8 !important;
+    }
+
+    .pos-numpad-grid .numpad-btn:hover {
+        background-color: #94a3b8 !important;
+        color: #ffffff !important;
+    }
+
+    .pos-numpad-grid .action-btn {
+        background-color: #94a3b8 !important; /* slate-400 */
+        color: #ffffff !important;
+        border: 1px solid #64748b !important;
+    }
+
+    .pos-numpad-grid .action-btn:hover {
+        background-color: #64748b !important;
+        color: #ffffff !important;
+    }
+
+    .pos-numpad-grid .action-btn.ok-btn {
+        background-color: #16a34a !important;
+        border: 1px solid #15803d !important;
+        color: #ffffff !important;
+    }
+
+    .pos-numpad-grid .action-btn.ok-btn:hover:not(:disabled) {
+        background-color: #15803d !important;
+        color: #ffffff !important;
+    }
+
+    .pos-numpad-grid .action-btn.ok-btn:disabled {
+        background-color: #cbd5e1 !important;
+        border: 1px solid #94a3b8 !important;
+        color: #94a3b8 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6 !important;
+    }
+
+    .pay-submit-btn {
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public decimal TotalAmount { get; set; }
+
+    private decimal _tendered;
+    private string _tenderBuffer = "";
+    private bool _isFirstKey = true;
+    private string? _errorMessage;
+
+    private bool IsValid => _tendered >= TotalAmount;
+    private decimal ChangeAmount => _tendered >= TotalAmount ? (_tendered - TotalAmount) : 0m;
+    private decimal ShortageAmount => _tendered < TotalAmount ? (TotalAmount - _tendered) : 0m;
+
+    protected override void OnInitialized()
+    {
+        // Default to exact amount so pressing OK/Enter immediately completes exact cash payment
+        _tendered = TotalAmount;
+        _tenderBuffer = TotalAmount.ToString("F2");
+        _isFirstKey = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await Task.Delay(100);
+                await js.InvokeVoidAsync("selectTextById", "payment-tender-input");
+            }
+            catch
+            {
+                // Fallback in case JS is not ready or restricted
+            }
+        }
+    }
+
+    private void OnTenderInputDirect(ChangeEventArgs e)
+    {
+        _errorMessage = null;
+        var valStr = e.Value?.ToString() ?? "";
+        _tenderBuffer = valStr;
+        if (decimal.TryParse(valStr, out var parsed))
+        {
+            _tendered = parsed;
+        }
+        else if (string.IsNullOrWhiteSpace(valStr))
+        {
+            _tendered = 0;
+        }
+        _isFirstKey = false;
+    }
+
+    private void HandleNumKey(string key)
+    {
+        _errorMessage = null;
+
+        if (key == "Clear" || key == "C")
+        {
+            ClearTendered();
+            return;
+        }
+
+        if (key == "Backspace" || key == "⌫")
+        {
+            if (_isFirstKey)
+            {
+                ClearTendered();
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(_tenderBuffer) && _tenderBuffer.Length > 0)
+            {
+                _tenderBuffer = _tenderBuffer.Substring(0, _tenderBuffer.Length - 1);
+                if (string.IsNullOrEmpty(_tenderBuffer)) _tenderBuffer = "0";
+            }
+            else
+            {
+                _tenderBuffer = "0";
+            }
+
+            if (decimal.TryParse(_tenderBuffer, out var parsed))
+            {
+                _tendered = parsed;
+            }
+            return;
+        }
+
+        if (key == "Exact")
+        {
+            SetExact();
+            return;
+        }
+
+        if (key == "Enter" || key == "OK")
+        {
+            Submit();
+            return;
+        }
+
+        if (_isFirstKey)
+        {
+            _tenderBuffer = "";
+            _isFirstKey = false;
+        }
+
+        if (key == ".")
+        {
+            if (string.IsNullOrEmpty(_tenderBuffer))
+            {
+                _tenderBuffer = "0.";
+            }
+            else if (!_tenderBuffer.Contains("."))
+            {
+                _tenderBuffer += ".";
+            }
+        }
+        else if (key == "00")
+        {
+            if (string.IsNullOrEmpty(_tenderBuffer) || _tenderBuffer == "0")
+            {
+                _tenderBuffer = "0";
+            }
+            else
+            {
+                _tenderBuffer += "00";
+            }
+        }
+        else
+        {
+            if (_tenderBuffer == "0")
+            {
+                _tenderBuffer = key;
+            }
+            else
+            {
+                _tenderBuffer += key;
+            }
+        }
+
+        if (decimal.TryParse(_tenderBuffer, out var val))
+        {
+            _tendered = val;
+        }
+    }
+
+    private void SetExact()
+    {
+        _tendered = TotalAmount;
+        _tenderBuffer = TotalAmount.ToString("F2");
+        _isFirstKey = true;
+        _errorMessage = null;
+    }
+
+    private void SetTendered(decimal amount)
+    {
+        _tendered = amount;
+        _tenderBuffer = amount.ToString("G29");
+        _isFirstKey = true;
+        _errorMessage = null;
+    }
+
+    private void AddTendered(decimal amount)
+    {
+        _tendered += amount;
+        _tenderBuffer = _tendered.ToString("G29");
+        _isFirstKey = false;
+        _errorMessage = null;
+    }
+
+    private void ClearTendered()
+    {
+        _tendered = 0;
+        _tenderBuffer = "0";
+        _isFirstKey = false;
+        _errorMessage = null;
+    }
+
+    private IEnumerable<decimal> GetCommonNotes()
+    {
+        return new List<decimal> { 10m, 20m, 50m, 100m, 200m, 500m };
+    }
+
+    private void Submit()
+    {
+        if (!IsValid)
+        {
+            _errorMessage = $"Customer must pay at least {TotalAmount:N2}.";
+            return;
+        }
+
+        var balance = _tendered - TotalAmount;
+        MudDialog.Close(DialogResult.Ok(new PaymentResult(_tendered, balance)));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Submit();
+        }
+        else if (e.Key == "Escape")
+        {
+            Cancel();
+        }
+    }
+}

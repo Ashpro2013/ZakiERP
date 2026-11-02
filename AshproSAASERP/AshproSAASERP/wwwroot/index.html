@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <base href="/" />
+    <title>Zaki ERP</title>
+    <link href="_content/AshproSAASERP.Shared/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="_content/AshproSAASERP.Shared/css/app.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <!--<link rel="icon" href="favicon.png">-->
+    <style>
+        .loading-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0e172a 0%, #06080e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            z-index: 99999;
+            font-family: 'Roboto', 'Inter', -apple-system, sans-serif;
+        }
+
+        /* Glow Blobs */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1;
+            animation: float-glow 20s infinite alternate ease-in-out;
+        }
+        
+        .glow-blob-1 {
+            width: 300px;
+            height: 300px;
+            background: #8a2be2;
+            top: -50px;
+            left: -50px;
+        }
+        
+        .glow-blob-2 {
+            width: 400px;
+            height: 400px;
+            background: #00d2ff;
+            bottom: -100px;
+            right: -100px;
+            animation-delay: -10s;
+        }
+
+        @keyframes float-glow {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(60px, 40px) scale(1.15);
+            }
+        }
+
+        /* Glassmorphic Loading Card */
+        .loading-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Logo */
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Title */
+        .app-title {
+            font-size: 26px;
+            font-weight: 500;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Spinner Container */
+        .spinner-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            margin: 16px 0;
+        }
+
+        .custom-spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-top-color: #8a2be2;
+            border-right-color: #00d2ff;
+            border-radius: 50%;
+            animation: spin 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .custom-spinner-inner {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: calc(100% - 12px);
+            height: calc(100% - 12px);
+            border: 2px solid transparent;
+            border-bottom-color: #4f46e5;
+            border-left-color: #a5b4fc;
+            border-radius: 50%;
+            animation: spin-reverse 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spin-reverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Status text */
+        .status-container {
+            margin: 10px 0 20px 0;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #loading-msg {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 400;
+            transition: opacity 0.2s ease-in-out;
+            letter-spacing: 0.5px;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8a2be2, #4f46e5, #00d2ff);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
+            transition: width 0.3s ease-out;
+            animation: gradient-shimmer 2s linear infinite;
+        }
+
+        @keyframes gradient-shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        /* Subtext */
+        .loading-subtext {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <div class="loading-wrapper">
+            <!-- Background Glow Blobs -->
+            <div class="glow-blob glow-blob-1"></div>
+            <div class="glow-blob glow-blob-2"></div>
+            
+            <div class="loading-card">
+                <!-- Glowing Logo -->
+                <div class="logo-container">
+                    <svg class="logo-svg" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8a2be2" />
+                                <stop offset="50%" stop-color="#4a00e0" />
+                                <stop offset="100%" stop-color="#00d2ff" />
+                            </linearGradient>
+                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="6" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                        </defs>
+                        <!-- Outer Hexagon -->
+                        <polygon points="50,15 80,32 80,68 50,85 20,68 20,32" fill="none" stroke="url(#logo-grad)" stroke-width="4" filter="url(#glow)">
+                            <animateTransform 
+                                attributeName="transform" 
+                                type="rotate" 
+                                from="0 50 50" 
+                                to="360 50 50" 
+                                dur="12s" 
+                                repeatCount="indefinite" />
+                        </polygon>
+                        <!-- Inner Triangle -->
+                        <polygon points="50,30 68,60 32,60" fill="url(#logo-grad)" opacity="0.8">
+                            <animateTransform 
+                                attributeName="transform" 
+                                type="rotate" 
+                                from="360 50 50" 
+                                to="0 50 50" 
+                                dur="6s" 
+                                repeatCount="indefinite" />
+                        </polygon>
+                    </svg>
+                </div>
+                
+                <h1 class="app-title">Zaki ERP</h1>
+                
+                <!-- Custom Ring Loader -->
+                <div class="spinner-container">
+                    <div class="custom-spinner"></div>
+                    <div class="custom-spinner-inner"></div>
+                </div>
+                
+                <div class="status-container">
+                    <span id="loading-msg">Initializing workspace...</span>
+                </div>
+                
+                <!-- Modern Progress Bar -->
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="loading-bar"></div>
+                </div>
+                
+                <div class="loading-subtext">
+                    Loading WebAssembly Modules
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var progress = 0;
+            var bar = document.getElementById('loading-bar');
+            var msg = document.getElementById('loading-msg');
+            
+            var messages = [
+                "Establishing secure connection...",
+                "Downloading WebAssembly files...",
+                "Loading database metadata...",
+                "Optimizing application caches...",
+                "Initializing user interface...",
+                "Synchronizing workspace...",
+                "Almost ready..."
+            ];
+            
+            var msgIndex = 0;
+            
+            // Cycle status messages
+            var msgInterval = setInterval(function() {
+                if (progress < 95) {
+                    msgIndex = (msgIndex + 1) % messages.length;
+                    if (msg) {
+                        msg.style.opacity = 0;
+                        setTimeout(function() {
+                            msg.innerText = messages[msgIndex];
+                            msg.style.opacity = 1;
+                        }, 200);
+                    }
+                } else {
+                    clearInterval(msgInterval);
+                }
+            }, 2000);
+
+            // Smooth progress simulation
+            var startTime = Date.now();
+            
+            var progressInterval = setInterval(function() {
+                var elapsed = Date.now() - startTime;
+                
+                if (elapsed < 1200) {
+                    // Fast start to 45%
+                    progress = (elapsed / 1200) * 45;
+                } else if (elapsed < 4000) {
+                    // Slower progress from 45% to 85%
+                    progress = 45 + ((elapsed - 1200) / 2800) * 40;
+                } else if (elapsed < 12000) {
+                    // Very slow creeping from 85% to 96%
+                    progress = 85 + ((elapsed - 4000) / 8000) * 11;
+                } else {
+                    // Cap at 97% until replaced by Blazor
+                    progress = 97;
+                    clearInterval(progressInterval);
+                }
+                
+                if (bar) {
+                    bar.style.width = Math.min(progress, 100) + '%';
+                }
+            }, 100);
+        })();
+    </script>
+    <script src="_content/AshproSAASERP.Shared/js/App.js"></script>
+    <script type="module" src="_content/AshproSAASERP.Shared/js/indexedDb.js"></script>
+    <script src="_content/AshproSAASERP.Shared/js/xlsx.full.min.js"></script>
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+
+</html>

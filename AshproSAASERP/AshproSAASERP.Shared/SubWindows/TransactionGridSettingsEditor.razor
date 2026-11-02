@@ -1,0 +1,376 @@
+@namespace AshproSAASERP.Shared.SubWindows
+@using MudBlazor
+@using AshproSAASERP.Models.Settings
+@using AshproSAASERP.Shared.Services
+@inject ISnackbar Snackbar
+
+<div class="transaction-grid-settings-editor">
+    <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-3 pb-2" style="border-bottom: 1px solid #e2e8f0;">
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@GetTransactionIcon(TransactionTitle)" Size="Size.Medium" Color="Color.Primary" />
+            <div>
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 700; color: #0f172a;">
+                    @TransactionTitle @Localizer("GridSettings")
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color: #64748b;">
+                    @Localizer("ConfigureColumnVisibilityDesc")
+                </MudText>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <MudButton Variant="Variant.Outlined"
+                       Size="Size.Small"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.SelectAll"
+                       OnClick="SelectAll">
+                @Localizer("SelectAll")
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       Size="Size.Small"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.RestartAlt"
+                       OnClick="ResetDefaults">
+                @Localizer("DefaultColumns")
+            </MudButton>
+            @if (ShowApplyToAll)
+            {
+                <MudButton Variant="Variant.Filled"
+                           Size="Size.Small"
+                           Color="Color.Tertiary"
+                           StartIcon="@Icons.Material.Filled.ContentCopy"
+                           OnClick="ApplyToAll">
+                    @Localizer("ApplyToAllTransactions")
+                </MudButton>
+            }
+        </div>
+    </div>
+
+    <!-- Section 1: Datagrid Column Visibility -->
+    <div class="mb-4">
+        <div class="d-flex align-center gap-2 mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.ViewColumn" Size="Size.Small" Color="Color.Primary" />
+            <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;">
+                @Localizer("ColumnVisibility")
+            </MudText>
+        </div>
+
+        <div class="tx-columns-grid">
+            <!-- Product Code -->
+            <div class="tx-column-card @(Model.ShowItemCode ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowItemCode"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Product Code"
+                           T="bool" />
+                <span class="tx-card-caption">Display item code</span>
+            </div>
+
+            <!-- Barcode -->
+            <div class="tx-column-card @(Model.ShowBarcode ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowBarcode"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Barcode"
+                           T="bool" />
+                <span class="tx-card-caption">Display product barcode</span>
+            </div>
+
+            <!-- Product Arabic Name -->
+            <div class="tx-column-card @(Model.ShowArabicName ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowArabicName"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Arabic Name"
+                           T="bool" />
+                <span class="tx-card-caption">Secondary Arabic item title</span>
+            </div>
+
+            <!-- Measurement Unit -->
+            <div class="tx-column-card @(Model.ShowUnit ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowUnit"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Measurement Unit"
+                           T="bool" />
+                <span class="tx-card-caption">Unit of measure (Pcs, Box, etc.)</span>
+            </div>
+
+            <!-- Ex. Rate (ExRate) -->
+            <div class="tx-column-card @(Model.ShowExRate ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowExRate"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Exclusive Rate (Ex. Rate)"
+                           T="bool" />
+                <span class="tx-card-caption">Item rate excluding VAT</span>
+            </div>
+
+            <!-- Inc. Rate (IncRate) -->
+            <div class="tx-column-card @(Model.ShowIncRate ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowIncRate"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Inclusive Rate (Inc. Rate)"
+                           T="bool" />
+                <span class="tx-card-caption">Item rate including VAT</span>
+            </div>
+
+            <!-- Gross Amount -->
+            <div class="tx-column-card @(Model.ShowGross ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowGross"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Gross Amount"
+                           T="bool" />
+                <span class="tx-card-caption">Qty &times; Rate before discount</span>
+            </div>
+
+            <!-- Discount % -->
+            <div class="tx-column-card @(Model.ShowDiscPercentage ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowDiscPercentage"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Discount %"
+                           T="bool" />
+                <span class="tx-card-caption">Line item discount percentage</span>
+            </div>
+
+            <!-- Discount Amount -->
+            <div class="tx-column-card @(Model.ShowDiscAmount ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowDiscAmount"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Discount Amount"
+                           T="bool" />
+                <span class="tx-card-caption">Calculated line discount value</span>
+            </div>
+
+            <!-- Taxable Amount -->
+            <div class="tx-column-card @(Model.ShowTaxableAmount ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowTaxableAmount"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Taxable Amount"
+                           T="bool" />
+                <span class="tx-card-caption">Gross minus discount total</span>
+            </div>
+
+            <!-- Tax % -->
+            <div class="tx-column-card @(Model.ShowTaxPercentage ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowTaxPercentage"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Tax % (VAT %)"
+                           T="bool" />
+                <span class="tx-card-caption">VAT rate percentage applied</span>
+            </div>
+
+            <!-- Tax Amount -->
+            <div class="tx-column-card @(Model.ShowTaxAmount ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowTaxAmount"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Tax Amount"
+                           T="bool" />
+                <span class="tx-card-caption">Calculated tax value</span>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="tx-column-card @(Model.ShowAmount ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowAmount"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="Net Line Total"
+                           T="bool" />
+                <span class="tx-card-caption">Final line amount after tax</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Inline Grid Editing Permissions -->
+    <div class="pt-3" style="border-top: 1px solid #e2e8f0;">
+        <div class="d-flex align-center gap-2 mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.EditNote" Size="Size.Small" Style="color: #10b981;" />
+            <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;">
+                @Localizer("InlineEditingPermissions")
+            </MudText>
+        </div>
+        <MudText Typo="Typo.caption" Style="color: #64748b;" Class="d-block mb-3">
+            @Localizer("ControlInlineEditingDesc")
+        </MudText>
+
+        <div class="tx-columns-grid">
+            <!-- Edit Ex. Rate -->
+            <div class="tx-column-card @(Model.AllowEditExcRate ? "card-active-edit" : "")">
+                <MudSwitch @bind-Value="Model.AllowEditExcRate"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Success"
+                           Label="Edit Exclusive Rate (Ex. Rate)"
+                           T="bool" />
+                <span class="tx-card-caption">Allow editing Ex. Rate directly in table</span>
+            </div>
+
+            <!-- Edit Inc. Rate -->
+            <div class="tx-column-card @(Model.AllowEditIncRate ? "card-active-edit" : "")">
+                <MudSwitch @bind-Value="Model.AllowEditIncRate"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Success"
+                           Label="Edit Inclusive Rate (Inc. Rate)"
+                           T="bool" />
+                <span class="tx-card-caption">Allow editing Inc. Rate directly in table</span>
+            </div>
+
+            <!-- Edit Disc % -->
+            <div class="tx-column-card @(Model.AllowEditDiscPer ? "card-active-edit" : "")">
+                <MudSwitch @bind-Value="Model.AllowEditDiscPer"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Success"
+                           Label="Edit Discount %"
+                           T="bool" />
+                <span class="tx-card-caption">Allow editing Discount % in table</span>
+            </div>
+
+            <!-- Edit Disc Amount -->
+            <div class="tx-column-card @(Model.AllowEditDiscAmount ? "card-active-edit" : "")">
+                <MudSwitch @bind-Value="Model.AllowEditDiscAmount"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Success"
+                           Label="Edit Discount Amount"
+                           T="bool" />
+                <span class="tx-card-caption">Allow editing Discount Amount in table</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Transaction Operations -->
+    <div class="pt-3 mt-3" style="border-top: 1px solid #e2e8f0;">
+        <div class="d-flex align-center gap-2 mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Small" Style="color: #6366f1;" />
+            <MudText Typo="Typo.subtitle2" Style="font-weight: 700; color: #1e293b;">
+                @Localizer("TransactionOperations")
+            </MudText>
+        </div>
+        <MudText Typo="Typo.caption" Style="color: #64748b;" Class="d-block mb-3">
+            @Localizer("TransactionOperationsDesc")
+        </MudText>
+
+        <div class="tx-columns-grid">
+            <!-- Enable Update -->
+            <div class="tx-column-card @(Model.EnableUpdate ? "card-active-edit" : "")">
+                <MudSwitch @bind-Value="Model.EnableUpdate"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Success"
+                           Label="@Localizer("EnableUpdate")"
+                           T="bool" />
+                <span class="tx-card-caption">@Localizer("EnableUpdateDesc")</span>
+            </div>
+
+            <!-- Enable Cancel -->
+            <div class="tx-column-card @(Model.EnableCancel ? "card-active-edit" : "")">
+                <MudSwitch @bind-Value="Model.EnableCancel"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Error"
+                           Label="@Localizer("EnableCancel")"
+                           T="bool" />
+                <span class="tx-card-caption">@Localizer("EnableCancelDesc")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transaction-grid-settings-editor {
+        padding: 8px 4px;
+    }
+
+    .tx-columns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 10px;
+    }
+
+    .tx-column-card {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tx-column-card:hover {
+        border-color: #93c5fd;
+        background: #f8fafc;
+    }
+
+    .tx-column-card.card-active {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .tx-column-card.card-active-edit {
+        border-color: #10b981;
+        background: #ecfdf5;
+    }
+
+    .tx-card-caption {
+        font-size: 0.72rem;
+        color: #64748b;
+        margin-left: 36px;
+        margin-top: -6px;
+    }
+</style>
+
+@code {
+    [Parameter] public TransactionGridSettings Model { get; set; } = new();
+    [Parameter] public string TransactionTitle { get; set; } = "Transaction";
+    [Parameter] public EventCallback OnChanged { get; set; }
+    [Parameter] public EventCallback<TransactionGridSettings> OnApplyToAll { get; set; }
+    [Parameter] public bool ShowApplyToAll { get; set; } = true;
+
+    private async Task OnFieldChanged()
+    {
+        if (OnChanged.HasDelegate)
+        {
+            await OnChanged.InvokeAsync();
+        }
+    }
+
+    private async Task SelectAll()
+    {
+        Model.SelectAllColumns();
+        await OnFieldChanged();
+    }
+
+    private async Task ResetDefaults()
+    {
+        Model.ResetToDefaults();
+        await OnFieldChanged();
+    }
+
+    private async Task ApplyToAll()
+    {
+        if (OnApplyToAll.HasDelegate)
+        {
+            await OnApplyToAll.InvokeAsync(Model);
+        }
+    }
+
+    private string GetTransactionIcon(string title) => title switch
+    {
+        "Sales Invoice" => Icons.Material.Filled.Receipt,
+        "Sales Order" => Icons.Material.Filled.ShoppingCartCheckout,
+        "Sales Quotation" or "Quotation" => Icons.Material.Filled.RequestQuote,
+        "Proforma Invoice" => Icons.Material.Filled.Description,
+        "Sales Return" => Icons.Material.Filled.AssignmentReturn,
+        "Purchase" or "Purchase Transactions" or "Purchase Invoice" => Icons.Material.Filled.ShoppingCart,
+        "Delivery Note" => Icons.Material.Filled.LocalShipping,
+        "Delivery Note Return" => Icons.Material.Filled.Undo,
+        "Purchase Return" => Icons.Material.Filled.KeyboardReturn,
+        "Goods Receipt" => Icons.Material.Filled.AssignmentTurnedIn,
+        _ => Icons.Material.Filled.TableChart
+    };
+
+    private string Localizer(string key) => ArabicLocalization.Localizer(key);
+}

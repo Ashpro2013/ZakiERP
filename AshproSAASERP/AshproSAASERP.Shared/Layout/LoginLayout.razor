@@ -1,0 +1,237 @@
+@inherits LayoutComponentBase
+@inject IJSRuntime js
+@inject JSService jsService
+@using MudBlazor
+
+<MudPopoverProvider />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.ExtraSmall" />
+<MudSnackbarProvider />
+<MudRTLProvider RightToLeft="@AppData.IsArabic">
+    <MudThemeProvider Theme="_loginTheme" IsDarkMode="true" />
+    <div class="login-bg">
+        <div class="login-orb login-orb-1"></div>
+        <div class="login-orb login-orb-2"></div>
+        <div class="login-orb login-orb-3"></div>
+        <div class="login-content">
+            @Body
+        </div>
+    </div>
+</MudRTLProvider>
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #0f0c29;
+    }
+
+    .login-bg {
+        min-height: 100vh;
+        width: 100%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #1a1a3e 100%);
+        overflow: hidden;
+    }
+
+    .login-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+    .login-orb-1 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, #7c3aed, transparent 70%);
+        top: -160px;
+        left: -120px;
+        animation: orbFloat1 10s ease-in-out infinite;
+    }
+
+    .login-orb-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, #06b6d4, transparent 70%);
+        bottom: -120px;
+        right: -80px;
+        animation: orbFloat2 12s ease-in-out infinite;
+    }
+
+    .login-orb-3 {
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, #ec4899, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: orbFloat3 14s ease-in-out infinite;
+        opacity: 0.15;
+    }
+
+    @@keyframes orbFloat1 {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        33% { transform: translateY(30px) translateX(15px); }
+        66% { transform: translateY(-20px) translateX(-10px); }
+    }
+
+    @@keyframes orbFloat2 {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        33% { transform: translateY(-25px) translateX(-15px); }
+        66% { transform: translateY(20px) translateX(10px); }
+    }
+
+    @@keyframes orbFloat3 {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.15); }
+    }
+
+    .login-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 460px;
+        padding: 20px 16px;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.065) !important;
+        backdrop-filter: blur(28px) saturate(160%);
+        -webkit-backdrop-filter: blur(28px) saturate(160%);
+        border: 1px solid rgba(255, 255, 255, 0.13) !important;
+        border-radius: 24px !important;
+        box-shadow:
+            0 4px 6px rgba(0,0,0,0.2),
+            0 20px 60px rgba(0, 0, 0, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .login-icon-ring {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
+        box-shadow: 0 4px 24px rgba(124, 58, 237, 0.5);
+        margin: 0 auto;
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .login-icon-ring:hover {
+        transform: scale(1.08) rotate(6deg);
+        box-shadow: 0 6px 32px rgba(124, 58, 237, 0.65);
+    }
+
+    .login-divider {
+        height: 3px;
+        width: 52px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #7c3aed, #06b6d4);
+        margin: 0 auto;
+    }
+
+    .login-submit-btn {
+        background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+        background-size: 200% 200% !important;
+        animation: gradientShift 4s ease infinite !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 1.5px !important;
+        text-transform: uppercase !important;
+        border-radius: 14px !important;
+        border: none !important;
+        color: white !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .login-submit-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 28px rgba(124, 58, 237, 0.5) !important;
+    }
+
+    .login-submit-btn:active {
+        transform: translateY(0px) !important;
+    }
+
+    @@keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .login-footer-text {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.28);
+        text-align: center;
+        margin-top: 20px;
+        letter-spacing: 0.3px;
+    }
+
+    .mud-input-outlined .mud-input-outlined-border {
+        border-color: rgba(255,255,255,0.2) !important;
+    }
+</style>
+
+@code {
+    private readonly MudTheme _loginTheme = new()
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#7c3aed",
+            Secondary = "#06b6d4",
+            Tertiary = "#ec4899",
+            Background = "#0f0c2900",        // transparent
+            BackgroundGray = "#0f0c2900",    // transparent
+            Surface = "#FFFFFF0F",           // rgba(255,255,255,0.06)
+            AppbarBackground = "#0f0c2900", // transparent
+            DrawerBackground = "#0f0c2900", // transparent
+            TextPrimary = "#FFFFFFEB",       // rgba(255,255,255,0.92)
+            TextSecondary = "#FFFFFF8C",     // rgba(255,255,255,0.55)
+            ActionDefault = "#FFFFFFB3",     // rgba(255,255,255,0.70)
+            LinesDefault = "#FFFFFF26",      // rgba(255,255,255,0.15)
+            TableLines = "#FFFFFF1F",        // rgba(255,255,255,0.12)
+            Divider = "#FFFFFF1A",           // rgba(255,255,255,0.10)
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = new[] { "Inter", "Segoe UI", "Roboto", "sans-serif" }
+            },
+            H4 = new H4Typography { FontWeight = "800" },
+            H5 = new H5Typography { FontWeight = "700" }
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "12px"
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            AppData.sTheme = await jsService.GetLocal("Currenttheme");
+            AppData.printer = await jsService.GetLocal("printer");
+            AppData.IsArabic = (await jsService.GetLocal("RightToLeft")).ToBool();
+            AppData.FullScreen = await jsService.GetLocal("FullScreen");
+            if (AppData.FullScreen == "openFullscreen")
+            {
+                await js.InvokeAsync<bool>("openFullscreen");
+            }
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            return;
+        }
+    }
+}

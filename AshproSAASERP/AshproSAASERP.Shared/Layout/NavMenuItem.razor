@@ -1,0 +1,95 @@
+@using AshproSAASERP.Models.User
+@using AshproSAASERP.Shared.Services
+@using System.Reflection
+@inject IViewService api
+
+@if (IsVisible)
+{
+    @if (IsGroup)
+    {
+        <MudNavGroup Title="@(AppData.IsArabic == true ? Menu.ArabicCaption : Menu.MenuCaption)" Icon="@Icon" Expanded="@(Menu.ParentId == null)">
+            @if (Children is not null)
+            {
+                @foreach (var child in Children)
+                {
+                    <NavMenuItem Menu="@child" AllMenus="@AllMenus" OnLinkClick="@OnLinkClick" />
+                }
+            }
+            @if (AppData.IsMaui && AppData.IsWindows && (string.Equals(Menu.Name, "Settings", StringComparison.OrdinalIgnoreCase) || string.Equals(Menu.MenuCaption, "Settings", StringComparison.OrdinalIgnoreCase)))
+            {
+                <MudNavLink OnClick="@(() => OnLinkClick.InvokeAsync((9099, "DBBackup", "AshproSAASERP.Shared.Pages.Settings.DBBackupView")))" Icon="@Icons.Material.Filled.Backup">
+                    @(AppData.IsArabic ? "نسخ احتياطي لقاعدة البيانات" : "DBBackup")
+                </MudNavLink>
+            }
+        </MudNavGroup>
+    }
+    else
+    {
+        <MudNavLink OnClick="@HandleClick">@(AppData.IsArabic ? Menu.ArabicCaption : Menu.MenuCaption)</MudNavLink>
+    }
+}
+
+@code {
+    [Parameter] public MenuDetails Menu { get; set; } = default!;
+    [Parameter] public List<MenuDetails> AllMenus { get; set; } = new();
+    [Parameter] public EventCallback<(int, string, string)> OnLinkClick { get; set; }
+
+    public bool IsVisible { get; set; } = true; // Default to true, will be evaluated in OnInitializedAsync
+    private bool IsGroup { get; set; }
+    private IEnumerable<MenuDetails>? Children;
+    private string? Icon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure the menu is visible based on user privileges and global visibility
+        IsVisible = CheckVisibility();
+        IsGroup = Menu.ParentId == null || Menu.AssemblyName == null;
+        Children = AllMenus.Where(m => m.ParentId == Menu.Id).OrderBy(m => m.Position);
+        if (IsGroup)
+            Icon = ResolveIcon(Menu.ClassName!);
+        await InvokeAsync(StateHasChanged);
+    }
+    private bool CheckVisibility()
+    {
+        // 1. Global Visibility (MenuVisibility)
+        // Assuming 'Active' property in MenuDetails reflects the MenuVisibility status from the DB/API
+        if (!Menu.Active) return false;
+        
+        // 2. User Privileges
+        if (AppData.privileges is not null && AppData.privileges.Any())
+        {
+            var match = AppData.privileges.FirstOrDefault(x => x.FK_MenuDetailsId == Menu.Id);
+            if (match is not null) return match.Visible;
+        }
+        
+        return true;
+    }
+    
+    private async Task HandleClick()
+    {
+        await OnLinkClick.InvokeAsync((Menu.Id, AppData.IsArabic ? Menu.ArabicCaption : Menu.MenuCaption, Menu.AssemblyName ?? ""));
+    }
+
+    private string ResolveIcon(string name) =>
+    string.IsNullOrWhiteSpace(name) ? "" : name switch
+    {
+        "AddCircle" => Icons.Material.Filled.AddCircle,
+        "ShoppingCart" => Icons.Material.Filled.ShoppingCart,
+        "AccountBalance" => Icons.Material.Filled.AccountBalance,
+        "Assessment" => Icons.Material.Filled.Assessment,
+        "Settings" => Icons.Material.Filled.Settings,
+        "Inventory" => Icons.Material.Filled.Inventory,
+        "Assignment" => Icons.Material.Filled.Assignment,
+        "SettingsApplications" => Icons.Material.Filled.SettingsApplications,
+        "People" => Icons.Material.Filled.People,
+        "Person" => Icons.Material.Filled.Person,
+        "ShoppingBag" => Icons.Material.Filled.ShoppingBag,
+        "ShoppingBasket" => Icons.Material.Filled.ShoppingBasket,
+        "FmdGood" => Icons.Material.Filled.FmdGood,
+        "CardMembership" => Icons.Material.Filled.CardMembership,
+        "Monitor" => Icons.Material.Filled.Monitor,
+        "AssignmentInd" => Icons.Material.Filled.AssignmentInd,
+        "AccountBox" => Icons.Material.Filled.AccountBox,
+        _ => ""
+    };
+}

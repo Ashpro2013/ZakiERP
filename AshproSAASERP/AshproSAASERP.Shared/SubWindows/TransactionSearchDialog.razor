@@ -1,0 +1,301 @@
+@inject IViewService api
+
+<MudDialog>
+    <DialogContent>
+
+        <MudDataGrid T="ExMasters"
+                     ServerData="LoadServerData"
+                     @ref="grid"
+                     RowClick="RowClickEvent"
+                     Hover="true"
+                     Dense="true"
+                     Bordered="true"
+                     RowStyleFunc="@RowStyleFunc"
+                     Striped="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@FormTitle</MudText>
+                <MudSpacer />
+
+                <MudTextField AutoFocus="true"
+                              @ref="txtSearch"
+                              Value="@strSearch"
+                              ValueChanged="@(async (string s) => await OnSearch(s))"
+                              Immediate="true"
+                              Placeholder="@FormTitle"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0" OnKeyDown="@(e => OnTextKeyDown(e))" />
+            </ToolBarContent>
+
+            <Columns>
+                @if (!string.IsNullOrEmpty(IdHead))
+                {
+                    <PropertyColumn Property="x => x.Id" Title="@IdHead" />
+                }
+                <PropertyColumn Property="x => x.Code" Title="@CodeHead" />
+                <PropertyColumn Property="x => x.Description" Title="@DescriptionHead" />
+                @if (IsNameStatus)
+                {
+                    <TemplateColumn Title="@NameHead">
+                        <CellTemplate>
+                            @{
+                                var status = context.Item.Name;
+                                var color = Color.Default;
+                                if (status == "Approved") color = Color.Success;
+                                else if (status == "Rejected") color = Color.Error;
+                                else if (status == "Opened") color = Color.Warning;
+                            }
+                            <MudChip Color="@color" Size="Size.Small" Variant="Variant.Outlined">@status</MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                }
+                else
+                {
+                    <PropertyColumn Property="x => x.Name" Title="@NameHead" />
+                }
+                @if (!string.IsNullOrEmpty(ExtraHead))
+                {
+                    <PropertyColumn Property="x => x.ExtraField" Title="@ExtraHead" />
+                }
+                @if (!string.IsNullOrEmpty(ReferenceHead))
+                {
+                    <PropertyColumn Property="x => x.ReferenceNo" Title="@ReferenceHead" />
+                }
+                <PropertyColumn Property="x => x.Amount" Format="@PermanentSettingsData.CurrencyFormat" Title="@AmountHead" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="ExMasters" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public string FormTitle { get; set; }
+    [Parameter] public string FormTitle2 { get; set; }
+    [Parameter] public string IdHead { get; set; } = "Id";
+    [Parameter] public string NameHead { get; set; }
+    [Parameter] public string DescriptionHead { get; set; }
+    [Parameter] public string CodeHead { get; set; } = "Number";
+    [Parameter] public string AmountHead { get; set; } = "Amount";
+    [Parameter] public string ExtraHead { get; set; }
+    [Parameter] public string ReferenceHead { get; set; }
+    [Parameter] public string SearchText { get; set; }
+    [Parameter] public bool IsNameStatus { get; set; } = false;
+    [Parameter] public int? FilterId { get; set; }
+    private string strSearch = "";
+    MudTextField<string> txtSearch;
+    List<ExMasters> entMasters = new();
+    private MudDataGrid<ExMasters> grid;
+    private ExMasters selectedRow = new();
+    private int selectedIndex = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        strSearch = SearchText;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Force focus
+            await Task.Delay(100);
+            await txtSearch.FocusAsync();
+        }
+    }
+    private async Task<GridData<ExMasters>> LoadServerData(GridState<ExMasters> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch,
+            BranchId: AppData.BranchId,
+            FilterId: FilterId
+        );
+        TransactionPDTO? result = null;
+        selectedIndex = 0; // Reset selection on new data load
+        // Custom handling for Master searches returning specific PDTOs
+        if (FormTitle == "Vehicle")
+        {
+            var data = await api.GetVehiclePDetails(pagination);
+            var items = data.Items.Select(x => new ExMasters 
+            { 
+                Id = x.VehicleId, 
+                Code = x.PlateNo, 
+                Name = x.CustomerName, 
+                Description = $"{x.Model} {x.Year}",
+                ExtraField = x.ChassisNo
+            }).ToList();
+            return new GridData<ExMasters> { Items = items, TotalItems = data.TotalCount };
+        }
+        if (FormTitle == "Technician")
+        {
+            var data = await api.GetTechnicianPDetails(pagination);
+            var items = data.Items.Select(x => new ExMasters 
+            { 
+                Id = x.TechnicianId, 
+                Code = x.Code, 
+                Name = x.Name, 
+                Description = x.Position
+            }).ToList();
+            return new GridData<ExMasters> { Items = items, TotalItems = data.TotalCount };
+        }
+        if (FormTitle == "Repair")
+        {
+             var data = await api.GetRepairPDetails(pagination);
+             var items = data.Items.Select(x => new ExMasters 
+            { 
+                Id = x.RepairId, 
+                Code = x.Code, 
+                Name = x.Name, 
+    
+            }).ToList();
+            return new GridData<ExMasters> { Items = items, TotalItems = data.TotalCount };
+        }
+
+        if (FormTitle == "Supplier Payment")
+        {
+             var data = await api.GetSupplierPaymentPDetails(pagination);
+             var items = data.PTransactions.Select(x => new ExMasters 
+            { 
+                Id = x.PaymentId, 
+                Code = x.VoucherNo, 
+                Name = x.SupplierName,
+                Description = x.PaidDate?.ToString("dd/MM/yyyy") ?? "", 
+                ExtraField = x.PayMode
+            }).ToList();
+            return new GridData<ExMasters> { Items = items, TotalItems = data.TotalCount };
+        }
+
+        result = FormTitle switch
+        {
+            "Sales Quotation" => await api.GetSalesQuotationPDetails(pagination),
+            "Sales Order" => await api.GetSalesOrderPDetails(pagination),
+            "Sales Invoice" => await api.GetSalesInvoicePDetails(pagination),
+            "Sales Invoice Return" => await api.GetSalesInvoiceRtnPDetails(pagination),
+            "Delivery Note" => await api.GetDeliveryNotePDetails(pagination),
+            "Delivery Note Return" => await api.GetDeliveryNoteRtnPDetails(pagination),
+            "Purchase Order" => await api.GetPurchaseOrderPDetails(pagination),
+            "Goods Receipt" => await api.GetGoodsReceiptPDetails(pagination),
+            "Purchase" => await api.GetPurchasePDetails(pagination),
+            "Purchase Return" => await api.GetPurchaseReturnPDetails(pagination),
+            "Proforma Invoice" => await api.GetPProformaInvoices(pagination),
+            "Damage Stock" => await api.GetDamageStockPDetails(pagination),
+            "Stock Adjustment" => await api.GetStockAdjustmentPDetails(pagination),
+            "Print Design" => await api.GetPrintDesignPDetails(pagination),
+            "Barcode Design" => await api.GetBarcodeDesignPDetails(pagination),
+            "Material Transfer Request" => await api.GetMaterialTransferRequestPDetails(pagination),
+            "Material Transfer IN" => await api.GetMaterialTransferInPDetails(pagination),
+            "Material Transfer OUT" => await api.GetMaterialTransferOutPDetails(pagination),
+            "Internal Material Transfer" => await api.GetInternalMaterialTransferPDetails(pagination),
+            "Privileges" => await api.GetUserPrivilegePDTO(pagination),
+            "Job Order" => await api.GetJobOrderPDetails(pagination),
+            "Job Card" => await api.GetJobCardPDetails(pagination),
+            _ => null
+        };
+        if (result == null) return new GridData<ExMasters> { Items = new List<ExMasters>(), TotalItems = 0 };
+
+        if(result.PTransactions is not null)
+        {
+            entMasters = result.PTransactions;
+        }
+        return new GridData<ExMasters>
+        {
+            Items = result.PTransactions,
+            TotalItems = result.TotalCount
+        };
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<ExMasters> args)
+    {
+        selectedRow = args.Item;
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if (selectedRow is not null && selectedRow.Id != 0)
+            MudDialog.Close(DialogResult.Ok(selectedRow));
+        else
+            MudDialog.Cancel();
+    }
+
+    private async Task OnSearch(string text)
+    {
+        strSearch = text;
+        if (grid is not null)
+            await grid.ReloadServerData();
+    }
+    void OnTextKeydown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            selectedRow = entMasters.FirstOrDefault(x => x.Code.Contains(SearchText));
+            if (selectedRow == null)
+            {
+                selectedRow = entMasters.FirstOrDefault(x => x.Name.ToUpper().Contains(SearchText.ToUpper()));
+            }
+            if (selectedRow is not null)
+            {
+                Submit();
+            }
+        }
+    }
+    private string RowStyleFunc(ExMasters item, int index)
+    {
+        // Use index for safer comparison
+        if (index == selectedIndex)
+        {
+            // Use theme-aware color (Primary color with 25% opacity) for visibility in both Light & Dark modes
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+    private void OnTextKeyDown(KeyboardEventArgs e)
+    {
+        // Support both modern and legacy key names
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < entMasters.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (entMasters.Count > 0 && selectedIndex >= 0 && selectedIndex < entMasters.Count)
+            {
+                selectedRow = entMasters[selectedIndex];
+                Submit();
+            }
+        }
+    }
+
+}
+

@@ -1,0 +1,246 @@
+@page "/home"
+@inject IViewService api
+@inject IJSRuntime jS
+@inject AppBarState appBar;
+@inject IndexDBHelper indexdbHelper
+@inject AshproSAASERP.Shared.Services.DashboardState DashboardState
+
+<MudContainer  Class="mb-16 mt-4 ">
+
+    @* ── Section Header ── *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h5" Style="font-weight:800;">Dashboard</MudText>
+            <MudText Typo="Typo.caption" Class="mud-text-secondary">Overview of your business performance</MudText>
+        </MudStack>
+        <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
+                       Color="Color.Primary"
+                       Variant="Variant.Outlined"
+                       Size="Size.Small"
+                       OnClick="@(() => DashboardState.Refresh())"
+                       Title="Refresh" />
+    </MudStack>
+
+    @* ── KPI Cards ── *@
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="dash-kpi-card" Elevation="2">
+                <div class="dash-kpi-bar" style="background:linear-gradient(135deg,#7c3aed,#a855f7);"></div>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-4">
+                    <div class="dash-kpi-icon" style="background:rgba(124,58,237,0.12);">
+                        <MudIcon Icon="@Icons.Material.Rounded.Payments" Style="color:#7c3aed;" Size="Size.Medium" />
+                    </div>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary" Style="font-weight:600;letter-spacing:.5px;text-transform:uppercase;">@Localizer("CashInHand")</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight:700;line-height:1.2;">@(cEntity?.CashInHand ?? "0.00")</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="dash-kpi-card" Elevation="2">
+                <div class="dash-kpi-bar" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9);"></div>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-4">
+                    <div class="dash-kpi-icon" style="background:rgba(6,182,212,0.12);">
+                        <MudIcon Icon="@Icons.Material.Rounded.AccountBalance" Style="color:#06b6d4;" Size="Size.Medium" />
+                    </div>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary" Style="font-weight:600;letter-spacing:.5px;text-transform:uppercase;">@Localizer("CashAtBank")</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight:700;line-height:1.2;">@(cEntity?.CashAtBank ?? "0.00")</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="dash-kpi-card" Elevation="2">
+                <div class="dash-kpi-bar" style="background:linear-gradient(135deg,#10b981,#34d399);"></div>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-4">
+                    <div class="dash-kpi-icon" style="background:rgba(16,185,129,0.12);">
+                        <MudIcon Icon="@Icons.Material.Rounded.People" Style="color:#10b981;" Size="Size.Medium" />
+                    </div>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary" Style="font-weight:600;letter-spacing:.5px;text-transform:uppercase;">@Localizer("Debtors")</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight:700;line-height:1.2;">@(cEntity?.Receivable ?? "0.00")</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="dash-kpi-card" Elevation="2">
+                <div class="dash-kpi-bar" style="background:linear-gradient(135deg,#ef4444,#f97316);"></div>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="pa-4">
+                    <div class="dash-kpi-icon" style="background:rgba(239,68,68,0.12);">
+                        <MudIcon Icon="@Icons.Material.Rounded.Portrait" Style="color:#ef4444;" Size="Size.Medium" />
+                    </div>
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary" Style="font-weight:600;letter-spacing:.5px;text-transform:uppercase;">@Localizer("Creditors")</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight:700;line-height:1.2;">@(cEntity?.Payable ?? "0.00")</MudText>
+                    </MudStack>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+
+        @* ── Top 10 Sales Bar Chart ── *@
+        <MudItem xs="12" md="8">
+            <MudPaper Class="dash-chart-card pa-4" Elevation="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <div class="dash-chart-dot" style="background:#7c3aed;"></div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700;">@Localizer("LastSales")</MudText>
+                    </MudStack>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">Last 30 Days</MudChip>
+                </MudStack>
+                @if (HasSalesBarData)
+                {
+                    <MudChart ChartType="ChartType.Bar"
+                              ChartSeries="@salesBarSeries"
+                              XAxisLabels="@salesBarLabels"
+                              Width="100%"
+                              Height="300px"
+                              ChartOptions="@barChartOptions" />
+                }
+                else
+                {
+                    <div class="dash-empty-state">
+                        <MudIcon Icon="@Icons.Material.Rounded.BarChart" Size="Size.Large" Class="mud-text-disabled" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary mt-2">No sales data available</MudText>
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* ── Top Sold Categories Pie Chart ── *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="dash-chart-card pa-4" Elevation="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
+                    <div class="dash-chart-dot" style="background:#06b6d4;"></div>
+                    <MudText Typo="Typo.subtitle1" Style="font-weight:700;">@Localizer("TopSoldCategories")</MudText>
+                </MudStack>
+                @if (HasPieChartData)
+                {
+                    <MudChart ChartType="ChartType.Pie"
+                              InputData="@data"
+                              InputLabels="@labels"
+                              Width="100%"
+                              Height="280px"
+                              ChartOptions="@pieChartOptions" />
+                }
+                else
+                {
+                    <div class="dash-empty-state">
+                        <MudIcon Icon="@Icons.Material.Rounded.PieChart" Size="Size.Large" Class="mud-text-disabled" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary mt-2">No category data</MudText>
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* ── Top 10 Purchase Bar Chart ── *@
+        <MudItem xs="12" md="8">
+            <MudPaper Class="dash-chart-card pa-4" Elevation="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <div class="dash-chart-dot" style="background:#10b981;"></div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:700;">@Localizer("LastPurchase")</MudText>
+                    </MudStack>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Outlined">Last 30 Days</MudChip>
+                </MudStack>
+                @if (HasPurchaseBarData)
+                {
+                    <MudChart ChartType="ChartType.Bar"
+                              ChartSeries="@purchaseBarSeries"
+                              XAxisLabels="@purchaseBarLabels"
+                              Width="100%"
+                              Height="300px"
+                              ChartOptions="@purchaseBarChartOptions" />
+                }
+                else
+                {
+                    <div class="dash-empty-state">
+                        <MudIcon Icon="@Icons.Material.Rounded.BarChart" Size="Size.Large" Class="mud-text-disabled" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary mt-2">No purchase data available</MudText>
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+
+        @* ── Top Stocked Categories Donut Chart ── *@
+        <MudItem xs="12" md="4">
+            <MudPaper Class="dash-chart-card pa-4" Elevation="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-2">
+                    <div class="dash-chart-dot" style="background:#f59e0b;"></div>
+                    <MudText Typo="Typo.subtitle1" Style="font-weight:700;">@Localizer("TopStockedCategories")</MudText>
+                </MudStack>
+                @if (HasDonutChartData)
+                {
+                    <MudChart ChartType="ChartType.Donut"
+                              InputData="@pValue"
+                              InputLabels="@Products"
+                              Width="100%"
+                              Height="280px"
+                              ChartOptions="@pieChartOptions" />
+                }
+                else
+                {
+                    <div class="dash-empty-state">
+                        <MudIcon Icon="@Icons.Material.Rounded.DonutLarge" Size="Size.Large" Class="mud-text-disabled" />
+                        <MudText Typo="Typo.body2" Class="mud-text-secondary mt-2">No stock data</MudText>
+                    </div>
+                }
+            </MudPaper>
+        </MudItem>
+
+    </MudGrid>
+</MudContainer>
+
+<style>
+    .dash-kpi-card {
+        border-radius: 14px !important;
+        overflow: hidden;
+        position: relative;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .dash-kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.14) !important;
+    }
+
+    .dash-kpi-bar {
+        height: 4px;
+        width: 100%;
+    }
+
+    .dash-kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .dash-chart-card {
+        border-radius: 14px !important;
+    }
+
+    .dash-chart-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .dash-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 240px;
+        opacity: 0.5;
+    }
+</style>

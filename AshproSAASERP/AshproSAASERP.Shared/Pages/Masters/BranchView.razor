@@ -1,0 +1,81 @@
+﻿@page "/branch"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>Branch</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("BranchTitle")</MudText>
+        <MudSpacer />
+        @if (!IsDialog)
+        {
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        }
+    </MudStack>
+    <EditForm Model="branchModel" OnValidSubmit="SaveOrUpdate" >
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid>
+            <MudItem xs="12" sm="6" >
+                <MudText>@Localizer("Code")</MudText>
+                <MudTextField @ref="txtCode" AutoFocus="true" OnKeyDown="@(e => KeyDown(e, 1))" @bind-Value="branchModel.Code" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(()=> branchModel.Code)" />
+            </MudItem>
+            <MudItem xs="12" sm="6" >
+                <MudText>@Localizer("Name")</MudText>
+                <MudTextField @ref="txtName" @bind-Value="branchModel.Name" OnKeyDown="@(e => KeyDown(e, 2))" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => branchModel.Name)" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("Remarks")</MudText>
+                <MudTextField @ref="txtRemarks" @bind-Value="branchModel.Remarks" OnKeyDown="@(e => KeyDown(e, 3))" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("Account")</MudText>
+                <MudStack Row >
+                    <MudTextField @ref="txtAccount" @bind-Value="strAccountName" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 4))" />
+                    <MudFab StartIcon="@Icons.Material.Rounded.Search" Color="Color.Info" Size="Size.Small" OnClick="OpenAccountSearchDialog" />
+                <MudCheckBox @bind-value="branchModel.ShowInLogin" Label="@Localizer("ShowInLogin")" />
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@(branchModel.BranchId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" Color="@(branchModel.BranchId == 0 ? Color.Success : Color.Info)" Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @Localizer(branchModel.BranchId == 0 ? "Save" : "Update")
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+</MudPaper>
+<MudDataGrid Class="ma-2" Elevation="3" T="BranchMaster" @ref="grid" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple" RowClick="@RowClicked">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Localizer("BranchList")</MudText>
+        <MudSpacer />
+        <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Code" Title=@Localizer("Code") />
+        <PropertyColumn Property="x => x.Name" Title=@Localizer("Name") />
+        <PropertyColumn Property="x => x.Remarks" Title=@Localizer("Remarks") />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="BranchMaster" PageSizeOptions="new int[] { 5, 10 }" />
+    </PagerContent>
+</MudDataGrid>
+  
+    

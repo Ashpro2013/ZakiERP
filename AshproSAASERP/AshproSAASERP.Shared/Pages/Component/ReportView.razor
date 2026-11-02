@@ -1,0 +1,52 @@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+@if (!string.IsNullOrEmpty(PdfUrl))
+{
+    <embed src="@PdfUrl"
+           type="application/pdf"
+           width="100%"
+           height="650px" />
+}
+else
+{
+    @if (pdfData is not null)
+    {
+        <embed src="@($"data:application/pdf;base64,{Convert.ToBase64String(pdfData)}")" type="application/pdf" width="100%" height="600px" />
+    }
+}
+
+@code {
+
+    [Parameter]
+    public byte[] pdfData { get; set; }
+
+    private string PdfUrl;
+    private byte[] _previousPdfData;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (pdfData is not null && pdfData.Length > 0 && pdfData != _previousPdfData)
+        {
+            _previousPdfData = pdfData;
+            // Cleanup old url
+            if (!string.IsNullOrEmpty(PdfUrl))
+            {
+                await JS.InvokeVoidAsync("revokePdfUrl", PdfUrl);
+            }
+
+            // Create new blob url
+            PdfUrl = await JS.InvokeAsync<string>(
+                "createPdfUrl",
+                pdfData);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!string.IsNullOrEmpty(PdfUrl))
+        {
+            await JS.InvokeVoidAsync("revokePdfUrl", PdfUrl);
+        }
+    }
+}

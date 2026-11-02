@@ -1,0 +1,135 @@
+@page "/productexport"
+@using AshproSAASERP.Interface.Settings
+@using AshproSAASERP.Models.DTO
+@using AshproSAASERP.Shared.Helpers
+@using AshproSAASERP.Shared.Services
+@inject IViewService api
+@inject IProductExportRepo productExportRepo
+@inject Downloader downloader
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>@Localizer("ProductExport")</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-2">
+    <MudPaper Elevation="3" Class="pa-4" Style="position: relative; border-radius: 12px;">
+        @if (isLoading)
+        {
+            <MudOverlay Visible="true" DarkBackground="true" Absolute="true" Style="border-radius: 12px; z-index: 10;">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    <MudText Typo="Typo.subtitle1" Color="Color.Surface">@loadingText</MudText>
+                </MudStack>
+            </MudOverlay>
+        }
+
+        <!-- Header -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+            <MudAvatar Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium">
+                <MudIcon Icon="@Icons.Material.Filled.FileDownload" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">@Localizer("ProductExportTitle")</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @(AppData.IsArabic
+                        ? "تصدير جميع المنتجات إلى ملف CSV متوافق مع نظام الاستيراد وبرامج الجداول."
+                        : "Export all products to a CSV file compatible with product import and spreadsheet software.")
+                </MudText>
+            </div>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+
+        <MudDivider Class="mb-4" />
+
+        <!-- Actions Toolbar -->
+        <MudPaper Elevation="1" Class="pa-3 mb-4" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" sm="12" md="6">
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                        <!-- Export CSV Button -->
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   StartIcon="@Icons.Material.Filled.Download"
+                                   OnClick="ExportToCsvAsync"
+                                   Disabled="@(isLoading || !products.Any())"
+                                   Size="Size.Medium">
+                            @Localizer("ExportToCsv")
+                        </MudButton>
+
+                        <!-- Refresh Button -->
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Refresh"
+                                   OnClick="LoadProductsAsync"
+                                   Disabled="@isLoading"
+                                   Size="Size.Medium">
+                            @Localizer("Refresh")
+                        </MudButton>
+
+                        <MudChip T="string" Color="Color.Info" Variant="Variant.Text" Icon="@Icons.Material.Filled.Inventory2">
+                            @(AppData.IsArabic ? $"إجمالي المنتجات: {products.Count}" : $"Total Products: {products.Count}")
+                        </MudChip>
+                    </MudStack>
+                </MudItem>
+
+                <MudItem xs="12" sm="12" md="6" Class="d-flex justify-md-end">
+                    <MudTextField @bind-Value="searchString"
+                                  Placeholder="@(AppData.IsArabic ? "بحث في المنتجات..." : "Search products...")"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Class="mt-0"
+                                  Immediate="true"
+                                  Clearable="true"
+                                  Style="max-width: 320px;" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <!-- Data Grid -->
+        <MudDataGrid T="ProductExportRowDTO"
+                     Items="@FilteredRows"
+                     Dense="true"
+                     Hover="true"
+                     Striped="true"
+                     Bordered="true"
+                     FixedHeader="true"
+                     Height="calc(100vh - 300px)"
+                     Class="product-export-grid">
+            <Columns>
+                <PropertyColumn Property="x => x.SL" Title="#" HeaderStyle="width: 50px; text-align: center;" />
+                <PropertyColumn Property="x => x.ProductName" Title="@Localizer("ProductName")" HeaderStyle="min-width: 180px; font-weight: 600;" />
+                <PropertyColumn Property="x => x.ArabicName" Title="@Localizer("ArabicName")" HeaderStyle="min-width: 180px;" CellStyle="direction: rtl;" />
+                <PropertyColumn Property="x => x.Barcode" Title="@Localizer("Barcode")" HeaderStyle="min-width: 130px;" />
+                <PropertyColumn Property="x => x.Category" Title="@Localizer("Category")" HeaderStyle="min-width: 120px;" />
+                <PropertyColumn Property="x => x.SubCategory" Title="@Localizer("SubCategory")" HeaderStyle="min-width: 120px;" />
+                <PropertyColumn Property="x => x.Brand" Title="@Localizer("Brand")" HeaderStyle="min-width: 120px;" />
+                <PropertyColumn Property="x => x.Unit" Title="@Localizer("Unit")" HeaderStyle="min-width: 90px;" />
+                <PropertyColumn Property="x => x.VatCategory" Title="@Localizer("VatCategory")" HeaderStyle="min-width: 110px;" />
+                <PropertyColumn Property="x => x.SalesRate" Title="@Localizer("SalesRate")" Format="@PermanentSettingsData.CurrencyFormat" HeaderStyle="min-width: 110px; text-align: right;" CellStyle="text-align: right;" />
+                <PropertyColumn Property="x => x.SalesInclusiveRate" Title="@Localizer("SalesInclusiveRate")" Format="@PermanentSettingsData.CurrencyFormat" HeaderStyle="min-width: 130px; text-align: right;" CellStyle="text-align: right;" />
+                <PropertyColumn Property="x => x.PurchaseRate" Title="@Localizer("PurchaseRate")" Format="@PermanentSettingsData.CurrencyFormat" HeaderStyle="min-width: 110px; text-align: right;" CellStyle="text-align: right;" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="ProductExportRowDTO" PageSizeOptions="new int[] { 25, 50, 100, 500 }" />
+            </PagerContent>
+            <NoRecordsContent>
+                <div class="d-flex flex-column align-center justify-center pa-8">
+                    <MudIcon Icon="@Icons.Material.Filled.Inventory" Size="Size.Large" Color="Color.Default" Class="mb-2" />
+                    <MudText Typo="Typo.h6" Color="Color.Secondary">
+                        @(AppData.IsArabic ? "لا توجد منتجات للعرض." : "No products found to display.")
+                    </MudText>
+                </div>
+            </NoRecordsContent>
+        </MudDataGrid>
+    </MudPaper>
+</MudContainer>
+
+<style>
+    .product-export-grid .mud-table-head th {
+        background-color: var(--mud-palette-background-grey) !important;
+        font-weight: 700 !important;
+        color: var(--mud-palette-text-primary) !important;
+    }
+</style>

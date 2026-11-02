@@ -1,0 +1,146 @@
+@page "/"
+@page "/login"
+@layout LoginLayout
+@inject NavigationManager Navigation
+@inject IViewService Api
+@inject JSService JS
+@inject TokenService tService
+@inject ModelService model
+@inject IConProviderMaui conProvider
+@inject RefitServiceFactory ApiFactory
+@inject IApiAccessor ApiAccessor
+@inject IFormFactor FormFactor
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IJSRuntime jsRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Login — Zaki ERP</PageTitle>
+
+<MudPaper Class="login-card pa-8" Elevation="0" @onkeydown="HandleCardKeyDown">
+    <MudStack Spacing="3" AlignItems="AlignItems.Center">
+
+        @* Brand icon *@
+        <div class="login-icon-ring" @onclick="@(() => ShowModelMethod(true))">
+            <MudIcon Icon="@Icons.Material.Rounded.Lock" Size="Size.Large" Style="color:white;" />
+        </div>
+@* 
+        @* Title *@
+        <MudStack Spacing="1" AlignItems="AlignItems.Center" Style="width:100%">
+            <MudText Typo="Typo.h5" Align="Align.Center"
+                     Style="font-weight:800; letter-spacing:-0.5px; color:rgba(255,255,255,0.93);">
+                Welcome Back
+            </MudText>
+            <div class="login-divider"></div>
+            <MudText Typo="Typo.caption" Align="Align.Center"
+                     Style="color:rgba(255,255,255,0.45); letter-spacing:0.3px;">
+                Sign in to your Zaki ERP account
+            </MudText>
+        </MudStack>
+
+        @* Form *@
+        <EditForm Model="LoginModel" OnValidSubmit="Login" style="width:100%">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudStack Spacing="2" Style="width:100%">
+
+                <MudTextField AutoFocus="true"
+                              @ref="txtUserName"
+                              @bind-Value="LoginModel.UserName"
+                              Label="Username"
+                              Placeholder="user@company"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Rounded.Person"
+                              OnBlur="UserNameLostFocusEvent"
+                              OnKeyDown="@(e => Keydown(e, 1))" />
+                <ValidationMessage For="@(() => LoginModel.UserName)" />
+
+                <MudTextField @ref="txtPassword"
+                              @bind-Value="LoginModel.Password"
+                              Label="Password"
+                              Placeholder="••••••••"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              InputType="@PasswordInput"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@PasswordInputIcon"
+                              OnAdornmentClick="ButtonTestclick"
+                              AdornmentAriaLabel="Show Password"
+                              OnKeyDown="@(e => Keydown(e, 2))" />
+                <ValidationMessage For="@(() => LoginModel.Password)" />
+
+                @* Remember Me + Language toggle *@
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudCheckBox @bind-Value="IsRememberMe"
+                                 Label="Remember Me"
+                                 Color="Color.Secondary"
+                                 Dense="true"
+                                 Size="Size.Small" />
+                    <MudRadioGroup @bind-Value="AppData.IsArabic">
+                        <MudRadio Value="@(true)" Color="Color.Secondary" Dense="true">AR</MudRadio>
+                        <MudRadio Value="@(false)" Color="Color.Secondary" Dense="true">EN</MudRadio>
+                    </MudRadioGroup>
+                </MudStack>
+
+                @* Financial Year *@
+                <MudSelect Dense="true"
+                           T="string"
+                           Label="Financial Year"
+                           @bind-Value="LoginModel.FYear"
+                           Variant="Variant.Outlined"
+                           Adornment="Adornment.Start"
+                           AdornmentIcon="@Icons.Material.Rounded.CalendarMonth">
+                    @if (FinancialYears?.Any() == true)
+                    {
+                        @foreach (var fYeat in FinancialYears)
+                        {
+                            <MudSelectItem Value="@fYeat.Name" />
+                        }
+                    }
+                </MudSelect>
+
+                @* Branch *@
+                <MudSelect Dense="true"
+                           T="string"
+                           Label="Branch"
+                           @bind-Value="LoginModel.BranchName"
+                           Variant="Variant.Outlined"
+                           Adornment="Adornment.Start"
+                           AdornmentIcon="@Icons.Material.Rounded.Business">
+                    @if (Branches?.Any() == true)
+                    {
+                        @foreach (var branch in Branches)
+                        {
+                            <MudSelectItem Value="@branch.Name" />
+                        }
+                    }
+                </MudSelect>
+
+                @* Submit *@
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Class="login-submit-btn mt-1"
+                           Style="height:50px;"
+                           FullWidth="true"
+                           DisableElevation="true">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                        <MudIcon Icon="@Icons.Material.Rounded.Login" Size="Size.Small" />
+                        <span>Sign In</span>
+                    </MudStack>
+                </MudButton>
+
+            </MudStack>
+        </EditForm>
+        @if(!string.IsNullOrEmpty(sErrorMessage))
+        {
+             <MudText Align="Align.Center" Color="Color.Error">@sErrorMessage</MudText>
+        }
+        <div class="login-footer-text">
+            &copy; @DateTime.Now.Year Zaki ERP &mdash; All rights reserved
+        </div>
+
+    </MudStack>
+</MudPaper>

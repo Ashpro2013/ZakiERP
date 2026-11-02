@@ -1,0 +1,140 @@
+@page "/purchaser"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>@Localizer("Purchaser")</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("Purchaser")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+
+    <EditForm Model="purchaserMaster" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <MudGrid>
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Code")</MudText>
+                <MudTextField @ref="txtCode"
+                              AutoFocus="true"
+                              @bind-Value="purchaserMaster.Code"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" />
+                <ValidationMessage For="@(() => purchaserMaster.Code)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Name")</MudText>
+                <MudStack Row>
+                    <MudTextField @bind-Value="purchaserMaster.Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" />
+                </MudStack>
+            </MudItem>
+
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("ArabicName")</MudText>
+                <MudStack Row="true">
+                    <MudTextField @bind-Value="purchaserMaster.NameArabic"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @ref="txtNameArabic" OnKeyDown="@(e => KeyDown(e, 3))" />
+                    <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="ToArabic" />
+                </MudStack>
+
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Remarks")</MudText>
+                <MudTextField @bind-Value="purchaserMaster.Remarks"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" @ref="txtRemarks" OnKeyDown="@(e => KeyDown(e, 4))" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("CreditLimit")</MudText>
+                <MudTextField TValue="string"
+                              @bind-Value="creditLimitText"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              OnBlur="ParseCreditLimit" @ref="txtCreditLimit" OnKeyDown="@(e => KeyDown(e, 5))" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudText>@Localizer("Description")</MudText>
+                <MudTextField @bind-Value="purchaserMaster.Description"
+                              TextArea="true"
+                              Lines="3"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" @ref="txtDescription" OnKeyDown="@(e => KeyDown(e, 6))" />
+            </MudItem>
+
+        </MudGrid>
+
+        <MudStack Row Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       StartIcon="@(purchaserMaster.PurchaserId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)"
+                       Color="@(purchaserMaster.PurchaserId == 0 ? Color.Success : Color.Info)"
+                       Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @((purchaserMaster.PurchaserId == 0 ? @Localizer("Save") : @Localizer("Update")))
+                }
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Color="Color.Error"
+                       OnClick="Delete">@Localizer("Delete")</MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Info"
+                       OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+
+    </EditForm>
+</MudPaper>
+
+<MudDataGrid Class="ma-2"
+             Elevation="3"
+             T="PurchaserMaster"
+             @ref="grid"
+             ServerData="LoadServerData"
+             Bordered="true"
+             Dense="true"
+             SortMode="SortMode.Multiple"
+             Filterable="true"
+             RowClick="RowClicked">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Localizer("PurchaserList")</MudText>
+        <MudSpacer />
+        <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+    </ToolBarContent>
+
+    <Columns>
+        <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+        <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+        <PropertyColumn Property="x => x.CreditLimit" Title="@Localizer("CreditLimit")" Format="@PermanentSettingsData.CurrencyFormat" />
+        <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")" />
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="PurchaserMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
+    </PagerContent>
+
+</MudDataGrid>

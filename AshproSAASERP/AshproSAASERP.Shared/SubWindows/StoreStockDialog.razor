@@ -1,0 +1,42 @@
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        @if (StoreStocks is not null && StoreStocks.Any())
+        {
+            <MudSimpleTable Dense="true" Hover="true" Bordered="true" Style="min-width: 400px;">
+                <thead>
+                    <tr>
+                        <th>Store</th>
+                        <th>Branch</th>
+                        <th style="text-align:right;">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var stock in StoreStocks)
+                    {
+                        <tr>
+                            <td>@stock.StoreName</td>
+                            <td>@stock.BranchName</td>
+                            <td style="text-align:right;">@PermanentSettingsData.FormatQuantity(stock.Quantity)</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Class="pa-4" Align="Align.Center">No store-wise stock data available.</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Default">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public List<StoreStockDTO> StoreStocks { get; set; } = new();
+
+    private void Cancel() => MudDialog.Cancel();
+}

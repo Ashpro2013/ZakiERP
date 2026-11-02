@@ -1,0 +1,16 @@
+﻿<MudDialog>
+    <DialogActions>
+        @if (ShowCancel)
+        {
+            <MudButton OnClick="Cancel">@Localizer("Cancel")</MudButton>
+        }
+        <MudButton Color="Color.Primary" OnClick="Submit">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public bool ShowCancel { get; set; } = false;
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}

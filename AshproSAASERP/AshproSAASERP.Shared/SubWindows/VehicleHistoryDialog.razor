@@ -1,0 +1,64 @@
+@using AshproSAASERP.Models.DTO
+@using MudBlazor
+@inject IViewService views
+@inject ISnackbar snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudTable Items="@historyList" Dense="true" Hover="true" Bordered="true" Striped="true" Loading="@_loading">
+            <HeaderContent>
+                <MudTh>@Localizer("JobCardNo")</MudTh>
+                <MudTh>@Localizer("JobCardDate")</MudTh>
+                <MudTh>@Localizer("PromisedDate")</MudTh>
+                <MudTh>@Localizer("PlateNo")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="JobCardNo">@context.JobCardNo</MudTd>
+                <MudTd DataLabel="JobCardDate">@(context.JobCardDate?.ToString("dd-MM-yyyy"))</MudTd>
+                <MudTd DataLabel="PromisedDate">@(context.PromisedDate?.ToString("dd-MM-yyyy"))</MudTd>
+                <MudTd DataLabel="PlateNo">@context.PlateNo</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer("Close")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public string PlateNo { get; set; }
+
+    private List<JobCardHistoryDTO> historyList = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistory();
+    }
+
+    private async Task LoadHistory()
+    {
+        _loading = true;
+        try
+        {
+            if (!string.IsNullOrEmpty(PlateNo))
+            {
+                historyList = await views.GetJobCardHistory(PlateNo);
+            }
+        }
+        catch (Exception ex)
+        {
+            snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

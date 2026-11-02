@@ -1,0 +1,739 @@
+@page "/proformainvoice"
+@inject IViewService api
+@inject IDialogService DialogService
+@inject ModelService Dialog
+@inject Downloader Downloader
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>Zaki ERP | @Localizer("ProformaInvoiceTitle")</PageTitle>
+
+
+
+<style>
+    .mud-input-disabled-dark .mud-input-slot {
+        opacity: 0.6;
+    }
+</style>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("ProformaInvoiceTitle")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+    <EditForm Model="@proformaInvoice" OnValidSubmit="SaveOrUpdate" Context="editContext">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <MudTabs @bind-ActivePanelIndex="_activeTabIndex" Class="ma-2" Elevation="3" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-1">
+        <MudTabPanel Text=@Localizer("Header")>
+            <MudGrid Spacing="1">
+                @* Row 1 - Invoice Header (6 fields) *@
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("ProformaInvoiceNo")</MudText>
+                    <MudTextField @ref="txtInvoiceNo" 
+                                 OnKeyDown="@(e => Keydown(e, 1))" 
+                                 @bind-Value="proformaInvoice.ProformaInvoiceNo" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense" 
+                                 ReadOnly="IsAutoCode && proformaInvoice.ProformaInvoiceId == 0"
+                                 Adornment="IsAutoCode ? Adornment.End : Adornment.None"
+                                 AdornmentIcon="@Icons.Material.Filled.AutoAwesome"
+                                 AdornmentColor="Color.Secondary" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("ProformaInvoiceDate")</MudText>
+                    <MudDatePicker @ref="txtInvoiceDate" 
+                                  Date="proformaInvoice.ProformaInvoiceDate" 
+                                  DateFormat="dd-MM-yyyy" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  DateChanged="OnDateChanged" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("HijriDate")</MudText>
+                    <MudTextField @bind-Value="proformaInvoice.HijriDate" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("QuotationNo")</MudText>
+                    <MudTextField @bind-Value="quotationNo" 
+                                 Placeholder="@Localizer("SearchQuotation")"
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 Adornment="Adornment.End" 
+                                 AdornmentIcon="@Icons.Material.Filled.Search"
+                                 OnAdornmentClick="LoadFromQuotationAsync"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await LoadFromQuotationAsync(); })" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("ReferenceNo")</MudText>
+                    <MudTextField @ref="txtRefNo" 
+                                 @bind-Value="proformaInvoice.RefNo" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtCustomerSearch.FocusAsync(); })" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("Project")</MudText>
+                    <MudSelect T="int?" 
+                              @ref="cmbProject" 
+                              @bind-Value="proformaInvoice.FK_ProjectId" 
+                              Variant="Variant.Outlined" 
+                              Margin="Margin.Dense" 
+                              AnchorOrigin="Origin.BottomCenter"
+                              OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtCustomerSearch.FocusAsync(); })">
+                        @foreach (var project in projectList)
+                        {
+                            <MudSelectItem T="int?" Value="@project.Id">@project.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+
+                @* Row 2 - Customer (5 fields) *@
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("CustomerCode")</MudText>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudTextField @ref="txtCustomerSearch" 
+                                     @bind-Value="_customerCode" 
+                                     OnKeyDown="HandleCustomerSearchKeyDown"
+                                     Variant="Variant.Outlined" 
+                                     Margin="Margin.Dense" 
+                                     Clearable="true" />
+                        <MudFab StartIcon="@Icons.Material.Filled.Add"
+                                       Color="Color.Info"
+                                       Size="Size.Small"
+                                       OnClick="CreatePartyMethod"
+                                       Class="mx-1" />
+                        <MudFab StartIcon="@Icons.Material.Rounded.Search" 
+                               Color="Color.Info" 
+                               Size="Size.Small" 
+                               OnClick="PartySearchMethod" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText Typo="Typo.caption">@Localizer("CustomerName")</MudText>
+                    <MudTextField @ref="txtCustomerName"
+                                 @bind-Value="proformaInvoice.CustomerName" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 ReadOnly="@(!IsCashCustomer)"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtVatNo.FocusAsync(); })" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("VatNo")</MudText>
+                    <MudTextField @ref="txtVatNo"
+                                 @bind-Value="proformaInvoice.CustomerVatNo" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 Pattern="^3[0-9]{14}$"
+                                 Placeholder="3XXXXXXXXXXXXXX"
+                                 HelperText="@Localizer("ZatcaVatFormat")"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await cmbSalesMan.FocusAsync(); })" />
+                </MudItem>
+                 <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("SalesMan")</MudText>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudSelect T="int" 
+                                  @ref="cmbSalesMan" 
+                                  @bind-Value="proformaInvoice.FK_SalesManId" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense" 
+                                  AnchorOrigin="Origin.BottomCenter"
+                                  OnKeyDown="@(async (e) => { if (e.Key == "Enter") await cmbBillType.FocusAsync(); })">
+                            @foreach (var sman in salesmanList)
+                            {
+                                <MudSelectItem T="int" Value="@sman.Id">@sman.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudFab StartIcon="@Icons.Material.Filled.Add" 
+                                      Color="Color.Info" 
+                                      Size="Size.Small" 
+                                      OnClick="CreateSManMethod"
+                                      Class="ml-1" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("BillType")</MudText>
+                    <MudSelect @ref="cmbBillType"
+                              Value="@proformaInvoice.BillType" 
+                              T="string" 
+                              ValueChanged="@(async (v) => await OnBillTypeChanged(v))"
+                              Variant="Variant.Outlined" 
+                              Margin="Margin.Dense"
+                              AnchorOrigin="Origin.BottomCenter"
+                              OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtAccountNo.FocusAsync(); })">
+                        <MudSelectItem Value="@("Cash")">@Localizer("Cash")</MudSelectItem>
+                        <MudSelectItem Value="@("Credit")">@Localizer("Credit")</MudSelectItem>
+                        <MudSelectItem Value="@("Card")">@Localizer("Card")</MudSelectItem>
+                        <MudSelectItem Value="@("Bank")">@Localizer("Transfer")</MudSelectItem>
+                        <MudSelectItem Value="@("Cheque")">@Localizer("Cheque")</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+               
+
+                @* Row 3 - Account (5 fields) *@
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("AccountNo")</MudText>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudTextField @ref="txtAccountNo"
+                                     @bind-Value="proformaInvoice.AccountNo" 
+                                     Variant="Variant.Outlined" 
+                                     Margin="Margin.Dense"
+                                     OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtAccountDesc.FocusAsync(); })" />
+                        <MudFab StartIcon="@Icons.Material.Rounded.Search" 
+                               Color="Color.Info" 
+                               Size="Size.Small" 
+                               OnClick="AccountSearchMethod"
+                               Class="ml-1" />
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText Typo="Typo.caption">@Localizer("AccountName")</MudText>
+                    <MudTextField @ref="txtAccountDesc"
+                                 @bind-Value="proformaInvoice.AccountName" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 ReadOnly="true"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtAttention.FocusAsync(); })" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("Attention")</MudText>
+                    <MudTextField @ref="txtAttention"
+                                 @bind-Value="proformaInvoice.Attention" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtDeliveryTo.FocusAsync(); })" />
+                </MudItem>
+                <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("DeliveryTo")</MudText>
+                    <MudTextField @ref="txtDeliveryTo"
+                                 @bind-Value="proformaInvoice.DeliveryTo" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await txtRemarks.FocusAsync(); })" />
+                </MudItem>
+                 <MudItem xs="12" sm="2">
+                    <MudText Typo="Typo.caption">@Localizer("Remarks")</MudText>
+                    <MudTextField @ref="txtRemarks" 
+                                 @bind-Value="proformaInvoice.Remarks" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense"
+                                 OnKeyDown="@(async (e) => { if (e.Key == "Enter") await FocusMethod(); })" />
+                </MudItem>
+                
+            </MudGrid>
+
+            <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudText>@Localizer("AdditionalDiscPer")</MudText>
+                        <MudNumericField @ref="txtAdditional" @bind-Value="proformaInvoice.AdditionalDiscPertge" Format="N2" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="@(e => DiscountMethod(e, 1))" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText>@Localizer("AdditionalDiscount")</MudText>
+                        <MudNumericField @ref="txtAdditionalDisc" @bind-Value="proformaInvoice.AdditionalDiscAmnt" Format="@strCurencyFormat" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="@(e => DiscountMethod(e, 2))" />
+                    </MudItem>
+                </MudGrid>
+            </MudHidden>
+        </MudTabPanel>
+        <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+            <MudTabPanel Text=@Localizer("Details")>
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudText>@Localizer("Barcode")</MudText>
+                        <MudTextField AutoFocus=true @ref="txtBarcode" Immediate="true" @bind-Value="transaction.Barcode" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" OnAdornmentClick="@(() => BarcodeChanged(""))"/>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText>@Localizer("ProductName") </MudText>
+                        <MudTextField Immediate="true" @bind-Value="transaction.ItemName" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText>@Localizer("Quantity")</MudText>
+                        <MudNumericField @bind-Value="transaction.Quantity" HideSpinButtons="true" Variant="Variant.Outlined" Format="@strQuantityFormat" Margin="Margin.Dense" OnBlur="OnBlurQtEvent" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudText>@Localizer("Unit")</MudText>
+                        <MudSelect Value="transaction.FK_UnitId" ValueChanged="OnChangeUnit" T="int" Immediate="true" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense">
+                            @foreach (var item in itemUnitlist)
+                            {
+                                <MudSelectItem Value=@item.Id>@item.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    @if (gridSettings.ShowExRate)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("Rate") (Ex)</MudText>
+                            <MudNumericField @bind-Value="transaction.ExRate" ReadOnly="@(!gridSettings.AllowEditExcRate)" HideSpinButtons="true" Format="@strCurencyFormat" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="@(() => OnRowRateChanged(transaction))" />
+                        </MudItem>
+                    }
+                    @if (gridSettings.ShowIncRate)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("IncRate")</MudText>
+                            <MudNumericField @bind-Value="transaction.InRate" ReadOnly="@(!gridSettings.AllowEditIncRate)" HideSpinButtons="true" Format="@strCurencyFormat" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="@(() => OnRowIncRateChanged(transaction))" />
+                        </MudItem>
+                    }
+                    <div class="d-flex justify-end">
+                        <MudItem Class="fixed">
+                            <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem">Add</MudFab>
+                        </MudItem>
+                    </div>
+                    @if (gridSettings.ShowGross)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("GrossAmount")</MudText>
+                            <MudNumericField @bind-Value="transaction.GrossAmount" ReadOnly="true" HideSpinButtons="true" Format="@strCurencyFormat" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    }
+                    @if (gridSettings.ShowDiscPercentage)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("Discount") %</MudText>
+                            <MudNumericField @bind-Value="transaction.DiscountPerc" ReadOnly="@(!gridSettings.AllowEditDiscPer)" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="@(() => OnRowDiscountPercChanged(transaction))" />
+                        </MudItem>
+                    }
+                    @if (gridSettings.ShowDiscAmount)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("DiscAmount")</MudText>
+                            <MudNumericField @bind-Value="transaction.DiscountAmnt" ReadOnly="@(!gridSettings.AllowEditDiscAmount)" HideSpinButtons="true" Format="@strCurencyFormat" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="@(() => OnRowDiscountAmountChanged(transaction))" />
+                        </MudItem>
+                    }
+                    @if (gridSettings.ShowTaxableAmount)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("TaxableAmount")</MudText>
+                            <MudNumericField @bind-Value="transaction.TaxableAmnt" ReadOnly="true" HideSpinButtons="true" Format="@strCurencyFormat" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    }
+                    @if (gridSettings.ShowTaxAmount)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("Tax") </MudText>
+                            <MudNumericField @bind-Value="transaction.TaxAmount" Format="@strCurencyFormat" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" OnBlur="OnBlurQtEvent" />
+                        </MudItem>
+                    }
+                    @if (gridSettings.ShowAmount)
+                    {
+                        <MudItem xs="12">
+                            <MudText>@Localizer("Total") </MudText>
+                            <MudNumericField @bind-Value="transaction.LineTotal" Format="@strCurencyFormat" HideSpinButtons="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudTabPanel>
+        </MudHidden>
+
+        @* Additional Details Tab *@
+        <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">
+            <MudTabPanel Text=@Localizer("Additional")>
+            <MudGrid Spacing="1">
+
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("SectionNo")</MudText>
+                    <MudTextField @bind-Value="proformaInvoice.SectionNo" 
+                                 Variant="Variant.Outlined" 
+                                 Margin="Margin.Dense" />
+                </MudItem>
+                
+                @* Additional Discount Section *@
+                <MudItem xs="12">
+                    <MudDivider Class="my-4" />
+                    <MudText Typo="Typo.h6" Class="mb-3">@Localizer("AdditionalCharges")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("AdditionalDiscPer")</MudText>
+                    <MudNumericField @ref="txtAdditional" 
+                                    @bind-Value="proformaInvoice.AdditionalDiscPertge" 
+                                    Format="N2" 
+                                    HideSpinButtons="true" 
+                                    Variant="Variant.Outlined" 
+                                    Margin="Margin.Dense" 
+                                    OnBlur="@(e => DiscountMethod(e, 1))" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("AdditionalDiscount")</MudText>
+                    <MudNumericField @ref="txtAdditionalDisc" 
+                                    @bind-Value="proformaInvoice.AdditionalDiscAmnt" 
+                                    Format="@strCurencyFormat" 
+                                    HideSpinButtons="true" 
+                                    Variant="Variant.Outlined" 
+                                    Margin="Margin.Dense" 
+                                    OnBlur="@(e => DiscountMethod(e, 2))" />
+                </MudItem>
+                
+                 <MudItem xs="12" sm="4">
+                    <MudText>@Localizer("DiscountType")</MudText>
+                     <MudRadioGroup @bind-Value="proformaInvoice.AdditionalDiscountType">
+                        <MudRadio Value="1" Color="Color.Primary">On Ex Amount</MudRadio>
+                        <MudRadio Value="2" Color="Color.Tertiary">On Inc Amount</MudRadio>
+                        <MudRadio Value="3" Color="Color.Secondary">Round</MudRadio>
+                    </MudRadioGroup>
+                </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+        </MudHidden>
+    </MudTabs>
+
+        @* Action*@
+
+        <MudGrid>
+            <MudItem Class="mx-3" xs="6" sm="2">
+                <MudText>@Localizer("GrossAmount")</MudText>
+                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@proformaInvoice.GrossAmount.ToString(strCurencyFormat)</MudText>
+            </MudItem>
+            <MudItem xs="6" sm="2">
+                <MudText>@Localizer("DiscountAmount") </MudText>
+                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@proformaInvoice.LineDsicount.ToString(strCurencyFormat)</MudText>
+            </MudItem>
+            <MudItem xs="6" sm="2">
+                <MudText>@Localizer("TaxAmount") </MudText>
+                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@proformaInvoice.TaxTotal.ToString(strCurencyFormat) </MudText>
+            </MudItem>
+            <MudItem xs="6" sm="2">
+                <MudText>@Localizer("NetAmount") </MudText>
+                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@proformaInvoice.NetAmount.ToString(strCurencyFormat) </MudText>
+            </MudItem>
+            <MudItem xs="6" sm="2">
+                <MudText>@Localizer("GrandTotal") </MudText>
+                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@proformaInvoice.GrandTotal.ToString(strCurencyFormat) </MudText>
+            </MudItem>
+        </MudGrid>
+        <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">
+            <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" OnClick="SaveOrUpdate" Disabled="@_isSaving">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                    }
+                    else
+                    {
+                        @Localizer("Save")
+                    }
+                </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Cancel">@Localizer("Cancel") </MudButton>
+                <MudButton Style="display:none" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete") </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New") </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Primary" Disabled="@DisablePrintButton" OnClick="PrintMethod">@Localizer("Print") </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.DocumentScanner" Color="Color.Warning" Disabled="@DisablePrintButton" OnClick="PrintPrviewMethod">@Localizer("Preview") </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Search" Color="Color.Secondary" OnClick="SearchClickAsync">@Localizer("Search") </MudButton>
+            </MudStack>
+        </MudHidden>
+        <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+            <MudStack Row="true" Spacing="1" Class=" ma-2">
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Success" OnClick="SaveOrUpdate" Disabled="@_isSaving">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                    }
+                    else
+                    {
+                        @Localizer("Save")
+                    }
+                </MudButton>
+                <MudButton Style="display:none" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer("Delete") </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New") </MudButton>
+            </MudStack>
+            <MudStack Row="true" Spacing="1" Class=" ma-2">
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Primary" Disabled="@DisablePrintButton" OnClick="PrintMethod">@Localizer("Print") </MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Search" Color="Color.Secondary" OnClick="SearchClickAsync">@Localizer("Search") </MudButton>
+            </MudStack>
+        </MudHidden>
+
+        @* End Action*@
+    </EditForm>
+    @* Desktop Table*@
+    <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">
+        <MudTable Class="ma-2" Elevation="3" Items="@entTransactions" Hover="true" Striped="true" Dense="true" FixedHeader="true" Height="400PX" OnRowClick="RowClickEvent" T="TransactionDtls">
+            <HeaderContent>
+                <MudTh Style="width: 45px;">@Localizer("SL")</MudTh>
+                @if (gridSettings.ShowItemCode)
+                {
+                    <MudTh>@Localizer("ItemCode")</MudTh>
+                }
+                @if (gridSettings.ShowBarcode)
+                {
+                    <MudTh>@Localizer("Barcode")</MudTh>
+                }
+                @if (gridSettings.ShowItemName)
+                {
+                    <MudTh>@Localizer("ProductName")</MudTh>
+                }
+                @if (gridSettings.ShowArabicName)
+                {
+                    <MudTh>@Localizer("ArabicName")</MudTh>
+                }
+                <MudTh>@Localizer("Store")</MudTh>
+                <MudTh>@Localizer("Quantity")</MudTh>
+                @if (gridSettings.ShowUnit)
+                {
+                    <MudTh>@Localizer("Unit")</MudTh>
+                }
+                <MudTh Style="font-size: 0.75rem;">@Localizer("QtyPerUnit")</MudTh>
+                @if (gridSettings.ShowExRate)
+                {
+                    <MudTh>@Localizer("ExRate")</MudTh>
+                }
+                @if (gridSettings.ShowIncRate)
+                {
+                    <MudTh>@Localizer("IncRate")</MudTh>
+                }
+                @if (gridSettings.ShowGross)
+                {
+                    <MudTh>@Localizer("GrossAmount")</MudTh>
+                }
+                @if (gridSettings.ShowDiscPercentage)
+                {
+                    <MudTh>@Localizer("Disc%")</MudTh>
+                }
+                @if (gridSettings.ShowDiscAmount)
+                {
+                    <MudTh>@Localizer("DiscAmt")</MudTh>
+                }
+                @if (gridSettings.ShowTaxableAmount)
+                {
+                    <MudTh>@Localizer("TaxableAmount")</MudTh>
+                }
+                @if (gridSettings.ShowTaxPercentage)
+                {
+                    <MudTh>@Localizer("VAT%")</MudTh>
+                }
+                @if (gridSettings.ShowTaxAmount)
+                {
+                    <MudTh>@Localizer("VATAmt")</MudTh>
+                }
+                @if (gridSettings.ShowAmount)
+                {
+                    <MudTh>@Localizer("Total")</MudTh>
+                }
+                <MudTh Style="width: 50px;">@Localizer("Action")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="SL"><MudTextField @bind-Value="@context.SL" Disabled="true" Margin="Margin.Dense" /></MudTd>
+                @if (gridSettings.ShowItemCode)
+                {
+                    <MudTd DataLabel="Item Code"><MudTextField @bind-Value="@context.ItemCode" ReadOnly="true" Margin="Margin.Dense" /></MudTd>
+                }
+                @if (gridSettings.ShowBarcode)
+                {
+                    <MudTd DataLabel="Barcode">
+                        <MudTextField AutoFocus=true @ref="textField" Immediate="true" @bind-Value="@context.Barcode" Margin="Margin.Dense"
+                                      Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" OnAdornmentClick="@(() => BarcodeChanged(context.Barcode, context))"
+                                      OnBlur="@((e) => OnBarcodBlurEvent(e, context))" OnKeyDown="@((e) => OnEnterMethod(e, context))" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowItemName)
+                {
+                    <MudTd DataLabel="Product Name"><MudTextField Immediate="true" @bind-Value="@context.ItemName" Margin="Margin.Dense" /></MudTd>
+                }
+                @if (gridSettings.ShowArabicName)
+                {
+                    <MudTd DataLabel="Arabic Name"><MudTextField Immediate="true" @bind-Value="@context.ItemArabicName" Margin="Margin.Dense" /></MudTd>
+                }
+                <MudTd DataLabel="Store">
+                    <MudSelect T="int" Value="@context.FK_StoreId" ValueChanged="@((int s) => context.FK_StoreId = s)" Margin="Margin.Dense" Dense="true" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var store in storeList.Where(x => x.FK_BranchId == AppData.BranchId || x.FK_BranchId == null))
+                        {
+                            <MudSelectItem Value="@store.StoreId">@store.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTd>
+                <MudTd DataLabel="Quantity">
+                    <MudNumericField HideSpinButtons="true" Format="@strQuantityFormat" @ref="txtQuantity"
+                                     @bind-Value="@context.Quantity"
+                                     OnBlur="@((e) => OnLineQuantityChanged(e, context))"
+                                     id="@($"qty_{context.SL}")" @onfocus="@(() => JSRuntime.InvokeVoidAsync("selectTextById", $"qty_{context.SL}"))"
+                                     Margin="Margin.Dense" OnKeyDown="@(e => TaskOnEnterMethod(e, 2))" />
+                </MudTd>
+                @if (gridSettings.ShowUnit)
+                {
+                    <MudTd DataLabel="Unit">
+                        <MudSelect Value="@context.FK_UnitId" ValueChanged="@((int unitId) => OnChangeUnit(unitId, context))" T="int" Immediate="true" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Disabled="@IsUnitSelectionDisabled">
+                            @foreach (var item in context.AvailableUnits.Any() ? context.AvailableUnits : unitlist)
+                            {
+                                <MudSelectItem Value=@item.Id>@item.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                }
+                <MudTd DataLabel="QtyPerUnit"><MudNumericField Disabled="true" HideSpinButtons="true" Format="@strQuantityFormat" @bind-Value="@context.QtyPerUnit" Margin="Margin.Dense" Class="mud-input-disabled-dark" /></MudTd>
+                @if (gridSettings.ShowExRate)
+                {
+                    <MudTd DataLabel="Rate">
+                        <MudNumericField HideSpinButtons="true" Format="@strCurencyFormat" @ref="txtRate"
+                                         @bind-Value="@context.ExRate"
+                                         ReadOnly="@(!gridSettings.AllowEditExcRate)"
+                                         OnBlur="@(() => OnRowRateChanged(context))"
+                                         Margin="Margin.Dense" OnKeyDown="@(e => TaskOnEnterMethod(e, 4))"
+                                         id="@($"rate_{context.SL}")" @onfocus="@(() => JSRuntime.InvokeVoidAsync("selectTextById", $"rate_{context.SL}"))" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowIncRate)
+                {
+                    <MudTd DataLabel="Inc. Rate">
+                        <MudNumericField HideSpinButtons="true" Format="@strCurencyFormat" @bind-Value="@context.InRate"
+                                         ReadOnly="@(!gridSettings.AllowEditIncRate)"
+                                         Margin="Margin.Dense" OnBlur="@(() => OnRowIncRateChanged(context))" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowGross)
+                {
+                    <MudTd DataLabel="Gross">
+                        <MudNumericField ReadOnly="true" HideSpinButtons="true" Format="@strCurencyFormat" @bind-Value="@context.GrossAmount" Margin="Margin.Dense" Style="text-align:right" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowDiscPercentage)
+                {
+                    <MudTd DataLabel="Disc%">
+                        <MudNumericField HideSpinButtons="true" Format="N2" @ref="txtDiscPerc"
+                                         @bind-Value="@context.DiscountPerc"
+                                         ReadOnly="@(!gridSettings.AllowEditDiscPer)"
+                                         OnBlur="@(() => OnRowDiscountPercChanged(context))"
+                                         Margin="Margin.Dense" OnKeyDown="@(e => TaskOnEnterMethod(e, 5))"
+                                         id="@($"discperc_{context.SL}")" @onfocus="@(() => JSRuntime.InvokeVoidAsync("selectTextById", $"discperc_{context.SL}"))" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowDiscAmount)
+                {
+                    <MudTd DataLabel="DiscAmt">
+                        <MudNumericField HideSpinButtons="true" Format="@strCurencyFormat" @ref="txtDiscount"
+                                         @bind-Value="@context.DiscountAmnt"
+                                         ReadOnly="@(!gridSettings.AllowEditDiscAmount)"
+                                         OnBlur="@(() => OnRowDiscountAmountChanged(context))"
+                                         Margin="Margin.Dense" OnKeyDown="@(e => TaskOnEnterMethod(e, 6))"
+                                         id="@($"discamt_{context.SL}")" @onfocus="@(() => JSRuntime.InvokeVoidAsync("selectTextById", $"discamt_{context.SL}"))" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowTaxableAmount)
+                {
+                    <MudTd DataLabel="Taxable Amount">
+                        <MudNumericField ReadOnly="true" HideSpinButtons="true" Format="@strCurencyFormat" @bind-Value="@context.TaxableAmnt" Margin="Margin.Dense" Style="text-align:right" />
+                    </MudTd>
+                }
+                @if (gridSettings.ShowTaxPercentage)
+                {
+                    <MudTd DataLabel="VAT%">
+                        <MudSelect Value="@context.TaxPerc" ToStringFunc="@(val => $"{val:N2}%")" ValueChanged="@((decimal val) => OnVatPercentageChanged(context, val))" T="decimal" Immediate="true" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense">
+                            @foreach (var vat in vatList)
+                            {
+                                <MudSelectItem Value="@(vat.Percentage ?? 0)">@((vat.Percentage ?? 0).ToString("N2"))%</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                }
+                @if (gridSettings.ShowTaxAmount)
+                {
+                    <MudTd DataLabel="VATAmt"><MudNumericField Disabled="true" HideSpinButtons="true" Format="@strCurencyFormat" @bind-Value="@context.TaxAmount" Margin="Margin.Dense" Class="mud-input-disabled-dark" /></MudTd>
+                }
+                @if (gridSettings.ShowAmount)
+                {
+                    <MudTd DataLabel="Net Amount">
+                        <MudNumericField ReadOnly="true" HideSpinButtons="true" @ref="txtNet" @bind-Value="@context.LineTotal"
+                                         Format="@strCurencyFormat" Margin="Margin.Dense" Style="text-align:right"
+                                         OnKeyDown="@(e => TaskOnEnterMethod(e, 7))" />
+                    </MudTd>
+                }
+                <MudTd DataLabel="Action"> <MudIconButton OnClick="@(() => DltTransaction(@context))" Color="@Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" /></MudTd>
+            </RowTemplate>
+            <FooterContent>
+                <MudTd>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCircle" OnClick="AddNewRow" Size="Size.Small" Style="white-space: nowrap;">
+                        @Localizer("AddRow")
+                    </MudButton>
+                </MudTd>
+            </FooterContent>
+        </MudTable>
+    </MudHidden>
+    @* End Desktop*@
+
+    @*Mobile Datagrid*@
+    <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+        <MudDataGrid Class="ma-2" Elevation="3" T="TransactionDtls" Items="@entTransactions" Bordered="true" Dense="true" RowClick="@RowClicked">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("ProductList")</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.SL" Title=@Localizer("SL") Sortable="false" />
+                @if (gridSettings.ShowItemCode)
+                {
+                    <PropertyColumn Property="x => x.ItemCode" Title=@Localizer("ItemCode") Sortable="false" />
+                }
+                @if (gridSettings.ShowBarcode)
+                {
+                    <PropertyColumn Property="x => x.Barcode" Title=@Localizer("Barcode") Sortable="false" />
+                }
+                @if (gridSettings.ShowItemName)
+                {
+                    <PropertyColumn Property="x => x.ItemName" Title=@Localizer("Product") />
+                }
+                @if (gridSettings.ShowArabicName)
+                {
+                    <PropertyColumn Property="x => x.ItemArabicName" Title=@Localizer("ArabicName") />
+                }
+                <PropertyColumn Property="x => x.Quantity.ToString(strQuantityFormat)" Title=@Localizer("Quantity") Sortable="false" />
+                @if (gridSettings.ShowUnit)
+                {
+                    <PropertyColumn Property="x => x.UnitName" Title=@Localizer("Unit") Sortable="false" />
+                }
+                @if (gridSettings.ShowExRate)
+                {
+                    <PropertyColumn Property="x => x.ExRate.ToString(strCurencyFormat)" Title=@Localizer("ExRate") Sortable="false" />
+                }
+                @if (gridSettings.ShowIncRate)
+                {
+                    <PropertyColumn Property="x => x.InRate.ToString(strCurencyFormat)" Title=@Localizer("IncRate") Sortable="false" />
+                }
+                @if (gridSettings.ShowGross)
+                {
+                    <PropertyColumn Property="x => x.GrossAmount.ToString(strCurencyFormat)" Title=@Localizer("GrossAmount") Sortable="false" />
+                }
+                @if (gridSettings.ShowDiscPercentage)
+                {
+                    <PropertyColumn Property="x => x.DiscountPerc.ToString(strCurencyFormat)" Title=@Localizer("Discount") Sortable="false" />
+                }
+                @if (gridSettings.ShowDiscAmount)
+                {
+                    <PropertyColumn Property="x => x.DiscountAmnt.ToString(strCurencyFormat)" Title=@Localizer("DiscountAmount") Sortable="false" />
+                }
+                @if (gridSettings.ShowTaxableAmount)
+                {
+                    <PropertyColumn Property="x => x.TaxableAmnt.ToString(strCurencyFormat)" Title=@Localizer("TaxableAmount") Sortable="false" />
+                }
+                @if (gridSettings.ShowTaxPercentage)
+                {
+                    <PropertyColumn Property="x => x.TaxPerc.ToString(strCurencyFormat)" Title=@Localizer("Tax") Sortable="false" />
+                }
+                @if (gridSettings.ShowTaxAmount)
+                {
+                    <PropertyColumn Property="x => x.TaxAmount.ToString(strCurencyFormat)" Title=@Localizer("TaxAmount") Sortable="false" />
+                }
+                @if (gridSettings.ShowAmount)
+                {
+                    <PropertyColumn Property="x => x.LineTotal.ToString(strCurencyFormat)" Title=@Localizer("Total") Sortable="false" />
+                }
+                <TemplateColumn Title=@Localizer("Action") CellClass="d-flex justify-end" Sortable="false" Filterable="false">
+                    <CellTemplate>
+                        <MudIconButton OnClick="@(() => DltTransaction(@context.Item))" Color="@Color.Default" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="TransactionDtls" PageSizeOptions="new int[] { 25, 100 }" />
+            </PagerContent>
+        </MudDataGrid>
+    </MudHidden>
+    @* End Mobile*@
+</MudPaper>
+
+

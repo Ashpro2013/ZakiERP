@@ -1,0 +1,119 @@
+﻿@page "/currency"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>@Localizer("CurrencyMaster")</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("CurrencyMaster")</MudText>
+        <MudSpacer />
+        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    </MudStack>
+
+    <EditForm Model="currencyMaster" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Code")</MudText>
+                <MudTextField @ref="txtCode"
+                              AutoFocus="true"
+                              @bind-Value="currencyMaster.Code"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 1))" />
+                <ValidationMessage For="@(() => currencyMaster.Code)" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Name")</MudText>
+                <MudTextField @bind-Value="currencyMaster.Name"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Rate")</MudText>
+                <MudTextField TValue="string"
+                              @bind-Value="rateText"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              OnBlur="ParseRate" @ref="txtRate" OnKeyDown="@(e => KeyDown(e, 3))" />
+
+                @code {
+                    private string? rateText;
+
+                    private void ParseRate()
+                    {
+                        if (decimal.TryParse(rateText, out var value))
+                            currencyMaster.Rate = value;
+                        else
+                            rateText = currencyMaster.Rate.ToString();
+                    }
+                }
+
+            </MudItem>
+        </MudGrid>
+
+        <MudStack Row Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       StartIcon="@(currencyMaster.CurrencyId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)"
+                       Color="@(currencyMaster.CurrencyId == 0 ? Color.Success : Color.Info)"
+                       Disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @Localizer(currencyMaster.CurrencyId == 0 ? "Save" : "Update")
+                }
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Color="Color.Error"
+                       OnClick="Delete">
+                @Localizer("Delete")
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Color="Color.Info"
+                       OnClick="NewClick">
+                @Localizer("New")
+            </MudButton>
+        </MudStack>
+    </EditForm>
+</MudPaper>
+
+<MudDataGrid Class="ma-2" Elevation="3"
+             T="CurrencyMaster"
+             @ref="grid"
+             ServerData="LoadServerData"
+             Bordered="true"
+             Dense="true"
+             SortMode="SortMode.Multiple"
+             Filterable="true"
+             RowClick="@RowClicked">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Localizer("CurrencyList")</MudText>
+    </ToolBarContent>
+
+    <Columns>
+        <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+        <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+        <PropertyColumn Property="x => x.Rate" Title="@Localizer("Rate")" />
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="CurrencyMaster" PageSizeOptions="new int[] { 5, 10 }" />
+    </PagerContent>
+</MudDataGrid>

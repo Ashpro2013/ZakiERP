@@ -1,0 +1,98 @@
+﻿@page "/accounthead"
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject TabService TabService
+
+<PageTitle>Account Head</PageTitle>
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Row="true">
+        <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("AccountHeadTitle")</MudText>
+        <MudSpacer />
+        @if (!IsDialog)
+        {
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        }
+    </MudStack>
+    <EditForm Model="accountHead" OnValidSubmit="SaveOrUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <MudGrid>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Code")</MudText>
+                <MudTextField @ref="txtCode" AutoFocus="true" OnKeyDown="@(e => KeyDown(e, 1))" @bind-Value="accountHead.Code" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <ValidationMessage For="@(() => accountHead.Code)" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("Name")</MudText>
+                <MudStack Row="true">
+                    <MudTextField @bind-Value="accountHead!.Name" @ref="txtName" OnKeyDown="@(e => KeyDown(e, 2))" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="ToArabic" />
+                </MudStack>
+                <ValidationMessage For="@(() => accountHead.Name)" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudText>@Localizer("ArabicName")</MudText>
+                <MudTextField @bind-Value="accountHead!.NameArabic" @ref="txtNameArabic" OnKeyDown="@(e => KeyDown(e, 3))" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText>@Localizer("AccountType")</MudText>
+                <MudSelect Dense="true" T="int" @bind-Value="accountHead!.FK_AcTypeId" SelectedValuesChanged="OnTypeChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-2" Required="true">
+                     @foreach (var type in accountTypeList)
+                    {
+                        <MudSelectItem Value="@type.AcTypeId">@type.AcTypeName</MudSelectItem>
+                    }
+                </MudSelect>
+                <ValidationMessage For="@(() => accountHead.FK_AcTypeId)" />
+            </MudItem>
+        </MudGrid>
+        <MudStack Row="true" Spacing="3" Class="ma-2">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@(accountHead.AccountHeadId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" Color="@(accountHead.AccountHeadId == 0 ? Color.Success : Color.Info)" Disabled="@((accountHead.AccountHeadId != 0 && accountHead.IsReserved) || _isSaving)">
+                @if (_isSaving)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                }
+                else
+                {
+                    @Localizer(accountHead.AccountHeadId == 0 ? "Save" : "Update")
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete" Disabled="@accountHead.IsReserved">@Localizer("Delete")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+        </MudStack>
+    </EditForm>
+</MudPaper>
+<MudDataGrid Class="ma-2" Elevation="3" T="AccountHeadMaster" @ref="grid" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple" RowClick="@RowClicked">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Localizer("AccountHeadList")</MudText>
+        <MudSpacer />
+        <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Code" Title=@Localizer("Code") />
+        <PropertyColumn Property="x => x.Name" Title=@Localizer("Name") />
+        <PropertyColumn Property="x => x.AccountType!.AcTypeName" Title=@Localizer("Type") />
+        <TemplateColumn Title=@Localizer("Type")>
+            <CellTemplate>
+                @if (context.Item.IsReserved)
+                {
+                    <MudChip Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@Localizer("Built-in")</MudChip>
+                }
+                else
+                {
+                    <MudChip Size="Size.Small" Color="Color.Default" Variant="Variant.Text">@Localizer("Custom")</MudChip>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="AccountHeadMaster" PageSizeOptions="new int[] { 5, 10 }" />
+    </PagerContent>
+</MudDataGrid>
+
+

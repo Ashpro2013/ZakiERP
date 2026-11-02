@@ -1,0 +1,72 @@
+@namespace AshproSAASERP.Shared.Pages.Transactions.Sales
+
+<div class="pos-numpad-grid">
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("7")'>7</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("8")'>8</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("9")'>9</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => ClickKey("Qty")'>Qty</MudButton>
+
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("4")'>4</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("5")'>5</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("6")'>6</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => ClickKey("Rate")'>Rate</MudButton>
+
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("1")'>1</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("2")'>2</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("3")'>3</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => ClickKey("Clear")'>Clear</MudButton>
+
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("0")'>0</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey(".")'>.</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("Backspace")'>⌫</MudButton>
+    <MudButton Variant="Variant.Filled" Class="numpad-btn action-btn" OnClick='() => ClickKey("Enter")'>Enter</MudButton>
+</div>
+
+<style>
+    .pos-numpad-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        width: 100%;
+        background-color: #eef2f6;
+        padding: 8px;
+        border-radius: 6px;
+    }
+    .pos-numpad-grid .numpad-btn {
+        height: 55px !important;
+        min-width: 50px !important;
+        font-size: 1.2rem !important;
+        font-weight: bold !important;
+        border-radius: 4px !important;
+        background-color: #cbd5e1 !important; /* slate-300 */
+        color: #1e293b !important; /* slate-800 */
+        text-transform: none !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+        border: 1px solid #94a3b8 !important;
+    }
+    .pos-numpad-grid .numpad-btn:hover {
+        background-color: #94a3b8 !important;
+        color: #ffffff !important;
+    }
+    .pos-numpad-grid .action-btn {
+        background-color: #94a3b8 !important; /* slate-400 */
+        color: #ffffff !important;
+        border: 1px solid #64748b !important;
+    }
+    .pos-numpad-grid .action-btn:hover {
+        background-color: #64748b !important;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnKeyClick { get; set; }
+
+    private async Task ClickKey(string key)
+    {
+        if (OnKeyClick.HasDelegate)
+        {
+            await OnKeyClick.InvokeAsync(key);
+        }
+    }
+}
