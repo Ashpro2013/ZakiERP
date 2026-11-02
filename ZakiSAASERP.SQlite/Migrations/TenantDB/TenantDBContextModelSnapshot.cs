@@ -5033,6 +5033,9 @@ namespace ZakiSAASERP.SQlite.Migrations.TenantDB
                     b.Property<string>("InvoicePreviousHash")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("VoucherNo")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("ReUploaded")
                         .HasColumnType("INTEGER");
 

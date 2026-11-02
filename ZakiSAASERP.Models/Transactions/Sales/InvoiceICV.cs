@@ -8,6 +8,7 @@ public class InvoiceICV
     public int InvICVNo { get; set; }
     public string VoucherType { get; set; } = default!;
     public int VoucherId { get; set; }
+    public string? VoucherNo { get; set; }
     public DateTime? InvICVDate { get; set; }
     public bool ICVStatus { get; set; }
     public string? DetailedStatus { get; set; }

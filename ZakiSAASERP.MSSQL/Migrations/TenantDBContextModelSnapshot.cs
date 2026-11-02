@@ -5212,6 +5212,9 @@ namespace ZakiSAASERP.Repo.Migrations
                     b.Property<string>("InvoicePreviousHash")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("VoucherNo")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("ReUploaded")
                         .HasColumnType("bit");
 

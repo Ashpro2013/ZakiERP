@@ -75,7 +75,7 @@ public class ZatcaNewUploadService(
         {
             if (csrDetails == null)
             {
-                await SaveErrorResponse("CSR Details Not Found - 308", "CSR Details Not Found", master.HdrId, InvType, master.HdrDate);
+                await SaveErrorResponse("CSR Details Not Found - 308", "CSR Details Not Found", master.HdrId, InvType, master.HdrDate, master.HdrNo);
                 return new ZatcaUploadResponse(false, "CSR Details Not Found", null);
             }
 
@@ -202,13 +202,13 @@ public class ZatcaNewUploadService(
                 }
                 catch (Exception ex)
                 {
-                    await SaveErrorResponse($"Generate XML Save Error", ex.Message, master.HdrId, InvType, master.HdrDate);
+                    await SaveErrorResponse($"Generate XML Save Error", ex.Message, master.HdrId, InvType, master.HdrDate, master.HdrNo);
                 }
 
                 if (blnUploadXML)
                 {
                     // Save Response
-                    var saveResult = await SaveResponse(result, master.HdrId, InvType, master.HdrDate);
+                    var saveResult = await SaveResponse(result, master.HdrId, InvType, master.HdrDate, master.HdrNo);
 
                     if (saveResult.Item1)
                     {
@@ -239,14 +239,14 @@ public class ZatcaNewUploadService(
             }
             else
             {
-                await SaveErrorResponse("Zatca Integration Error", result.ErrorMessage!, master.HdrId, InvType, master.HdrDate);
+                await SaveErrorResponse("Zatca Integration Error", result.ErrorMessage!, master.HdrId, InvType, master.HdrDate, master.HdrNo);
                 return new ZatcaUploadResponse(false, result.ErrorMessage, null);
             }
 
         }
         catch (Exception ex)
         {
-            await SaveErrorResponse($"Zatca Integration Try Catch Error", ex.Message, master.HdrId, InvType, master.HdrDate);
+            await SaveErrorResponse($"Zatca Integration Try Catch Error", ex.Message, master.HdrId, InvType, master.HdrDate, master.HdrNo);
             return new ZatcaUploadResponse(false, $"{ex.Message} - ZatcaNewUploadService", null);
         }
     }
@@ -380,12 +380,13 @@ public class ZatcaNewUploadService(
         return (InvoiceTypeName, updateHash);
     }
 
-    private async Task<(bool, string)> SaveResponse(ZatcaSubmissionResult result, int invId, string invType, DateTime? date)
+    private async Task<(bool, string)> SaveResponse(ZatcaSubmissionResult result, int invId, string invType, DateTime? date, string? voucherNo = null)
     {
         try
         {
             var icv = new InvoiceICV();
             icv.VoucherId = invId;
+            icv.VoucherNo = voucherNo;
             icv.VoucherType = invType;
             icv.InvICVDate = date;
 
@@ -404,12 +405,13 @@ public class ZatcaNewUploadService(
         catch (Exception ex) { return (false, $"{ex.Message} - SaveResponse"); }
     }
 
-    private async Task<(bool, string)> SaveErrorResponse(string ErrorType, string ErrorMessage, int id, string invType, DateTime? date)
+    private async Task<(bool, string)> SaveErrorResponse(string ErrorType, string ErrorMessage, int id, string invType, DateTime? date, string? voucherNo = null)
     {
         try
         {
             var icv = new InvoiceICV();
             icv.VoucherId = id;
+            icv.VoucherNo = voucherNo;
             icv.VoucherType = invType;
             icv.InvICVDate = date;
             icv.ICVStatus = false;

@@ -1,4 +1,4 @@
-﻿@page "/pendingzatca"
+@page "/pendingzatca"
 @inject IViewService api;
 @inject ModelService Dialog;
 @inject AppBarState appBar;
@@ -103,7 +103,8 @@
             }
         </ToolBarContent>
         <Columns>
-            <PropertyColumn Property="x => x.InvICVNo" Title=@Localizer("DocNo") />
+            <PropertyColumn Property="x => x.InvICVNo" Title=@Localizer("ICV No") />
+            <PropertyColumn Property="x => x.VoucherNo" Title=@Localizer("DocNo") />
             <PropertyColumn Property="x => x.VoucherType" Title=@Localizer("DocType") />
             <PropertyColumn Property="x => x.InvICVDate" Title=@Localizer("DocDate") />
             <PropertyColumn Property="x => x.DetailedStatus" Title=@Localizer("Status") />

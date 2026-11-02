@@ -210,6 +210,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -225,6 +227,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -241,6 +245,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -256,6 +262,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -271,6 +279,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -287,6 +297,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -302,6 +314,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -317,6 +331,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -333,6 +349,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -348,6 +366,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -363,6 +383,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -379,6 +401,8 @@ public class ZatcaRepo : IZatcaRepo
                         {
                             InvoiceICVId = x.InvoiceICVId,
                             InvICVNo = x.InvICVNo,
+                            VoucherId = x.VoucherId,
+                            VoucherNo = x.VoucherNo ?? "",
                             VoucherType = x.VoucherType,
                             InvICVDate = x.InvICVDate,
                             DetailedStatus = x.DetailedStatus,
@@ -389,7 +413,7 @@ public class ZatcaRepo : IZatcaRepo
             if (!string.IsNullOrWhiteSpace(req.PaginationDTO.search))
             {
                 var term = req.PaginationDTO.search.ToLower();
-                result = result.Where(x => x.InvICVNo == term.ToInt32());
+                result = result.Where(x => x.InvICVNo == term.ToInt32() || (x.VoucherNo != null && x.VoucherNo.ToLower().Contains(term)));
             }
             int count = result.Count();
             var list = result.Skip((req.PaginationDTO.page - 1) * req.PaginationDTO.pageSize).Take(req.PaginationDTO.pageSize).ToList();
@@ -415,13 +439,19 @@ public class ZatcaRepo : IZatcaRepo
             await using var db = _contextProvider.CreateDbContext();
             if (invoiceICV.VoucherType.Contains("Invoice"))
             {
-                var entsaleshdr = await db.SalesInvoiceHdrs.FirstOrDefaultAsync(x => x.SalesInvoiceId == invoiceICV.InvoiceICVId);
+                var entsaleshdr = await db.SalesInvoiceHdrs.FirstOrDefaultAsync(x => 
+                    (invoiceICV.VoucherId != 0 && x.SalesInvoiceId == invoiceICV.VoucherId) ||
+                    (!string.IsNullOrEmpty(invoiceICV.VoucherNo) && x.SalesInvoiceNo == invoiceICV.VoucherNo) ||
+                    x.SalesInvoiceId == invoiceICV.InvoiceICVId);
                 var entTransactions = await db.SalesInvoiceDtls.Where(x => x.FK_SalesInvoiceHdrId == entsaleshdr.SalesInvoiceId).ToListAsync();
                 return await UploadSales(db, entsaleshdr, entTransactions, company);
             }
             else
             {
-                var entSalesRtnMaster = await db.SalesInvoiceRtnHdrs.FirstOrDefaultAsync(x => x.SalesInvoiceRtnId == invoiceICV.InvoiceICVId);
+                var entSalesRtnMaster = await db.SalesInvoiceRtnHdrs.FirstOrDefaultAsync(x => 
+                    (invoiceICV.VoucherId != 0 && x.SalesInvoiceRtnId == invoiceICV.VoucherId) ||
+                    (!string.IsNullOrEmpty(invoiceICV.VoucherNo) && x.SalesInvoiceRtnNo == invoiceICV.VoucherNo) ||
+                    x.SalesInvoiceRtnId == invoiceICV.InvoiceICVId);
                 var entTransactions = await db.SalesInvoiceRtnDtls.Where(x => x.FK_SalesInvoiceRtnHdrId == entSalesRtnMaster.SalesInvoiceRtnId).ToListAsync();
                 return await UploadSalesReturn(db, entSalesRtnMaster, entTransactions, company);
             }
