@@ -1227,225 +1227,45 @@
                 </div>
             </MudTabPanel>
 
-            <!-- Tab 3: Tax Regime & Compliance / Zatca Configuration -->
-            @if (AppData.ShowTaxRegimeChange)
-            {
-                <MudTabPanel Text="Tax & Compliance" Icon="@Icons.Material.Filled.AccountBalance">
+            <!-- Tab 3: Zatca Configuration -->
+            <MudTabPanel Text="Zatca Configuration" Icon="@Icons.Material.Filled.QrCodeScanner">
                 <div style="max-height: calc(90vh - 250px); overflow-y: auto; padding: 16px;">
-                    <!-- Tax Regime Selector Card -->
-                    <MudPaper Class="pa-4 mb-4" Elevation="2" Style="border-left: 4px solid var(--mud-palette-primary);">
-                        <MudText Typo="Typo.h6" Class="mb-2">
-                            <MudIcon Icon="@Icons.Material.Filled.Flag" Class="mr-2" />
-                            Tax Regime & Regional Compliance
-                        </MudText>
-                        <MudText Typo="Typo.body2" Class="mb-3" Color="Color.Secondary">
-                            Select the taxation model and regional regulatory compliance for your business operations.
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Class="mr-2" />
+                            ZATCA FATOORA Configuration (Saudi Arabia)
                         </MudText>
                         
-                        <MudRadioGroup @bind-Value="settings.TaxRegime" @bind-Value:after="MarkDirty" T="string">
-                            <MudGrid Spacing="2">
-                                <MudItem xs="12" md="4">
-                                    <MudPaper Outlined="true" Class="pa-3" Style="@(settings.TaxRegime == "Zatca" ? "border-color: #2563eb; background: rgba(37,99,235,0.06);" : "")">
-                                        <MudRadio Value="@("Zatca")" Color="Color.Primary" Dense="false">
-                                            <strong>Saudi Arabia (ZATCA)</strong>
-                                            <MudText Typo="Typo.caption" Display="Display.Block" Color="Color.Secondary">e-Invoicing Phase 1 & 2 (FATOORA)</MudText>
-                                        </MudRadio>
-                                    </MudPaper>
-                                </MudItem>
-                                <MudItem xs="12" md="4">
-                                    <MudPaper Outlined="true" Class="pa-3" Style="@(settings.TaxRegime == "IndiaGst" ? "border-color: #16a34a; background: rgba(22,163,74,0.06);" : "")">
-                                        <MudRadio Value="@("IndiaGst")" Color="Color.Success" Dense="false">
-                                            <strong>India (GST)</strong>
-                                            <MudText Typo="Typo.caption" Display="Display.Block" Color="Color.Secondary">CGST, SGST, IGST, HSN & UPI QR</MudText>
-                                        </MudRadio>
-                                    </MudPaper>
-                                </MudItem>
-                                <MudItem xs="12" md="4">
-                                    <MudPaper Outlined="true" Class="pa-3" Style="@(settings.TaxRegime == "Standard" ? "border-color: #64748b; background: rgba(100,116,139,0.06);" : "")">
-                                        <MudRadio Value="@("Standard")" Color="Color.Default" Dense="false">
-                                            <strong>Standard / Generic VAT</strong>
-                                            <MudText Typo="Typo.caption" Display="Display.Block" Color="Color.Secondary">Flat VAT rate without regional e-invoicing</MudText>
-                                        </MudRadio>
-                                    </MudPaper>
-                                </MudItem>
-                            </MudGrid>
-                        </MudRadioGroup>
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="4">
+                                <MudText Typo="Typo.subtitle1" Class="mb-2">Zatca Phase</MudText>
+                                <MudRadioGroup @bind-Value="settings.ZatcaPhase" @bind-Value:after="MarkDirty" T="string">
+                                    <MudRadio Value='@("1")' Color="Color.Primary" Dense="true">First Phase</MudRadio>
+                                    <MudRadio Value='@("2")' Color="Color.Secondary" Dense="true" Class="ml-4">Second Phase</MudRadio>
+                                </MudRadioGroup>
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudText Typo="Typo.subtitle1" Class="mb-2">Upload Simplified XML Realtime</MudText>
+                                <MudSwitch T="bool" @bind-Value="settings.UploadSimplifiedXMLRealtime" @bind-Value:after="MarkDirty" Color="Color.Primary" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudText Typo="Typo.subtitle1" Class="mb-2">Default Zatca Mode</MudText>
+                                <MudRadioGroup @bind-Value="settings.ZatcaConnection" @bind-Value:after="MarkDirty" T="string">
+                                    <MudRadio Value='@("Production")' Color="Color.Primary" Dense="true">Production</MudRadio>
+                                    <MudRadio Value='@("Simulation")' Color="Color.Secondary" Dense="true" Class="ml-4">Simulation</MudRadio>
+                                    <MudRadio Value='@("Developer")' Color="Color.Primary" Dense="true">Developer</MudRadio>
+                                </MudRadioGroup>
+                            </MudItem>
+                            
+                            <MudItem xs="12">
+                                <MudAlert Severity="Severity.Info" Dense="true">
+                                    <strong>Note:</strong> Select "Simulation" for testing and "Production" for the live ZATCA clearance/reporting environment.
+                                </MudAlert>
+                            </MudItem>
+                        </MudGrid>
                     </MudPaper>
-
-                    @if (settings.TaxRegime == "Zatca")
-                    {
-                        <!-- ZATCA Configuration Card -->
-                        <MudPaper Class="pa-4 mb-4" Elevation="2">
-                            <MudText Typo="Typo.h6" Class="mb-3">
-                                <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Class="mr-2" />
-                                ZATCA FATOORA Configuration (Saudi Arabia)
-                            </MudText>
-                            
-                            <MudGrid Spacing="3">
-                                <MudItem xs="12" md="4">
-                                    <MudText Typo="Typo.subtitle1" Class="mb-2">Zatca Phase</MudText>
-                                    <MudRadioGroup @bind-Value="settings.ZatcaPhase" @bind-Value:after="MarkDirty" T="string">
-                                        <MudRadio Value="@("1")" Color="Color.Primary" Dense="true">First Phase</MudRadio>
-                                        <MudRadio Value="@("2")" Color="Color.Secondary" Dense="true" Class="ml-4">Second Phase</MudRadio>
-                                    </MudRadioGroup>
-                                </MudItem>
-                                <MudItem xs="12" md="4">
-                                    <MudText Typo="Typo.subtitle1" Class="mb-2">Upload Simplified XML Realtime</MudText>
-                                    <MudSwitch T="bool" @bind-Value="settings.UploadSimplifiedXMLRealtime" @bind-Value:after="MarkDirty" Color="Color.Primary" />
-                                </MudItem>
-                                <MudItem xs="12" md="4">
-                                    <MudText Typo="Typo.subtitle1" Class="mb-2">Default Zatca Mode</MudText>
-                                    <MudRadioGroup @bind-Value="settings.ZatcaConnection" @bind-Value:after="MarkDirty" T="string">
-                                        <MudRadio Value="@("Production")" Color="Color.Primary" Dense="true">Production</MudRadio>
-                                        <MudRadio Value="@("Simulation")" Color="Color.Secondary" Dense="true" Class="ml-4">Simulation</MudRadio>
-                                        <MudRadio Value="@("Developer")" Color="Color.Primary" Dense="true">Developer</MudRadio>
-                                    </MudRadioGroup>
-                                </MudItem>
-                                
-                                <MudItem xs="12">
-                                    <MudAlert Severity="Severity.Info" Dense="true">
-                                        <strong>Note:</strong> Select "Simulation" for testing and "Production" for the live ZATCA clearance/reporting environment.
-                                    </MudAlert>
-                                </MudItem>
-                            </MudGrid>
-                        </MudPaper>
-                    }
-                    else if (settings.TaxRegime == "IndiaGst")
-                    {
-                        <!-- India GST Configuration Card -->
-                        <MudPaper Class="pa-4 mb-4" Elevation="2">
-                            <MudText Typo="Typo.h6" Class="mb-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Receipt" Class="mr-2" />
-                                Indian GST (Goods & Services Tax) Configuration
-                            </MudText>
-                            
-                            <MudGrid Spacing="3">
-                                <MudItem xs="12" md="6">
-                                    <MudSelect T="string" Label="Default State (Place of Supply)"
-                                               Value="settings.DefaultGstStateCode"
-                                               ValueChanged="OnGstStateCodeChanged"
-                                               Variant="Variant.Outlined" Dense="true"
-                                               HelperText="Home state of the main branch used to differentiate CGST+SGST vs IGST">
-                                        @foreach (var state in ZakiSAASERP.Models.Settings.GstState.AllStates)
-                                        {
-                                            <MudSelectItem Value="@state.Code">@state.DisplayText</MudSelectItem>
-                                        }
-                                    </MudSelect>
-                                </MudItem>
-                                
-                                <MudItem xs="12" md="6">
-                                    <MudNumericField T="decimal" Label="E-Way Bill Threshold (₹)"
-                                                     @bind-Value="settings.EWayBillThreshold"
-                                                     @bind-Value:after="MarkDirty"
-                                                     Variant="Variant.Outlined" Dense="true"
-                                                     Min="0" Step="5000"
-                                                     HelperText="Default statutory threshold is ₹50,000" />
-                                </MudItem>
-
-                                <MudItem xs="12" md="6">
-                                    <MudSwitch T="bool" @bind-Value="settings.EnableGstComposition"
-                                               @bind-Value:after="MarkDirty"
-                                               Color="Color.Warning"
-                                               Label="Registered under GST Composition Scheme" />
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-1">
-                                        When enabled, invoices are titled 'Bill of Supply' instead of 'Tax Invoice' and cannot charge tax to customers.
-                                    </MudText>
-                                </MudItem>
-
-                                <MudItem xs="12" md="6">
-                                    <MudSwitch T="bool" @bind-Value="settings.EnableUpiPaymentQr"
-                                               @bind-Value:after="MarkDirty"
-                                               Color="Color.Primary"
-                                               Label="Print Dynamic UPI Payment QR Code on Receipts" />
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-1">
-                                        Allows retail POS customers to scan and pay directly via GPay, PhonePe, Paytm, or BHIM.
-                                    </MudText>
-                                </MudItem>
-
-                                @if (settings.EnableUpiPaymentQr)
-                                {
-                                    <MudItem xs="12" md="6">
-                                        <MudTextField T="string" Label="UPI VPA ID (Virtual Payment Address)"
-                                                      @bind-Value="settings.UpiVpaId"
-                                                      @bind-Value:after="MarkDirty"
-                                                      Variant="Variant.Outlined" Dense="true"
-                                                      Placeholder="e.g. business@upi or 9876543210@paytm" />
-                                    </MudItem>
-                                    <MudItem xs="12" md="6">
-                                        <MudTextField T="string" Label="UPI Payee Name"
-                                                      @bind-Value="settings.UpiPayeeName"
-                                                      @bind-Value:after="MarkDirty"
-                                                      Variant="Variant.Outlined" Dense="true"
-                                                      Placeholder="e.g. My Store Name" />
-                                    </MudItem>
-                                }
-
-                                <MudItem xs="12">
-                                    <MudAlert Severity="Severity.Success" Dense="true">
-                                        <strong>GST Mode Active:</strong> Tax will be automatically calculated as <strong>CGST + SGST</strong> for Intra-State (State Code: @settings.DefaultGstStateCode - @settings.DefaultGstStateName) or <strong>IGST</strong> for Inter-State sales.
-                                    </MudAlert>
-                                </MudItem>
-                            </MudGrid>
-                        </MudPaper>
-                    }
-                    else
-                    {
-                        <!-- Standard VAT Card -->
-                        <MudPaper Class="pa-4 mb-4" Elevation="2">
-                            <MudText Typo="Typo.h6" Class="mb-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Public" Class="mr-2" />
-                                Standard / General VAT Configuration
-                            </MudText>
-                            <MudAlert Severity="Severity.Normal" Dense="true">
-                                Invoices will use standard single-tax VAT rates without country-specific e-invoicing portals.
-                            </MudAlert>
-                        </MudPaper>
-                    }
                 </div>
             </MudTabPanel>
-            }
-            else
-            {
-                <!-- Tab 3: Zatca Configuration (Only shown when Tax Regime Change is OFF) -->
-                <MudTabPanel Text="Zatca Configuration" Icon="@Icons.Material.Filled.QrCodeScanner">
-                    <div style="max-height: calc(90vh - 250px); overflow-y: auto; padding: 16px;">
-                        <MudPaper Class="pa-4 mb-4" Elevation="2">
-                            <MudText Typo="Typo.h6" Class="mb-3">
-                                <MudIcon Icon="@Icons.Material.Filled.SettingsSystemDaydream" Class="mr-2" />
-                                Zatca Configuration
-                            </MudText>
-                            
-                            <MudGrid Spacing="3">
-                                <MudItem xs="12" md="4">
-                                    <MudText Typo="Typo.subtitle1" Class="mb-2">Zatca Phase</MudText>
-                                    <MudRadioGroup @bind-Value="settings.ZatcaPhase" @bind-Value:after="MarkDirty" T="string">
-                                        <MudRadio Value="@("1")" Color="Color.Primary" Dense="true">First Phase</MudRadio>
-                                        <MudRadio Value="@("2")" Color="Color.Secondary" Dense="true" Class="ml-4">Second Phase</MudRadio>
-                                    </MudRadioGroup>
-                                </MudItem>
-                                <MudItem xs="12" md="4">
-                                    <MudText Typo="Typo.subtitle1" Class="mb-2">Upload Simplified XML Realtime</MudText>
-                                    <MudSwitch T="bool" @bind-Value="settings.UploadSimplifiedXMLRealtime" @bind-Value:after="MarkDirty" Color="Color.Primary" />
-                                </MudItem>
-                                <MudItem xs="12" md="4">
-                                    <MudText Typo="Typo.subtitle1" Class="mb-2">Default Zatca Mode</MudText>
-                                    <MudRadioGroup @bind-Value="settings.ZatcaConnection" @bind-Value:after="MarkDirty" T="string">
-                                        <MudRadio Value="@("Production")" Color="Color.Primary" Dense="true">Production</MudRadio>
-                                        <MudRadio Value="@("Simulation")" Color="Color.Secondary" Dense="true" Class="ml-4">Simulation</MudRadio>
-                                        <MudRadio Value="@("Developer")" Color="Color.Primary" Dense="true">Developer</MudRadio>
-                                    </MudRadioGroup>
-                                </MudItem>
-                                
-                                <MudItem xs="12">
-                                    <MudAlert Severity="Severity.Info" Dense="true">
-                                        <strong>Note:</strong> Select "Simulation" for testing and "Core" for production environment.
-                                    </MudAlert>
-                                </MudItem>
-                            </MudGrid>
-                        </MudPaper>
-                    </div>
-                </MudTabPanel>
-            }
 
             <!-- Tab 4: Invoice & Purchase -->
             <MudTabPanel Text="@Localizer("InvoicePurchase")" Icon="@Icons.Material.Filled.Receipt">

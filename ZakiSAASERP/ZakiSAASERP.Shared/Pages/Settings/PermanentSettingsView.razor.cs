@@ -400,7 +400,7 @@ public partial class PermanentSettingsView
             settings.IsWebBased = GetBool("IsWebBased", false);
 
             // Tax Regime & Compliance Settings
-            settings.TaxRegime = GetValue("TaxRegime", "Zatca");
+            settings.TaxRegime = "Zatca";
             settings.DefaultGstStateCode = GetValue("DefaultGstStateCode", "32");
             settings.DefaultGstStateName = GetValue("DefaultGstStateName", "Kerala");
             settings.EnableGstComposition = GetBool("EnableGstComposition", false);
@@ -458,16 +458,6 @@ public partial class PermanentSettingsView
         return decimal.TryParse(value, out var result) ? result : defaultVal;
     }
 
-    private void OnGstStateCodeChanged(string code)
-    {
-        settings.DefaultGstStateCode = code;
-        var found = ZakiSAASERP.Models.Settings.GstState.AllStates.FirstOrDefault(s => s.Code == code);
-        if (found != null)
-        {
-            settings.DefaultGstStateName = found.Name;
-        }
-        MarkDirty();
-    }
 
     private void SetValue(string key, string value)
     {
@@ -484,10 +474,7 @@ public partial class PermanentSettingsView
     {
         try
         {
-            if (!ZakiSAASERP.Shared.Services.AppData.ShowTaxRegimeChange)
-            {
-                settings.TaxRegime = "Zatca";
-            }
+            settings.TaxRegime = "Zatca";
             // Item Code Settings
             SetValue("AutoItemCode", settings.AutoItemCode ? "1" : "0");
             SetValue("ItemCodePrefix", settings.ItemCodePrefix ?? "IT");
@@ -697,7 +684,7 @@ public partial class PermanentSettingsView
             SetValue("IsWebBased", settings.IsWebBased ? "1" : "0");
 
             // Tax Regime & Compliance Settings
-            SetValue("TaxRegime", settings.TaxRegime ?? "Zatca");
+            SetValue("TaxRegime", "Zatca");
             SetValue("DefaultGstStateCode", settings.DefaultGstStateCode ?? "32");
             SetValue("DefaultGstStateName", settings.DefaultGstStateName ?? "Kerala");
             SetValue("EnableGstComposition", settings.EnableGstComposition ? "1" : "0");

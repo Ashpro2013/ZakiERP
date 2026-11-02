@@ -194,9 +194,9 @@ public static class PermanentSettingsData
 
     // ============ Tax Regime Settings ============
     public static string TaxRegime { get; set; } = "Zatca";
-    public static bool IsZatca => string.Equals(TaxRegime, "Zatca", StringComparison.OrdinalIgnoreCase);
-    public static bool IsIndiaGst => string.Equals(TaxRegime, "IndiaGst", StringComparison.OrdinalIgnoreCase);
-    public static bool IsStandardVat => string.Equals(TaxRegime, "Standard", StringComparison.OrdinalIgnoreCase);
+    public static bool IsZatca => true;
+    public static bool IsIndiaGst => false;
+    public static bool IsStandardVat => false;
 
     // ============ GST Settings (India) ============
     public static string DefaultGstStateCode { get; set; } = "32";
@@ -444,7 +444,6 @@ public static class PermanentSettingsData
                 case "IsWebBased": IsWebBased = IsTrue(s.SettingValue); break;
 
                 // Tax Regime Settings
-                case "TaxRegime": TaxRegime = s.SettingValue ?? "Zatca"; break;
                 case "DefaultGstStateCode": DefaultGstStateCode = s.SettingValue ?? "32"; break;
                 case "DefaultGstStateName": DefaultGstStateName = s.SettingValue ?? "Kerala"; break;
                 case "EnableGstComposition": EnableGstComposition = IsTrue(s.SettingValue); break;

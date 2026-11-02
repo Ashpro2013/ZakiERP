@@ -14,7 +14,7 @@ public class AppData
     public static bool IsLogin { get; set; } = false;
     public static bool IsMaui { get; set; } = false;
     public static bool IsWindows { get; set; } = false;
-    public static bool ShowTaxRegimeChange { get; set; } = false;
+
     public static string OEMAgency { get; set; } = "ZAKI ERP";
     public static int viewWidth { get; set; }
     public static int? FYearId { get; set; }

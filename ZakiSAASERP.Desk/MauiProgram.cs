@@ -56,8 +56,8 @@ public static class MauiProgram
         AppData.IsMauiApi = false;
         AppData.IsWindows = OperatingSystem.IsWindows();
 
-        // Option to show Tax Regime Change panel in Settings (set to false to only show Zatca settings panel)
-        AppData.ShowTaxRegimeChange = true;
+
+
         AppData.DBProvider = RegistryHelper.GetData("DBProvider", "");
         AppData.ConnectionString = RegistryHelper.GetData("ConString", "");
         if (string.IsNullOrEmpty(AppData.DBProvider) && !string.IsNullOrEmpty(AppData.ConnectionString))

@@ -10,7 +10,7 @@ using Refit;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 //var apiUrl = builder.Configuration["ApiBaseUrl"];
-AppData.ShowTaxRegimeChange = true;
+
 
 builder.Services.AddMudServices(config =>
 {
