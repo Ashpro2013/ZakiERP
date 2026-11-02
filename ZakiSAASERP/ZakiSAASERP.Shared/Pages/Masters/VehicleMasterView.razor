@@ -1,0 +1,108 @@
+@page "/vehicle-master"
+@using ZakiSAASERP.Models.Masters
+@inject IViewService api
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
+@inject TabService TabService
+
+<PageTitle>@Localizer("VehicleMaster")</PageTitle>
+
+<MudPaper Class="pa-4 ma-2" Elevation="3">
+    <MudStack Spacing="2">
+        <MudStack Row="true">
+            <MudText Typo="Typo.h5">@Localizer("VehicleMaster")</MudText>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+
+        <EditForm Model="vehicle" OnValidSubmit="SaveOrUpdate" @ref="form">
+             <DataAnnotationsValidator />
+             <ValidationSummary />
+
+             <MudGrid>
+                 <MudItem xs="12" sm="4">
+                     <InfoTextField @ref="_plateNoField" @bind-Value="vehicle.PlateNo" Label="@Localizer("PlateNo")" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" ExAutoNext="true" AutoFocus="true" />
+                 </MudItem>
+                 <MudItem xs="12" sm="4">
+                     <InfoTextField @bind-Value="vehicle.ChassisNo" Label="@Localizer("ChassisNo")" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" ExAutoNext="true" />
+                 </MudItem>
+                 <MudItem xs="12" sm="4">
+                     <InfoTextField @bind-Value="vehicle.Model" Label="@Localizer("Model")" Variant="Variant.Outlined" Margin="Margin.Dense" ExAutoNext="true" />
+                 </MudItem>
+                 <MudItem xs="12" sm="4">
+                     <MudNumericField @bind-Value="vehicle.Year" Label="@Localizer("Year")" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" MaxLength="4" @onkeydown="@(async (e) => { if (e.Key == "Enter") await JSRuntime.InvokeVoidAsync("Ash.focusNext"); })" />
+                 </MudItem>
+                 
+                 <!-- Customer Lookup -->
+                 <MudItem xs="12" sm="4">
+                    <MudAutocomplete T="CustomerMaster" Label="@Localizer("Customer")" @bind-Value="selectedCustomer" SearchFunc="@SearchCustomers"
+                                     ToStringFunc="@(c => c==null?null : $"{c.Name} ({c.Code})")"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" ResetValueOnEmptyText="true" Clearable="true" @onkeydown="@(async (e) => { if (e.Key == "Enter") await JSRuntime.InvokeVoidAsync("Ash.focusNext"); })" />
+                 </MudItem>
+
+                 <MudItem xs="12" sm="4">
+                     <InfoTextField @bind-Value="vehicle.CustomerName" Label="@Localizer("CustomerName")" Variant="Variant.Outlined" Margin="Margin.Dense" OnEnter="FocusSave" />
+                 </MudItem>
+
+                 <!-- Image Upload -->
+                 <MudItem xs="12" sm="4">
+                     <MudText Class="mb-1">@Localizer("VehicleImage")</MudText>
+                     <MudFileUpload T="IBrowserFile" FilesChanged="UploadVehicleImage" Accept=".png,.jpg,.jpeg" MaximumFileCount="1">
+                         <ActivatorContent>
+                             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Image" Class="mb-2">
+                                 @Localizer("UploadImage")
+                             </MudButton>
+                         </ActivatorContent>
+                     </MudFileUpload>
+                     @if (!string.IsNullOrWhiteSpace(itemImagePreview))
+                     {
+                         <MudPaper Elevation="3" Class="pa-2 mt-1 d-inline-block position-relative" Style="width:150px; border-radius:12px;">
+                             <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Error" Class="position-absolute" Style="top:-8px; right:-8px; background:white; border-radius:50%;" OnClick="RemoveVehicleImage" />
+                             <img src="@itemImagePreview" width="140" style="cursor:pointer; border-radius:8px;" @onclick="@(() => ShowImagePopup(itemImagePreview))" />
+                            <MudText Typo="Typo.caption" Class="mt-1 text-center" Style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                @vehicle.ItemImageName
+                            </MudText>
+                         </MudPaper>
+                     }
+                 </MudItem>
+             </MudGrid>
+
+             <MudStack Row="true" Spacing="3" Class="mt-4">
+                 <MudButton @ref="saveButton" ButtonType="ButtonType.Button" OnClick="@(async () => { if (form.EditContext?.Validate() ?? false) await SaveOrUpdate(); })" Variant="Variant.Filled" Color="@(vehicle.VehicleId == 0 ? Color.Success : Color.Info)" Disabled="@_isSaving">
+                     @if (_isSaving)
+                     {
+                         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                         <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                     }
+                     else
+                     {
+                         @Localizer(vehicle.VehicleId == 0 ? "Save" : "Update")
+                     }
+                 </MudButton>
+                 <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Delete">@Localizer("Delete")</MudButton>
+                 <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="NewClick">@Localizer("New")</MudButton>
+             </MudStack>
+        </EditForm>
+    </MudStack>
+</MudPaper>
+
+<MudPaper Class="ma-2 pa-2" Elevation="3">
+    <MudDataGrid T="VehicleMaster" ServerData="LoadServerData" @ref="grid" RowClick="@RowClicked" Dense="true" Bordered="true" Filterable="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("VehicleList")</MudText>
+            <MudSpacer />
+            <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.PlateNo" Title="@Localizer("PlateNo")" />
+            <PropertyColumn Property="x => x.ChassisNo" Title="@Localizer("ChassisNo")" />
+            <PropertyColumn Property="x => x.CustomerName" Title="@Localizer("CustomerName")" />
+            <PropertyColumn Property="x => x.Model" Title="@Localizer("Model")" />
+            <PropertyColumn Property="x => x.Year" Title="@Localizer("Year")" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="VehicleMaster" PageSizeOptions="new int[] { 10, 20, 50 }" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

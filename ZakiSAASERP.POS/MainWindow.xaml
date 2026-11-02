@@ -1,0 +1,17 @@
+<Window x:Class="ZakiSAASERP.POS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ZakiSAASERP.POS"
+        xmlns:views="clr-namespace:ZakiSAASERP.POS.Views"
+        mc:Ignorable="d"
+        Title="Zaki ERP - POS System" Height="860" Width="1380"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Background="#F8FAFC"
+        FontFamily="Segoe UI, Inter, Outfit, sans-serif"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Grid x:Name="MainContentGrid" />
+</Window>
+

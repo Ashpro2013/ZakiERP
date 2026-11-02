@@ -1,0 +1,61 @@
+@using ZakiSAASERP.Models.Masters
+@inject IViewService api
+
+<MudDialog>
+    <DialogContent>
+        <MudDataGrid T="RepairMaster" @ref="grid" ServerData="LoadServerData" Dense="true" Bordered="true" Hover="true" Striped="true" RowClick="@RowClickEvent">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("RepairList")</MudText>
+                <MudSpacer />
+                <MudTextField Value="@searchText" ValueChanged="@(async (string s) => { searchText = s; await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Class="mx-3" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+                <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="RepairMaster" PageSizeOptions="new int[] { 10, 20, 50 }" />
+            </PagerContent>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+
+    private MudDataGrid<RepairMaster> grid;
+    private string searchText = "";
+
+    private async Task<GridData<RepairMaster>> LoadServerData(GridState<RepairMaster> state)
+    {
+        var pagination = new PaginationModel
+        {
+            page = state.Page + 1,
+            pageSize = state.PageSize,
+            sortColumn = state.SortDefinitions.FirstOrDefault()?.SortBy,
+            sortDirection = state.SortDefinitions.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search = searchText
+        };
+
+        var result = await api.GetRepairPDetails(pagination);
+        return new GridData<RepairMaster>
+        {
+            TotalItems = result.TotalCount,
+            Items = result.Items ?? new List<RepairMaster>()
+        };
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<RepairMaster> args)
+    {
+        MudDialog.Close(DialogResult.Ok(args.Item));
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+}

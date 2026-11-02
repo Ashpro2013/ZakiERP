@@ -1,0 +1,49 @@
+@page "/chartofaccountreport"
+@using ZakiSAASERP.Shared.Pages.Component
+@using ZakiSAASERP.Shared.SubWindows
+@inject IViewService api;
+@inject Downloader downloader
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService TabService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Chart Of Account Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Chart Of Account Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Account Group *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Account Group")</MudText>
+                <MudSelect T="int" @bind-Value="AccountGroupId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="0">All</MudSelectItem>
+                    @foreach (var group in accountGroupList)
+                    {
+                        <MudSelectItem Value="@group.Id">@group.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Success" OnClick="ReportGenerate">@Localizer("Generate")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.TableView" Color="Color.Primary" OnClick="ExcelExportMethod">@Localizer("Excel")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Error" OnClick="PDFExportMethod">@Localizer("PDF")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Warning" OnClick="ClearMethod">@Localizer("Clear")</MudButton>
+        </MudStack>
+    </MudCardActions>
+</MudCard>
+
+<ReportView pdfData="@pdfData" />

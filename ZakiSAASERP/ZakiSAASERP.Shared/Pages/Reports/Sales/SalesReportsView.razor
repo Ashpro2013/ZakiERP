@@ -1,0 +1,216 @@
+@page "/salesreport"
+@using ZakiSAASERP.Shared.Pages.Component
+@using ZakiSAASERP.Shared.SubWindows
+@inject IViewService api;
+@inject Downloader downloader
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService tabService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Sales Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Sales Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Date Range *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+
+            @* Branch *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var branch in branchList)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Salesman *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("SalesMan")</MudText>
+                <MudSelect T="int" @bind-Value="SalesManId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="0">@Localizer("All")</MudSelectItem>
+                    @foreach (var sman in salesmanList)
+                    {
+                        <MudSelectItem Value="@sman.Id">@sman.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Customer *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Customer")</MudText>
+                <MudStack Row>
+                    <MudTextField @bind-Value="CustomerName" Variant="Variant.Outlined"
+                                  Class="w-100" Margin="Margin.Dense" Clearable="true" Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  OnAdornmentClick="PartySearchMethod" ReadOnly="true" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => { CustomerId = 0; CustomerName = ""; })" Disabled="@(CustomerId == 0)" />
+                </MudStack>
+            </MudItem>
+
+            @* Invoice Type *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Invoice Type")</MudText>
+                <MudSelect T="string" @bind-Value="InvoiceType" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("All")">@Localizer("All")</MudSelectItem>
+                    <MudSelectItem Value="@("Sales")">@Localizer("Sales")</MudSelectItem>
+                    <MudSelectItem Value="@("Sales Return")">@Localizer("Sales Return")</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            @* Bill Type *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Bill Type")</MudText>
+                <MudSelect T="string" @bind-Value="BillType" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("All")">@Localizer("All")</MudSelectItem>
+                    <MudSelectItem Value="@("Cash")">@Localizer("Cash")</MudSelectItem>
+                    <MudSelectItem Value="@("Credit")">@Localizer("Credit")</MudSelectItem>
+                    <MudSelectItem Value="@("Bank")">@Localizer("Bank")</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudGrid Class="ma-2" Spacing="1">
+            <MudItem xs="12" sm="4" md="1">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Receipt"
+                           Color="Color.Success"
+                           OnClick="PreviewMethod">
+                    @Localizer("Generate")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="1">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Print"
+                           Color="Color.Secondary"
+                           OnClick="PrintMethod">
+                    @Localizer("Print")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="1">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Preview"
+                           Color="Color.Tertiary"
+                           OnClick="ReportGenerate">
+                    @Localizer("Preview")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="1">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.TableView"
+                           Color="Color.Primary"
+                           OnClick="ExcelExportMethod">
+                    @Localizer("Excel")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="1">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.ClearAll"
+                           Color="Color.Warning"
+                           OnClick="ClearMethod">
+                    @Localizer("Clear")
+                </MudButton>
+            </MudItem>
+
+        </MudGrid>
+
+    </MudCardActions>
+</MudCard>
+
+@if (pdfData is not null)
+{
+    <ReportView pdfData="@pdfData" />
+}
+
+@if (IsLoaded && result is not null)
+{
+    @* Summary *@
+    <MudGrid Class="ma-2">
+        <MudItem xs="12" sm="2">
+            <MudText><b>@Localizer("Total Gross"):</b> @PermanentSettingsData.FormatCurrency(result?.TotalGross)</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="2">
+            <MudText><b>@Localizer("Total Discount"):</b> @PermanentSettingsData.FormatCurrency(result?.TotalDiscount)</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="2">
+            <MudText><b>@Localizer("Total Taxable"):</b> @PermanentSettingsData.FormatCurrency(result?.TotalAmount)</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="2">
+            <MudText><b>@Localizer("Total VAT"):</b> @PermanentSettingsData.FormatCurrency(result?.TotalVat)</MudText>
+        </MudItem>
+        <MudItem xs="12" sm="2">
+            <MudText><b>@Localizer("Total Net"):</b> @PermanentSettingsData.FormatCurrency(result?.TotalNet)</MudText>
+        </MudItem>
+    </MudGrid>
+
+    @* Result Grid *@
+    <MudTable T="SalesReportDtls" Items="@result?.Reports" OnRowClick="RowClickEvent" Filter="new Func<SalesReportDtls, bool>(FilterFunc1)" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px" Class="ma-2" Elevation="3">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("Search Results")</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.SL)">@Localizer("SL")</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.Date)">@Localizer("Date")</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.InvoiceNo)">@Localizer("Voucher No")</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.CustomerName)">@Localizer("Customer")</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.SalesmanName)">@Localizer("Salesman")</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.BillType)">@Localizer("Bill Type")</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.InvType)">@Localizer("Type")</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.GrossAmount)">@Localizer("Gross")</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.DiscountAmount)">@Localizer("Discount")</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.Amount)">@Localizer("Taxable")</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.VatAmount)">@Localizer("VAT")</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<SalesReportDtls, object>(x => x.NetAmount)">@Localizer("Net Amount")</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="SL">@context.SL</MudTd>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Voucher No">@context.InvoiceNo</MudTd>
+            <MudTd DataLabel="Customer">@context.CustomerName</MudTd>
+            <MudTd DataLabel="Salesman">@context.SalesmanName</MudTd>
+            <MudTd DataLabel="Bill Type">@context.BillType</MudTd>
+            <MudTd DataLabel="Type">@context.InvType</MudTd>
+            <MudTd DataLabel="Gross" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.GrossAmount)</MudTd>
+            <MudTd DataLabel="Discount" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.DiscountAmount)</MudTd>
+            <MudTd DataLabel="Taxable" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.Amount)</MudTd>
+            <MudTd DataLabel="VAT" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.VatAmount)</MudTd>
+            <MudTd DataLabel="Net Amount" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.NetAmount)</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@if (IsLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+

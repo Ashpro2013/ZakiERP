@@ -365,10 +365,10 @@ FodyWeavers.xsd
 /InfogateERP/InfogateERP.Web/login.db-wal
 /InfogateERP/InfogateERP.Web/login.db
 
-/AshproSAASERP/AshproSAASERP.Web/LoginDB.db-shm
-/AshproSAASERP/AshproSAASERP.Web/LoginDB.db-wal
-/AshproSAASERP/AshproSAASERP.Web/Ashpro_db.db-shm
-/AshproSAASERP/AshproSAASERP.Web/Ashpro_db.db-wal
+/ZakiSAASERP/ZakiSAASERP.Web/LoginDB.db-shm
+/ZakiSAASERP/ZakiSAASERP.Web/LoginDB.db-wal
+/ZakiSAASERP/ZakiSAASERP.Web/Ashpro_db.db-shm
+/ZakiSAASERP/ZakiSAASERP.Web/Ashpro_db.db-wal
 
 # Build and installer output
 [Oo]utput/

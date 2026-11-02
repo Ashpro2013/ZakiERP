@@ -6,4 +6,4 @@ System.ArgumentException: Connection string keyword 'server' is not supported. F
    at Microsoft.EntityFrameworkCore.Sqlite.Storage.Internal.SqliteDatabaseCreator.Exists()
    at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.Migrate(String targetMigration)
    at Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.Migrate(DatabaseFacade databaseFacade)
-   at AshproSAASERP.Desk.StartupPage.RunMigrations() in D:\Web Projects\AshproSAAS\AshproSAASERP.Desk\StartupPage.xaml.cs:line 141
+   at ZakiSAASERP.Desk.StartupPage.RunMigrations() in D:\Web Projects\AshproSAAS\ZakiSAASERP.Desk\StartupPage.xaml.cs:line 141

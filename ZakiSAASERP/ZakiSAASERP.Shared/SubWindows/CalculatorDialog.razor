@@ -1,0 +1,520 @@
+@namespace ZakiSAASERP.Shared.SubWindows
+@using Microsoft.AspNetCore.Components.Web
+@using MudBlazor
+@inject IJSRuntime JS
+
+<MudDialog Class="calc-dialog-container">
+    <DialogContent>
+        <div class="calc-wrapper" @onkeydown="HandleKeyDown" tabindex="0" @ref="_calcContainerRef">
+            <div class="calc-header">
+                <div class="calc-title">
+                    <MudIcon Icon="@Icons.Material.Filled.Calculate" Class="mr-2" Color="Color.Primary" />
+                    <span>Calculator</span>
+                </div>
+                <button type="button" class="calc-close-btn" @onclick="Cancel" title="Close (Esc)">
+                    <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+                </button>
+            </div>
+
+            <!-- Screen Display -->
+            <div class="calc-screen">
+                <div class="calc-expression">@_expressionDisplay</div>
+                <div class="calc-value">@_currentDisplay</div>
+            </div>
+
+            <!-- Numeric Keypad Grid -->
+            <div class="calc-grid">
+                <button type="button" class="calc-btn action" @onclick='() => ProcessInput("C")'>C</button>
+                <button type="button" class="calc-btn action" @onclick='() => ProcessInput("CE")'>CE</button>
+                <button type="button" class="calc-btn action" @onclick='() => ProcessInput("⌫")'>⌫</button>
+                <button type="button" class="calc-btn op" @onclick='() => ProcessInput("/")'>÷</button>
+
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("7")'>7</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("8")'>8</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("9")'>9</button>
+                <button type="button" class="calc-btn op" @onclick='() => ProcessInput("*")'>×</button>
+
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("4")'>4</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("5")'>5</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("6")'>6</button>
+                <button type="button" class="calc-btn op" @onclick='() => ProcessInput("-")'>−</button>
+
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("1")'>1</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("2")'>2</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("3")'>3</button>
+                <button type="button" class="calc-btn op" @onclick='() => ProcessInput("+")'>+</button>
+
+                <button type="button" class="calc-btn action" @onclick='() => ProcessInput("+/-")'>±</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput("0")'>0</button>
+                <button type="button" class="calc-btn num" @onclick='() => ProcessInput(".")'>.</button>
+                <button type="button" class="calc-btn equals" @onclick='() => ProcessInput("=")'>=</button>
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+<style>
+    .calc-dialog-container .mud-dialog-content {
+        padding: 0 !important;
+        background-color: #0f172a;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    .calc-dialog-container {
+        border-radius: 16px !important;
+        overflow: hidden;
+        width: 480px !important;
+        max-width: 95vw !important;
+        box-shadow: 0 25px 40px -5px rgba(0, 0, 0, 0.6), 0 15px 20px -5px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .calc-wrapper {
+        width: 100%;
+        max-width: 480px;
+        padding: 22px;
+        background-color: #0f172a;
+        color: #ffffff;
+        font-family: 'Outfit', 'Inter', sans-serif;
+        outline: none;
+        user-select: none;
+        box-sizing: border-box;
+    }
+
+    .calc-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+    }
+
+    .calc-title {
+        display: flex;
+        align-items: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .calc-close-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .calc-close-btn:hover {
+        background-color: #334155;
+        color: #ffffff;
+    }
+
+    .calc-screen {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        text-align: right;
+        min-height: 96px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        word-break: break-all;
+    }
+
+    .calc-expression {
+        font-size: 1rem;
+        color: #94a3b8;
+        min-height: 1.3em;
+    }
+
+    .calc-value {
+        font-size: 2.3rem;
+        font-weight: 800;
+        color: #f8fafc;
+        letter-spacing: 0.5px;
+    }
+
+    .calc-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .calc-btn {
+        height: 64px;
+        border-radius: 10px;
+        border: 1px solid #334155;
+        font-size: 1.35rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        outline: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .calc-btn.num {
+        background-color: #1e293b;
+        color: #f8fafc;
+    }
+
+    .calc-btn.num:hover {
+        background-color: #334155;
+        border-color: #475569;
+    }
+
+    .calc-btn.num:active {
+        transform: scale(0.96);
+    }
+
+    .calc-btn.action {
+        background-color: #334155;
+        color: #cbd5e1;
+    }
+
+    .calc-btn.action:hover {
+        background-color: #475569;
+        color: #ffffff;
+    }
+
+    .calc-btn.op {
+        background-color: #1e3a8a;
+        color: #60a5fa;
+        border-color: #1d4ed8;
+    }
+
+    .calc-btn.op:hover {
+        background-color: #2563eb;
+        color: #ffffff;
+    }
+
+    .calc-btn.equals {
+        background-color: #2563eb;
+        color: #ffffff;
+        border-color: #3b82f6;
+    }
+
+    .calc-btn.equals:hover {
+        background-color: #1d4ed8;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private ElementReference _calcContainerRef;
+    private string _currentDisplay = "0";
+    private string _expressionDisplay = "";
+    private decimal? _firstOperand = null;
+    private string? _pendingOperator = null;
+    private bool _isNewEntry = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("eval", "arguments[0].focus()", _calcContainerRef);
+            }
+            catch
+            {
+                // Fallback focus
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Cancel();
+            return;
+        }
+
+        if (e.Key == "Enter" || e.Key == "=")
+        {
+            ProcessInput("=");
+            return;
+        }
+
+        if (e.Key == "Backspace")
+        {
+            ProcessInput("⌫");
+            return;
+        }
+
+        if (e.Key == "Delete")
+        {
+            ProcessInput("CE");
+            return;
+        }
+
+        if (e.Key == "c" || e.Key == "C")
+        {
+            ProcessInput("C");
+            return;
+        }
+
+        if (e.Key == "+")
+        {
+            ProcessInput("+");
+            return;
+        }
+
+        if (e.Key == "-")
+        {
+            ProcessInput("-");
+            return;
+        }
+
+        if (e.Key == "*")
+        {
+            ProcessInput("*");
+            return;
+        }
+
+        if (e.Key == "/")
+        {
+            ProcessInput("/");
+            return;
+        }
+
+        if (e.Key == "." || e.Key == ",")
+        {
+            ProcessInput(".");
+            return;
+        }
+
+        if (e.Key.Length == 1 && char.IsDigit(e.Key[0]))
+        {
+            ProcessInput(e.Key);
+        }
+    }
+
+    private void ProcessInput(string input)
+    {
+        switch (input)
+        {
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+            case "7":
+            case "8":
+            case "9":
+                AppendDigit(input);
+                break;
+            case ".":
+                AppendDecimal();
+                break;
+            case "+/-":
+                ToggleSign();
+                break;
+            case "⌫":
+                Backspace();
+                break;
+            case "CE":
+                ClearEntry();
+                break;
+            case "C":
+                ClearAll();
+                break;
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+                SetOperator(input);
+                break;
+            case "=":
+                CalculateResult();
+                break;
+        }
+    }
+
+    private void AppendDigit(string digit)
+    {
+        if (_isNewEntry || _currentDisplay == "0" || _currentDisplay == "Error")
+        {
+            _currentDisplay = digit;
+            _isNewEntry = false;
+        }
+        else
+        {
+            if (_currentDisplay.Length < 14)
+            {
+                _currentDisplay += digit;
+            }
+        }
+    }
+
+    private void AppendDecimal()
+    {
+        if (_isNewEntry || _currentDisplay == "Error")
+        {
+            _currentDisplay = "0.";
+            _isNewEntry = false;
+        }
+        else if (!_currentDisplay.Contains("."))
+        {
+            _currentDisplay += ".";
+        }
+    }
+
+    private void ToggleSign()
+    {
+        if (_currentDisplay == "0" || _currentDisplay == "Error") return;
+
+        if (_currentDisplay.StartsWith("-"))
+        {
+            _currentDisplay = _currentDisplay.Substring(1);
+        }
+        else
+        {
+            _currentDisplay = "-" + _currentDisplay;
+        }
+    }
+
+    private void Backspace()
+    {
+        if (_isNewEntry || _currentDisplay == "Error") return;
+
+        if (_currentDisplay.Length > 1)
+        {
+            _currentDisplay = _currentDisplay.Substring(0, _currentDisplay.Length - 1);
+            if (_currentDisplay == "-")
+            {
+                _currentDisplay = "0";
+                _isNewEntry = true;
+            }
+        }
+        else
+        {
+            _currentDisplay = "0";
+            _isNewEntry = true;
+        }
+    }
+
+    private void ClearEntry()
+    {
+        _currentDisplay = "0";
+        _isNewEntry = true;
+    }
+
+    private void ClearAll()
+    {
+        _currentDisplay = "0";
+        _expressionDisplay = "";
+        _firstOperand = null;
+        _pendingOperator = null;
+        _isNewEntry = true;
+    }
+
+    private void SetOperator(string op)
+    {
+        if (_currentDisplay == "Error") return;
+
+        if (decimal.TryParse(_currentDisplay, out decimal currentVal))
+        {
+            if (_firstOperand != null && !_isNewEntry && _pendingOperator != null)
+            {
+                var val = PerformOperation(_firstOperand.Value, currentVal, _pendingOperator);
+                if (val.HasValue)
+                {
+                    _firstOperand = val.Value;
+                    _currentDisplay = FormatResult(val.Value);
+                }
+                else
+                {
+                    _currentDisplay = "Error";
+                    _expressionDisplay = "";
+                    _firstOperand = null;
+                    _pendingOperator = null;
+                    _isNewEntry = true;
+                    return;
+                }
+            }
+            else
+            {
+                _firstOperand = currentVal;
+            }
+
+            _pendingOperator = op;
+            _expressionDisplay = $"{FormatResult(_firstOperand.Value)} {GetOpSymbol(op)}";
+            _isNewEntry = true;
+        }
+    }
+
+    private void CalculateResult()
+    {
+        if (_firstOperand != null && _pendingOperator != null && !_isNewEntry)
+        {
+            if (decimal.TryParse(_currentDisplay, out decimal secondVal))
+            {
+                var result = PerformOperation(_firstOperand.Value, secondVal, _pendingOperator);
+                if (result.HasValue)
+                {
+                    _expressionDisplay = $"{FormatResult(_firstOperand.Value)} {GetOpSymbol(_pendingOperator)} {FormatResult(secondVal)} =";
+                    _currentDisplay = FormatResult(result.Value);
+                    _firstOperand = result.Value;
+                    _pendingOperator = null;
+                    _isNewEntry = true;
+                }
+                else
+                {
+                    _currentDisplay = "Error";
+                    _expressionDisplay = "";
+                    _firstOperand = null;
+                    _pendingOperator = null;
+                    _isNewEntry = true;
+                }
+            }
+        }
+    }
+
+    private decimal? PerformOperation(decimal op1, decimal op2, string op)
+    {
+        return op switch
+        {
+            "+" => op1 + op2,
+            "-" => op1 - op2,
+            "*" => op1 * op2,
+            "/" => op2 != 0 ? op1 / op2 : null,
+            _ => op2
+        };
+    }
+
+    private string GetOpSymbol(string op)
+    {
+        return op switch
+        {
+            "+" => "+",
+            "-" => "−",
+            "*" => "×",
+            "/" => "÷",
+            _ => op
+        };
+    }
+
+    private string FormatResult(decimal val)
+    {
+        // Trim redundant trailing zeros for neat display
+        return (val % 1 == 0) ? val.ToString("F0") : val.ToString("G10");
+    }
+}

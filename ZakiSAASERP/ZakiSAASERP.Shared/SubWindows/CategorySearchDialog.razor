@@ -1,0 +1,192 @@
+@using ZakiSAASERP.Models.Masters
+@inject IViewService api
+
+<MudDialog @onkeydown="OnDialogKeyDown">
+    <DialogContent>
+
+        <MudDataGrid T="CategoryMaster"
+                  ServerData="LoadServerData"
+                  @ref="grid"
+                  RowClick="RowClickEvent"
+                  Hover="true"
+                  Dense="true"
+                  Bordered="true"
+                  RowStyleFunc="@RowStyleFunc"
+                  Striped="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("CategoryList")</MudText>
+                <MudSpacer />
+
+                <MudTextField @ref="_searchRef"
+                              Value="@strSearch"
+                              ValueChanged="@(async (string s) => await OnSearch(s))"
+                              Immediate="true"
+                              AutoFocus="true"
+                              Placeholder="@Localizer("SearchCategory")"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+                <PropertyColumn Property="x => x.NameArabic" Title="@Localizer("ArabicName")" />
+                <PropertyColumn Property="x => x.IsFixedAsset" Title="@Localizer("IsFixedAsset")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="CategoryMaster" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    
+    [Parameter] public List<CategoryMaster> categoryList { get; set; } 
+    [Parameter] public string InitialSearch { get; set; } = "";
+
+    private string strSearch = "";
+    private MudDataGrid<CategoryMaster> grid;
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(InitialSearch))
+        {
+            strSearch = InitialSearch;
+        }
+    }
+
+    private CategoryMaster selectedCategory = new();
+    private List<CategoryMaster> pCategories = new();
+    private int selectedIndex = 0;
+    private bool _isSubmitted = false;
+    private MudTextField<string> _searchRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(100);
+            if (_searchRef != null)
+            {
+                await _searchRef.FocusAsync();
+            }
+        }
+    }
+
+    private async Task<GridData<CategoryMaster>> LoadServerData(GridState<CategoryMaster> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch
+        );
+        var result = await api.GetCategoryPDetails(pagination);
+        pCategories = result.PCategories ?? new List<CategoryMaster>();
+        selectedIndex = 0;
+        return new GridData<CategoryMaster>
+        {
+            Items = pCategories,
+            TotalItems = result.TotalCount
+        };
+    }
+
+    private string RowStyleFunc(CategoryMaster item, int index)
+    {
+        if (index == selectedIndex)
+        {
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<CategoryMaster> args)
+    {
+        selectedCategory = args.Item;
+        selectedIndex = pCategories.IndexOf(args.Item);
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if (_isSubmitted) return;
+
+        if (selectedCategory is null || selectedCategory.CategoryId == 0)
+        {
+            if (pCategories.Count > 0 && selectedIndex >= 0 && selectedIndex < pCategories.Count)
+            {
+                selectedCategory = pCategories[selectedIndex];
+            }
+        }
+
+        if (selectedCategory is not null && selectedCategory.CategoryId != 0)
+        {
+            _isSubmitted = true;
+            MudDialog.Close(DialogResult.Ok(selectedCategory));
+        }
+        else
+        {
+            MudDialog.Cancel();
+        }
+    }
+
+    private async Task OnSearch(string text)
+    {
+        strSearch = text;
+        if(grid is not null)
+            await grid.ReloadServerData();
+    }
+
+    private void OnDialogKeyDown(KeyboardEventArgs e) => HandleKey(e);
+
+    private void HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < pCategories.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (pCategories.Count > 0 && selectedIndex >= 0 && selectedIndex < pCategories.Count)
+            {
+                selectedCategory = pCategories[selectedIndex];
+                Submit();
+            }
+        }
+        else if (e.Key == "Escape")
+        {
+            CloseDialog();
+        }
+    }
+}

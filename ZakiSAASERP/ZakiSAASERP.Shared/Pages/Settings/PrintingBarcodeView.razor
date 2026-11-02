@@ -1,0 +1,445 @@
+@page "/printingbarcode"
+@using ZakiSAASERP.Models.Masters
+@using ZakiSAASERP.Models.Others
+@using ZakiSAASERP.Models.ViewModel
+@using ZakiSAASERP.Shared.Helpers
+@using ZakiSAASERP.Shared.Services
+@inject IViewService api
+@inject IFormFactor formFactor
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject IJSRuntime JSRuntime
+@inject TabService TabService
+
+<PageTitle>@(AppData.IsArabic ? "طباعة الباركود" : "Printing Barcode")</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-2">
+    <MudPaper Elevation="3" Class="pa-4" Style="position: relative; border-radius: 12px;">
+        @if (isLoading)
+        {
+            <MudOverlay Visible="true" DarkBackground="true" Absolute="true" Style="border-radius: 12px; z-index: 100;">
+                <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                    <MudText Typo="Typo.subtitle1" Color="Color.Surface">@loadingText</MudText>
+                </MudStack>
+            </MudOverlay>
+        }
+
+        <!-- Top Header & Settings Bar -->
+        <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Class="mb-3">
+            <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" />
+            </MudAvatar>
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">
+                    @(AppData.IsArabic ? "طباعة الباركود" : "Printing Barcode")
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @(AppData.IsArabic
+                        ? "اختر مجموعة المنتجات لعرض الباركود الخاص بكل صنف والباركود المتعدد، ثم أضفها لقائمة الطباعة."
+                        : "Select Product Group to load items with barcodes and multi-unit barcodes, then queue and print labels.")
+                </MudText>
+            </div>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+
+        <!-- Configuration Bar: Barcode Design Selection & Global Actions -->
+        <MudPaper Elevation="1" Class="pa-3 mb-3" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+            <MudGrid AlignItems="Center">
+                <MudItem xs="12" sm="6" md="4">
+                    <MudSelect T="int"
+                               Label="@(AppData.IsArabic ? "تصميم الباركود" : "Barcode Design Name")"
+                               Value="@selectedDesignId"
+                               ValueChanged="OnDesignChanged"
+                               Dense="true"
+                               Margin="Margin.Dense"
+                               Variant="Variant.Outlined"
+                               AnchorOrigin="Origin.BottomCenter">
+                        @if (barcodeDesigns != null && barcodeDesigns.Any())
+                        {
+                            @foreach (var d in barcodeDesigns)
+                            {
+                                <MudSelectItem Value="@d.BarcodeDesignHdrId">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudText Typo="Typo.body2">@d.DesignName</MudText>
+                                        @if (d.Width > 0 && d.Height > 0)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Default">
+                                                @(d.Width)x@(d.Height)
+                                            </MudChip>
+                                        }
+                                        @if (d.IsDefault)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">
+                                                @(AppData.IsArabic ? "افتراضي" : "Default")
+                                            </MudChip>
+                                        }
+                                    </MudStack>
+                                </MudSelectItem>
+                            }
+                        }
+                        else
+                        {
+                            <MudSelectItem Value="0">
+                                @(AppData.IsArabic ? "لا توجد تصاميم متوفرة" : "No Designs Available")
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudNumericField T="int"
+                                     Label="@(AppData.IsArabic ? "كمية الإضافة الافتراضية" : "Default Add Quantity")"
+                                     @bind-Value="defaultAddQty"
+                                     Min="1"
+                                     Max="9999"
+                                     Dense="true"
+                                     Margin="Margin.Dense"
+                                     Variant="Variant.Outlined" />
+                </MudItem>
+                <MudSpacer />
+                <MudItem xs="12" md="5" Class="d-flex justify-end">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Print"
+                               OnClick="PrintBarcodesAsync"
+                               Disabled="@(isLoading || !selectedBarcodes.Any())"
+                               Size="Size.Medium">
+                        @(AppData.IsArabic ? $"طباعة ({TotalLabelsCount}) ملصق" : $"Print ({TotalLabelsCount}) Labels")
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <!-- Main Workspace: Split Grid (Left: Available Barcodes, Right: Selected Barcodes) -->
+        <MudGrid Spacing="3">
+            <!-- ================= LEFT PANEL: Available Products with Barcode ================= -->
+            <MudItem xs="12" md="6">
+                <MudPaper Elevation="2" Class="pa-3" Style="height: 100%; border-radius: 8px; border: 1px solid var(--mud-palette-divider);">
+                    <MudStack Spacing="2">
+                        <!-- Left Panel Title & Header -->
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Inventory2" Color="Color.Primary" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                                @(AppData.IsArabic ? "المنتجات مع الباركود" : "Products with Barcode")
+                            </MudText>
+                            <MudSpacer />
+                            <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined">
+                                @(totalCatalogCount) @(AppData.IsArabic ? "باركود" : "barcodes")
+                            </MudChip>
+                        </MudStack>
+
+                        <!-- Product Group (Category) Dropdown -->
+                        <MudSelect T="int?"
+                                   Label="@(AppData.IsArabic ? "مجموعة المنتجات (الفئة)" : "Product Group (Category)")"
+                                   Value="@selectedCategoryId"
+                                   ValueChanged="OnCategoryChanged"
+                                   Dense="true"
+                                   Margin="Margin.Dense"
+                                   Variant="Variant.Outlined"
+                                   Clearable="true"
+                                   Placeholder="@(AppData.IsArabic ? "كل المجموعات" : "All Product Groups")"
+                                   AnchorOrigin="Origin.BottomCenter">
+                            <MudSelectItem Value="@((int?)null)">
+                                @(AppData.IsArabic ? "كل المجموعات (جميع المنتجات)" : "All Product Categories")
+                            </MudSelectItem>
+                            @foreach (var cat in categories)
+                            {
+                                <MudSelectItem Value="@((int?)cat.CategoryId)">
+                                    @(AppData.IsArabic && !string.IsNullOrWhiteSpace(cat.NameArabic) ? $"{cat.NameArabic} ({cat.Name})" : cat.Name)
+                                </MudSelectItem>
+                            }
+                        </MudSelect>
+
+                        <!-- Search & Quick Filters -->
+                        <MudGrid Spacing="1" AlignItems="Center">
+                            <MudItem xs="12" sm="8">
+                                <MudTextField T="string"
+                                              Value="@searchString"
+                                              ValueChanged="OnSearchChanged"
+                                              Placeholder="@(AppData.IsArabic ? "بحث بالاسم، الكود، أو الباركود..." : "Search product, code, or barcode...")"
+                                              Adornment="Adornment.Start"
+                                              AdornmentIcon="@Icons.Material.Filled.Search"
+                                              Immediate="true"
+                                              DebounceInterval="300"
+                                              Dense="true"
+                                              Margin="Margin.Dense"
+                                              Variant="Variant.Outlined"
+                                              Clearable="true" />
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Secondary"
+                                           StartIcon="@Icons.Material.Filled.PlaylistAdd"
+                                           OnClick="AddAllFilteredAsync"
+                                           Disabled="@(!currentCatalogPageItems.Any())"
+                                           FullWidth="true"
+                                           Size="Size.Small">
+                                    @(AppData.IsArabic ? "إضافة الكل" : "Add All")
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+
+                        <!-- Type Filter Buttons -->
+                        <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false" Class="mb-1">
+                            <MudButton Color="@(typeFilter == "All" ? Color.Primary : Color.Default)"
+                                       Variant="@(typeFilter == "All" ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => OnTypeFilterChanged("All"))">
+                                @(AppData.IsArabic ? "الكل" : "All")
+                            </MudButton>
+                            <MudButton Color="@(typeFilter == "Base" ? Color.Primary : Color.Default)"
+                                       Variant="@(typeFilter == "Base" ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => OnTypeFilterChanged("Base"))">
+                                @(AppData.IsArabic ? "باركود أساسي" : "Base Only")
+                            </MudButton>
+                            <MudButton Color="@(typeFilter == "Multi" ? Color.Secondary : Color.Default)"
+                                       Variant="@(typeFilter == "Multi" ? Variant.Filled : Variant.Outlined)"
+                                       OnClick="@(() => OnTypeFilterChanged("Multi"))">
+                                @(AppData.IsArabic ? "باركود متعدد" : "MultiBarcode Only")
+                            </MudButton>
+                        </MudButtonGroup>
+
+                        <!-- Left Table: Catalog -->
+                        <MudTable @ref="table"
+                                  ServerData="@(new Func<TableState, CancellationToken, Task<TableData<BarcodeData>>>(ServerReload))"
+                                  Dense="true"
+                                  Hover="true"
+                                  Striped="true"
+                                  Bordered="true"
+                                  Elevation="0"
+                                  FixedHeader="true"
+                                  Height="460px"
+                                  Class="border rounded">
+                            <HeaderContent>
+                                <MudTh>@(AppData.IsArabic ? "المنتج" : "Product")</MudTh>
+                                <MudTh>@(AppData.IsArabic ? "الباركود" : "Barcode")</MudTh>
+                                <MudTh>@(AppData.IsArabic ? "الوحدة / النوع" : "Unit / Type")</MudTh>
+                                <MudTh Style="text-align: right;">@(AppData.IsArabic ? "السعر" : "Rate")</MudTh>
+                                <MudTh Style="text-align: center; width: 70px;">@(AppData.IsArabic ? "إضافة" : "Add")</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Product">
+                                    <div>
+                                        <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                                            @(AppData.IsArabic && !string.IsNullOrWhiteSpace(context.ItemNameArabic) ? context.ItemNameArabic : context.ItemName)
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @context.ItemCode
+                                            @if (!string.IsNullOrWhiteSpace(context.CategoryName))
+                                            {
+                                                <span> • @context.CategoryName</span>
+                                            }
+                                        </MudText>
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="Barcode">
+                                    <MudChip T="string"
+                                             Size="Size.Small"
+                                             Variant="Variant.Outlined"
+                                             Icon="@Icons.Material.Filled.ViewColumn"
+                                             Style="font-family: monospace; font-weight: 600;">
+                                        @context.Barcode
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Unit / Type">
+                                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                        <MudText Typo="Typo.caption">@(context.UnitName ?? "Base")</MudText>
+                                        @if (context.Label == "MultiBarcode")
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Filled" Style="font-size: 10px; height: 20px;">
+                                                Multi
+                                            </MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Style="font-size: 10px; height: 20px;">
+                                                Base
+                                            </MudChip>
+                                        }
+                                    </MudStack>
+                                </MudTd>
+                                <MudTd DataLabel="Rate" Style="text-align: right;">
+                                    <MudText Typo="Typo.body2">
+                                        @(PermanentSettingsData.FormatCurrency(context.InclusiveRate ?? context.SalesRate ?? 0))
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Add" Style="text-align: center;">
+                                    <MudIconButton Icon="@Icons.Material.Filled.AddCircle"
+                                                   Color="Color.Primary"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => AddToSelectedAsync(context))"
+                                                   Title="@(AppData.IsArabic ? "إضافة لقائمة الطباعة مع تحديد الكمية" : "Add to print list with quantity")" />
+                                </MudTd>
+                            </RowTemplate>
+                            <NoRecordsContent>
+                                <MudText Typo="Typo.body2" Align="Align.Center" Class="pa-4" Color="Color.Secondary">
+                                    @(AppData.IsArabic ? "لا توجد أصناف تحتوي على باركود حسب البحث المحدد." : "No items with barcode found.")
+                                </MudText>
+                            </NoRecordsContent>
+                            <PagerContent>
+                                <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+                            </PagerContent>
+                        </MudTable>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <!-- ================= RIGHT PANEL: Selected Barcodes to Print ================= -->
+            <MudItem xs="12" md="6">
+                <MudPaper Elevation="2" Class="pa-3" Style="height: 100%; border-radius: 8px; border: 1px solid var(--mud-palette-divider);">
+                    <MudStack Spacing="2">
+                        <!-- Right Panel Title & Header -->
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Print" Color="Color.Secondary" Size="Size.Small" />
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                                @(AppData.IsArabic ? "الباركودات المحددة للطباعة" : "Selected Barcodes to Print")
+                            </MudText>
+                            <MudSpacer />
+                            <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">
+                                @(selectedBarcodes.Count) @(AppData.IsArabic ? "صنف" : "items")
+                            </MudChip>
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">
+                                @(TotalLabelsCount) @(AppData.IsArabic ? "ملصق" : "labels")
+                            </MudChip>
+                        </MudStack>
+
+                        <!-- Batch Quantity Setter & Clear Toolbar -->
+                        <MudGrid Spacing="1" AlignItems="Center">
+                            <MudItem xs="12" sm="5">
+                                <MudNumericField T="int"
+                                                 Label="@(AppData.IsArabic ? "تحديد كمية موحدة للكل" : "Set All Quantities To")"
+                                                 @bind-Value="batchSetQty"
+                                                 Min="1"
+                                                 Max="9999"
+                                                 Dense="true"
+                                                 Margin="Margin.Dense"
+                                                 Variant="Variant.Outlined" />
+                            </MudItem>
+                            <MudItem xs="6" sm="3">
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Check"
+                                           OnClick="ApplyBatchQuantity"
+                                           Disabled="@(!selectedBarcodes.Any())"
+                                           FullWidth="true"
+                                           Size="Size.Small">
+                                    @(AppData.IsArabic ? "تطبيق" : "Apply")
+                                </MudButton>
+                            </MudItem>
+                            <MudItem xs="6" sm="4">
+                                <MudButton Variant="Variant.Outlined"
+                                           Color="Color.Error"
+                                           StartIcon="@Icons.Material.Filled.ClearAll"
+                                           OnClick="ClearAllSelected"
+                                           Disabled="@(!selectedBarcodes.Any())"
+                                           FullWidth="true"
+                                           Size="Size.Small">
+                                    @(AppData.IsArabic ? "مسح الكل" : "Clear All")
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+
+                        <!-- Right Table: Selected Items -->
+                        <MudTable Items="@selectedBarcodes"
+                                  Dense="true"
+                                  Hover="true"
+                                  Striped="true"
+                                  Bordered="true"
+                                  Elevation="0"
+                                  FixedHeader="true"
+                                  Height="460px"
+                                  Class="border rounded">
+                            <HeaderContent>
+                                <MudTh Style="width: 35px;">#</MudTh>
+                                <MudTh>@(AppData.IsArabic ? "المنتج" : "Product")</MudTh>
+                                <MudTh>@(AppData.IsArabic ? "الباركود" : "Barcode")</MudTh>
+                                <MudTh Style="width: 140px; text-align: center;">@(AppData.IsArabic ? "عدد الملصقات" : "Print Qty")</MudTh>
+                                <MudTh Style="text-align: right;">@(AppData.IsArabic ? "السعر" : "Rate")</MudTh>
+                                <MudTh Style="width: 45px; text-align: center;">@(AppData.IsArabic ? "حذف" : "")</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="#">@(selectedBarcodes.IndexOf(context) + 1)</MudTd>
+                                <MudTd DataLabel="Product">
+                                    <div>
+                                        <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                                            @(AppData.IsArabic && !string.IsNullOrWhiteSpace(context.ItemNameArabic) ? context.ItemNameArabic : context.ItemName)
+                                        </MudText>
+                                        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">@context.UnitName</MudText>
+                                            @if (context.Label == "MultiBarcode")
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Filled" Style="font-size: 9px; height: 18px;">
+                                                    Multi
+                                                </MudChip>
+                                            }
+                                        </MudStack>
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="Barcode">
+                                    <MudText Typo="Typo.body2" Style="font-family: monospace; font-weight: 600;">
+                                        @context.Barcode
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Print Qty" Style="text-align: center;">
+                                    <MudNumericField T="int"
+                                                     @bind-Value="context.Quantity"
+                                                     Min="1"
+                                                     Max="9999"
+                                                     Step="1"
+                                                     Dense="true"
+                                                     Margin="Margin.Dense"
+                                                     Variant="Variant.Outlined"
+                                                     Style="text-align: center; max-width: 110px;" />
+                                </MudTd>
+                                <MudTd DataLabel="Rate" Style="text-align: right;">
+                                    <MudText Typo="Typo.body2">
+                                        @(PermanentSettingsData.FormatCurrency(context.InclusiveRate ?? 0))
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Delete" Style="text-align: center;">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => RemoveFromSelected(context))"
+                                                   Title="@(AppData.IsArabic ? "حذف من القائمة" : "Remove")" />
+                                </MudTd>
+                            </RowTemplate>
+                            <NoRecordsContent>
+                                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-8">
+                                    <MudIcon Icon="@Icons.Material.Filled.PlaylistRemove" Size="Size.Large" Color="Color.Default" />
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @(AppData.IsArabic
+                                            ? "لم يتم تحديد أي باركود للطباعة بعد. اختر من القائمة على اليسار."
+                                            : "No barcodes selected for printing yet. Select items from the left panel.")
+                                    </MudText>
+                                </MudStack>
+                            </NoRecordsContent>
+                        </MudTable>
+
+                        <!-- Bottom Summary & Quick Print Bar -->
+                        @if (selectedBarcodes.Any())
+                        {
+                            <MudPaper Elevation="0" Class="pa-2 d-flex align-center justify-space-between" Style="background: var(--mud-palette-background-grey); border-radius: 6px;">
+                                <MudText Typo="Typo.body2">
+                                    <strong>@(AppData.IsArabic ? "الإجمالي:" : "Summary:")</strong>
+                                    <span> @selectedBarcodes.Count @(AppData.IsArabic ? "أصناف" : "items")</span> |
+                                    <span style="color: var(--mud-palette-primary); font-weight: 700;"> @TotalLabelsCount @(AppData.IsArabic ? "ملصقات للطباعة" : "labels to print")</span>
+                                </MudText>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.Print"
+                                           OnClick="PrintBarcodesAsync"
+                                           Disabled="@isLoading"
+                                           Size="Size.Small">
+                                    @(AppData.IsArabic ? "طباعة الآن" : "Print Now")
+                                </MudButton>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>

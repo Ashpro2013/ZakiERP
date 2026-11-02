@@ -1,0 +1,171 @@
+@using ZakiSAASERP.Models.Masters
+@inject IViewService api
+
+<MudDialog>
+    <DialogContent>
+
+        <MudDataGrid T="SupplierMaster"
+                  ServerData="LoadServerData"
+                  @ref="grid"
+                  RowClick="RowClickEvent"
+                  Hover="true"
+                  Dense="true"
+                  Bordered="true"
+                  RowStyleFunc="@RowStyleFunc"
+                  Striped="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("SupplierList")</MudText>
+                <MudSpacer />
+
+                <MudTextField @ref="searchField"
+                              AutoFocus="true"
+                              Value="@strSearch"
+                              ValueChanged="@(async (string s) => await OnSearch(s))"
+                              Immediate="true"
+                              Placeholder="@Localizer("SearchSupplier")"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0" 
+                              OnKeyDown="OnTextKeyDown" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+                <PropertyColumn Property="x => x.NameArabic" Title="@Localizer("ArabicName")" />
+                <PropertyColumn Property="x => x.Mobile" Title="@Localizer("Mobile")" />
+                <PropertyColumn Property="x => x.VatNo" Title="@Localizer("VAT No")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="SupplierMaster" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    
+    // Optional parameter if needed for prepopulation or filtering (kept for compatibility)
+    [Parameter] public List<SupplierMaster> supplierList { get; set; }
+    [Parameter] public string InitialSearch { get; set; } = "";
+
+    private string strSearch = "";
+    private MudTextField<string> searchField;
+    private MudDataGrid<SupplierMaster> grid;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(!string.IsNullOrEmpty(InitialSearch))
+        {
+             strSearch = InitialSearch;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && searchField is not null)
+        {
+            await Task.Delay(200);
+            await searchField.FocusAsync();
+            await searchField.SelectAsync();
+        }
+    }
+
+    private SupplierMaster selectedSupplier = new();
+    
+    private int selectedIndex = 0;
+    private List<SupplierMaster> pSuppliers = new();
+
+    private async Task<GridData<SupplierMaster>> LoadServerData(GridState<SupplierMaster> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch
+        );
+        var result = await api.GetSupplierPDetails(pagination);
+        pSuppliers = result.PSuppliers ?? new List<SupplierMaster>();
+        selectedIndex = 0; // Reset
+        return new GridData<SupplierMaster>
+        {
+            Items = pSuppliers,
+            TotalItems = result.TotalCount
+        };
+    }
+
+    private string RowStyleFunc(SupplierMaster item, int index)
+    {
+        if (index == selectedIndex)
+        {
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<SupplierMaster> args)
+    {
+        selectedSupplier = args.Item;
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if (selectedSupplier is not null && selectedSupplier.SupplierId != 0)
+             MudDialog.Close(DialogResult.Ok(selectedSupplier));
+        else
+             MudDialog.Cancel();
+    }
+    
+    private async Task OnSearch(string text)
+    {
+        strSearch = text;
+        if(grid is not null)
+            await grid.ReloadServerData();
+    }
+    
+    private void OnTextKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < pSuppliers.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (pSuppliers.Count > 0 && selectedIndex >= 0 && selectedIndex < pSuppliers.Count)
+            {
+                selectedSupplier = pSuppliers[selectedIndex];
+                Submit();
+            }
+        }
+    }
+}

@@ -1,0 +1,295 @@
+@page "/journalentry"
+@page "/journalentry/{Id:int}"
+@using ZakiSAASERP.Models.Transactions.Accounts
+@using ZakiSAASERP.Models.Masters
+@namespace ZakiSAASERP.Shared.Pages.Transactions.Accounts
+@inject ISnackbar snackbar
+
+<PageTitle>@Localizer("JournalEntry")</PageTitle>
+@inject TabService TabService
+
+<MudPaper Class="pa-2 ma-2" Elevation="3">
+    <MudStack Spacing="2">
+        <MudStack Row="true">
+            <MudText Typo="Typo.h5">@Localizer("JournalEntry")</MudText>
+            <MudSpacer />
+            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        </MudStack>
+        <MudOverlay Visible="_isLoading" DarkBackground="true" Absolute="true" ZIndex="9999">
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+        </MudOverlay>
+
+        <EditForm Model="journalDto">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            
+            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                <MudGrid>
+                    <!-- First row: Journal info + Project + Salesman -->
+                    <MudItem xs="12" md="2">
+                        <MudTextField @bind-value="journalDto.JournalNo" Label="@Localizer("JournalNo")" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"/>
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudDatePicker @bind-Date="journalDate" Label="@(Localizer("JournalDate") + " *")" Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd/MM/yyyy" Required="true"/>
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudTextField @bind-value="journalDto.ReferenceNo" Label="@Localizer("RefNo")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="50" Placeholder="@Localizer("Optional")"/>
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudSelect T="string" @bind-value="journalDto.Status" Label="@(Localizer("Status") + " *")" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true">
+                            <MudSelectItem T="string" Value="@("Draft")">@Localizer("Draft")</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Posted")">@Localizer("Posted")</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudSelect T="int?" @bind-Value="journalDto.FK_ProjectId" Label="@Localizer("Project")" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="true">
+                            @if (projects is not null)
+                            {
+                                @foreach (var project in projects)
+                                {
+                                    <MudSelectItem T="int?" Value="@project.ProjectId">@project.Name</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudSelect T="int?" @bind-Value="journalDto.FK_SalesmanId" Label="@Localizer("Salesman")" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="true">
+                            @if (salesmen is not null)
+                            {
+                                @foreach (var salesman in salesmen)
+                                {
+                                    <MudSelectItem T="int?" Value="@salesman.SalesmanId">@salesman.Name</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    
+                    <!-- Second row: Narration with full width -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-value="journalDto.Narration" Label="@Localizer("Narration")" Variant="Variant.Outlined" Margin="Margin.Dense" MaxLength="2000" Lines="2"/>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                <MudToolBar Dense="true" Class="pa-0 mb-2">
+                    <MudText Typo="Typo.h6">@Localizer("Details") *</MudText>
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="AddNewRow" Size="Size.Small">@Localizer("AddRow")</MudButton>
+                </MudToolBar>
+
+                <MudDataGrid T="JournalEntryDtls" Items="@journalDto.Details" Dense="true" Bordered="true" Striped="true" Elevation="0" Style="max-height: 400px; overflow-y: auto;" FixedHeader="true" EditMode="DataGridEditMode.Cell">
+                    <Columns>
+                        <TemplateColumn Title="#" Sortable="false">
+                            <CellTemplate Context="det">
+                                @(journalDto.Details.IndexOf(det.Item) + 1)
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                        <TemplateColumn Title="@Localizer("AccountType")" Sortable="false" Style="width: 150px;">
+                            <CellTemplate Context="det">
+                                <MudSelect T="int" @bind-Value="det.Item.FilterAccountTypeId" Margin="Margin.Dense" Variant="Variant.Text" DisableUnderLine="true" FullWidth="true" Dense="true" Style="font-size: 12px">
+                                    <MudSelectItem Value="0">@Localizer("All")</MudSelectItem>
+                                    <MudSelectItem Value="1">@Localizer("Customer")</MudSelectItem>
+                                    <MudSelectItem Value="2">@Localizer("Supplier")</MudSelectItem>
+                                    <MudSelectItem Value="3">@Localizer("General")</MudSelectItem>
+                                </MudSelect>
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@(Localizer("Account") + " *")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudTextField id="@($"comp_acc-{journalDto.Details.IndexOf(det.Item)}")" @bind-value="det.Item.AccountName" @onkeydown="@((e) => HandleKeyPress(e, det.Item, "comp_acc"))" Variant="Variant.Text" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" OnAdornmentClick="@(() => OpenAccountDialog(det.Item))" Immediate="true" Placeholder="@Localizer("SelectAccount")" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                         <TemplateColumn Title="@Localizer("VAT %")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudSelect T="int?" Value="det.Item.VatId" ValueChanged="@((int? v) => { det.Item.VatId = v; CalculateVat(det.Item); })" Margin="Margin.Dense" Variant="Variant.Text" DisableUnderLine="true">
+                                    <MudSelectItem T="int?" Value="@(null)">@Localizer("None")</MudSelectItem>
+                                    @if(vats is not null)
+                                    {
+                                        foreach(var v in vats)
+                                        {
+                                            <MudSelectItem T="int?" Value="@v.VatId">@v.Code</MudSelectItem>
+                                        }
+                                    }
+                                </MudSelect>
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@(Localizer("DebitAmount") + " *")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" id="@($"debit-{journalDto.Details.IndexOf(det.Item)}")" Value="det.Item.DebitAmount" ValueChanged="@((decimal v) => { det.Item.DebitAmount = v; if(v > 0) det.Item.CreditAmount = 0; CalculateVat(det.Item); })" @onkeydown="@((e) => HandleKeyPress(e, det.Item, "debit"))" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" Min="0" Disabled="@(det.Item.FK_AccountId == 0)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                        <TemplateColumn Title="@Localizer("DebitVat")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" Value="det.Item.DebitVat" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" ReadOnly="true" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                         <TemplateColumn Title="@Localizer("TotalDebit")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" Value="det.Item.TotalDebit" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" ReadOnly="true" />
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@(Localizer("CreditAmount") + " *")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" id="@($"credit-{journalDto.Details.IndexOf(det.Item)}")" Value="det.Item.CreditAmount" ValueChanged="@((decimal v) => { det.Item.CreditAmount = v; if(v > 0) det.Item.DebitAmount = 0; CalculateVat(det.Item); })" @onkeydown="@((e) => HandleKeyPress(e, det.Item, "credit"))" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" Min="0" Disabled="@(det.Item.FK_AccountId == 0)" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                         <TemplateColumn Title="@Localizer("CreditVat")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" Value="det.Item.CreditVat" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" ReadOnly="true" />
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@Localizer("TotalCredit")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" Value="det.Item.TotalCredit" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" ReadOnly="true" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                         <TemplateColumn Title="@Localizer("InvoiceNo")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudTextField @bind-Value="det.Item.InvoiceNo" Variant="Variant.Text" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" OnAdornmentClick="@(() => OpenInvoiceDialog(det.Item))" ReadOnly="true" Placeholder="@Localizer("Select")" />
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                         <TemplateColumn Title="@Localizer("InvoiceAmount")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudNumericField T="decimal" Value="det.Item.InvoiceAmt" Variant="Variant.Text" Margin="Margin.Dense" Format="N3" HideSpinButtons="true" ReadOnly="true" />
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@Localizer("VatNo")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudTextField @bind-Value="det.Item.VatNo" Variant="Variant.Text" Margin="Margin.Dense" MaxLength="50" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                        <TemplateColumn Title="@Localizer("Name")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudTextField @bind-Value="det.Item.Name" Variant="Variant.Text" Margin="Margin.Dense" MaxLength="200" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                        
+                        <TemplateColumn Title="@Localizer("Narration")" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudTextField id="@($"narr-{journalDto.Details.IndexOf(det.Item)}")" @bind-value="det.Item.Narration" @onkeydown="@((e) => HandleKeyPress(e, det.Item, "narr"))" Variant="Variant.Text" Margin="Margin.Dense" MaxLength="500" />
+                            </CellTemplate>
+                        </TemplateColumn>
+
+                        <TemplateColumn CellClass="d-flex justify-end" Sortable="false">
+                            <CellTemplate Context="det">
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveRow(det.Item))" Color="Color.Error" Title="@Localizer("Delete")" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                </MudDataGrid>
+            </MudPaper>
+
+            @if (Math.Abs(journalDto.TotalDebit - journalDto.TotalCredit) > 0.001m)
+            {
+                <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
+                    @Localizer("DebitCreditMustBalance") - @Localizer("Difference"): @((journalDto.TotalDebit - journalDto.TotalCredit).ToString("N3"))
+                </MudAlert>
+            }
+
+            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <strong>@Localizer("Note"):</strong> @Localizer("DoubleEntryNote")
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudNumericField T="decimal" @bind-value="journalDto.TotalDebit" Label="@Localizer("TotalDebit")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" ReadOnly="true" Style="font-weight: bold;" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudNumericField T="decimal" @bind-value="journalDto.TotalCredit" Label="@Localizer("TotalCredit")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" ReadOnly="true" Style="font-weight: bold;" />
+                    </MudItem>
+                    <MudItem xs="12" md="4">
+                        <MudNumericField T="decimal" Value="@(journalDto.TotalDebit - journalDto.TotalCredit)" Label="@Localizer("Difference")" Variant="Variant.Outlined" Margin="Margin.Dense" Format="N3" ReadOnly="true" Style="@(Math.Abs(journalDto.TotalDebit - journalDto.TotalCredit) > 0.001m ? "color: red; font-weight: bold;" : "color: green; font-weight: bold;")" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudStack Row="true" Spacing="3" Class="d-flex justify-start mt-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => Clear(false))" StartIcon="@Icons.Material.Filled.Add">@Localizer("New")</MudButton>
+                @if(Id == 0)
+                {
+                    <MudButton OnClick="Save" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Save" Disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                        }
+                        else
+                        {
+                            @Localizer("Save")
+                        }
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton OnClick="Update" Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Edit" Disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">@Localizer("Processing")</MudText>
+                        }
+                        else
+                        {
+                            @Localizer("Update")
+                        }
+                    </MudButton>
+                }
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Delete" StartIcon="@Icons.Material.Filled.Delete" Disabled="@(Id == 0)">@Localizer("Delete")</MudButton>
+            </MudStack>
+        </EditForm>
+    </MudStack>
+</MudPaper>
+
+<MudPaper Class="ma-2 pa-2 mt-0" Elevation="3">
+    <MudDataGrid T="JournalEntryHdr"
+                 @ref="grid"
+                 ServerData="LoadServerData"
+                 RowClick="@RowClicked"
+                 Dense="true"
+                 Bordered="true"
+                 Striped="true"
+                 Hover="true"
+                 SortMode="SortMode.Multiple" Filterable="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("JournalEntryList")</MudText>
+            <MudSpacer />
+            <MudTextField T="string" Value="@searchText" ValueChanged="OnSearch" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.JournalNo" Title="@Localizer("JournalNo")" />
+            <PropertyColumn Property="x => x.JournalDate" Title="@Localizer("JournalDate")" Format="dd/MM/yyyy" />
+            <PropertyColumn Property="x => x.Narration" Title="@Localizer("Narration")" />
+            <PropertyColumn Property="x => x.TotalDebit" Title="@Localizer("TotalDebit")" Format="@PermanentSettingsData.CurrencyFormat" />
+            <PropertyColumn Property="x => x.TotalCredit" Title="@Localizer("TotalCredit")" Format="@PermanentSettingsData.CurrencyFormat" />
+            <PropertyColumn Property="x => x.Status" Title="@Localizer("Status")" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="JournalEntryHdr" PageSizeOptions="new int[] { 5, 10, 20 }" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>
+
+<script>
+    window.focusElement = function (id) {
+        setTimeout(() => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.focus();
+                if (element.select) element.select();
+            }
+        }, 50);
+    };
+</script>

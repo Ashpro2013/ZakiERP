@@ -1,0 +1,78 @@
+@using ZakiSAASERP.Models.Masters
+@using ZakiSAASERP.Models.Transactions
+@using ZakiSAASERP.Models.DTO
+@using ZakiSAASERP.Models.ViewModel
+@inject IViewService api
+
+<MudDialog>
+    <DialogContent>
+        <MudDataGrid T="ExMasters" ServerData="LoadServerData" @bind-SelectedItems="selectedItems" @ref="dataGrid"
+                     Dense="true" Hover="true" Bordered="true" Striped="true" MultiSelection="true">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("PurchaseOrderList")</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="strSearch" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"
+                              OnDebounceIntervalElapsed="OnSearch" DebounceInterval="300"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <SelectColumn T="ExMasters" />
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.Description" Title="@Localizer("Date")" />
+                <PropertyColumn Property="x => x.Name" Title="@Localizer("Supplier")" />
+                <PropertyColumn Property="x => x.Amount" Title="@Localizer("Amount")" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="ExMasters" />
+            </PagerContent>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">@Localizer("Cancel")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    string strSearch;
+    HashSet<ExMasters> selectedItems = new();
+
+    private async Task<GridData<ExMasters>> LoadServerData(GridState<ExMasters> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch,
+            BranchId: AppData.BranchId
+        );
+        var result = await api.GetPurchaseOrderPDetails(pagination);
+        return new GridData<ExMasters>
+        {
+            Items = result.PTransactions,
+            TotalItems = result.TotalCount
+        };
+    }
+
+    private void OnSearch(string text)
+    {
+        strSearch = text;
+        dataGrid.ReloadServerData();
+    }
+    
+    // We need a ref to reload
+    MudDataGrid<ExMasters> dataGrid;
+
+    
+    void Cancel() => MudDialog.Cancel();
+
+    void Submit()
+    {
+        if (selectedItems is not null && selectedItems.Any())
+             MudDialog.Close(DialogResult.Ok(selectedItems.ToList()));
+        else
+             MudDialog.Close(DialogResult.Ok(new List<ExMasters>()));
+    }
+}

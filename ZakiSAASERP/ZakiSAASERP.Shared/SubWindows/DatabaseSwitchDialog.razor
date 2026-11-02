@@ -1,0 +1,422 @@
+@using MudBlazor
+@using ZakiSAASERP.Interface.Others
+@using ZakiSAASERP.Shared.Services
+@using Microsoft.Extensions.DependencyInjection
+
+<MudDialog Class="db-switch-dialog-root" DefaultFocus="DefaultFocus.None">
+    <TitleContent>
+        <div class="d-flex align-center gap-3">
+            <div class="db-dialog-icon-badge">
+                <MudIcon Icon="@Icons.Material.Rounded.Dns" Size="Size.Medium" Style="color: #06b6d4;" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 700; color: #ffffff; letter-spacing: -0.3px;">
+                    Database Configuration &amp; Switching
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color: #9999bb;">
+                    Switch database or create a new database with automated migrations &amp; seeding
+                </MudText>
+            </div>
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+        <div class="db-dialog-content-body">
+            @* Provider Selector *@
+            <div class="mb-4">
+                <div class="d-flex justify-space-between align-center mb-2">
+                    <MudText Typo="Typo.subtitle2" Style="color: #a5a5c7; font-weight: 600;">
+                        Database Provider
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color: #06b6d4; font-weight: 600;">
+                        Active: @selectedProvider
+                    </MudText>
+                </div>
+
+                <div class="provider-button-grid">
+                    @foreach (var provider in Providers)
+                    {
+                        var isSelected = string.Equals(selectedProvider, provider.Name, StringComparison.OrdinalIgnoreCase);
+                        <button type="button"
+                                class="provider-pill-btn @(isSelected ? "active" : "")"
+                                @onclick="() => SelectProvider(provider.Name)"
+                                disabled="@isProcessing">
+                            <MudIcon Icon="@provider.Icon" Size="Size.Small" Class="mr-1" />
+                            <span>@provider.Name</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* Connection String Input *@
+            <div class="mb-3">
+                <div class="d-flex justify-space-between align-center mb-1">
+                    <MudText Typo="Typo.subtitle2" Style="color: #a5a5c7; font-weight: 600;">
+                        Connection String
+                    </MudText>
+                    <MudButton Variant="Variant.Text"
+                               Size="Size.Small"
+                               Color="Color.Secondary"
+                               StartIcon="@Icons.Material.Rounded.Refresh"
+                               OnClick="SetDefaultTemplate"
+                               Disabled="@isProcessing"
+                               Style="font-size: 0.72rem; text-transform: none; padding: 2px 6px;">
+                        Insert @selectedProvider Template
+                    </MudButton>
+                </div>
+
+                <MudTextField @bind-Value="connectionString"
+                              Placeholder="Server=localhost;Database=AshproDb;..."
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              AutoGrow="false"
+                              Disabled="@isProcessing"
+                              Class="db-conn-textfield" />
+
+                <div class="db-info-tip mt-2">
+                    <MudIcon Icon="@Icons.Material.Rounded.TipsAndUpdates" Size="Size.Small" Style="color: #06b6d4;" />
+                    <span>
+                        <strong>Creating a new database?</strong> Simply enter a new database name in the connection string. Migrations and initial data setup will be automatically applied.
+                    </span>
+                </div>
+            </div>
+
+            @* Progress and Status Banner *@
+            @if (isProcessing)
+            {
+                <div class="db-status-box my-3">
+                    <MudProgressLinear Color="Color.Secondary" Indeterminate="true" Class="mb-2" Rounded="true" />
+                    <div class="d-flex align-center gap-2">
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Secondary" />
+                        <MudText Typo="Typo.body2" Style="color: #e2e8f0; font-weight: 500;">
+                            @statusMessage
+                        </MudText>
+                    </div>
+                </div>
+            }
+
+            @* Error Alert *@
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error"
+                          Variant="Variant.Filled"
+                          Dense="true"
+                          Class="mt-2"
+                          CloseIconClicked="@(() => errorMessage = null)">
+                    @errorMessage
+                </MudAlert>
+            }
+
+            @* Success Alert *@
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <MudAlert Severity="Severity.Success"
+                          Variant="Variant.Filled"
+                          Dense="true"
+                          Class="mt-2">
+                    @successMessage
+                </MudAlert>
+            }
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <div class="d-flex justify-end gap-2 w-100 pa-3">
+            <MudButton Variant="Variant.Text"
+                       OnClick="Cancel"
+                       Disabled="@isProcessing"
+                       Style="color: #9999bb; text-transform: none;">
+                Cancel
+            </MudButton>
+
+            <MudButton Variant="Variant.Filled"
+                       OnClick="SaveAndConnect"
+                       Disabled="@isProcessing"
+                       Class="db-save-btn"
+                       StartIcon="@(isProcessing ? null : Icons.Material.Rounded.CheckCircle)">
+                @if (isProcessing)
+                {
+                    <span>Applying Changes...</span>
+                }
+                else
+                {
+                    <span>Save &amp; Connect</span>
+                }
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .db-switch-dialog-root {
+        background: #14102e !important;
+        border: 1px solid rgba(124, 58, 237, 0.35) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(124, 58, 237, 0.25) !important;
+        max-width: 680px !important;
+        color: #ffffff;
+    }
+
+    .db-dialog-icon-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .db-dialog-content-body {
+        padding: 4px 0;
+    }
+
+    .provider-button-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+
+    .provider-pill-btn {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.75);
+        padding: 8px 4px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .provider-pill-btn:hover:not(:disabled) {
+        background: rgba(124, 58, 237, 0.2);
+        border-color: rgba(124, 58, 237, 0.6);
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .provider-pill-btn.active {
+        background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
+        border-color: #06b6d4;
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+    }
+
+    .provider-pill-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .db-conn-textfield .mud-input-outlined-border {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .db-conn-textfield textarea {
+        font-family: 'Consolas', 'Courier New', monospace !important;
+        font-size: 0.85rem !important;
+        color: #f1f5f9 !important;
+        background: rgba(15, 11, 36, 0.75) !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+        line-height: 1.4 !important;
+    }
+
+    .db-info-tip {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.08);
+        border: 1px solid rgba(6, 182, 212, 0.25);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 0.78rem;
+        color: #cbd5e1;
+        line-height: 1.35;
+    }
+
+    .db-status-box {
+        background: rgba(124, 58, 237, 0.12);
+        border: 1px solid rgba(124, 58, 237, 0.3);
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .db-save-btn {
+        background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #06b6d4 100%) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.8px !important;
+        border-radius: 10px !important;
+        padding: 8px 24px !important;
+        box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .db-save-btn:hover:not(:disabled) {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55) !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Inject]
+    public IServiceProvider ServiceProvider { get; set; } = default!;
+
+    [Inject]
+    public IConProviderMaui ConProvider { get; set; } = default!;
+
+    [Inject]
+    public JSService JS { get; set; } = default!;
+
+    [Inject]
+    public IFormFactor FormFactor { get; set; } = default!;
+
+    private string selectedProvider = "MSSQL";
+    private string connectionString = string.Empty;
+    private bool isProcessing = false;
+    private string statusMessage = "Ready";
+    private string? errorMessage;
+    private string? successMessage;
+
+    private record ProviderItem(string Name, string Icon);
+
+    private readonly List<ProviderItem> Providers = new()
+    {
+        new("MSSQL", Icons.Material.Rounded.Dns),
+        new("SQLite", Icons.Material.Rounded.Storage),
+        new("PSQL", Icons.Material.Rounded.DataObject),
+        new("MySQL", Icons.Material.Rounded.Memory),
+        new("Oracle", Icons.Material.Rounded.Cloud)
+    };
+
+    protected override void OnInitialized()
+    {
+        selectedProvider = AppData.DBProvider;
+        if (string.IsNullOrEmpty(selectedProvider))
+        {
+            selectedProvider = "MSSQL";
+        }
+
+        connectionString = AppData.ConnectionString ?? string.Empty;
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            connectionString = FormFactor.GetConFromRegistryForWin() ?? GetDefaultConnectionString(selectedProvider);
+        }
+    }
+
+    private void SelectProvider(string provider)
+    {
+        if (string.Equals(selectedProvider, provider, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var prevDefault = GetDefaultConnectionString(selectedProvider);
+        selectedProvider = provider;
+
+        // If connection string is empty or was using the previous provider's template, update to new template
+        if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Trim() == prevDefault.Trim())
+        {
+            connectionString = GetDefaultConnectionString(provider);
+        }
+    }
+
+    private void SetDefaultTemplate()
+    {
+        connectionString = GetDefaultConnectionString(selectedProvider);
+    }
+
+    private string GetDefaultConnectionString(string provider) => provider.ToUpperInvariant() switch
+    {
+        "MSSQL" => "Server=.;Database=AshproDb;User Id=sa;Password=YourPassword;Connection Timeout=30;TrustServerCertificate=True;",
+        "PSQL" => "Host=localhost;Port=5710;Database=AshproDb;Username=postgres;Password=YourPassword;",
+        "MySQL" => "Server=localhost;Database=AshproDb;Uid=root;Pwd=YourPassword;",
+        "ORACLE" => "User Id=SYSTEM;Password=YourPassword;Data Source=localhost:1521/FREEPDB1",
+        "SQLITE" => "Data Source=Ashpro_db.db",
+        _ => "Server=.;Database=AshproDb;User Id=sa;Password=YourPassword;Connection Timeout=30;TrustServerCertificate=True;"
+    };
+
+    private async Task SaveAndConnect()
+    {
+        if (string.IsNullOrWhiteSpace(selectedProvider))
+        {
+            errorMessage = "Please select a database provider.";
+            return;
+        }
+
+        var trimmedConn = connectionString?.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedConn))
+        {
+            errorMessage = "Please enter a connection string.";
+            return;
+        }
+
+        var migrationService = ServiceProvider.GetService<IDatabaseMigrationService>();
+        if (migrationService == null)
+        {
+            errorMessage = "Database migration service is not registered in this environment.";
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = null;
+        successMessage = null;
+        statusMessage = "Connecting to database...";
+        StateHasChanged();
+
+        var result = await Task.Run(async () =>
+        {
+            return await migrationService.MigrateAndSeedAsync(
+                selectedProvider,
+                trimmedConn,
+                msg =>
+                {
+                    InvokeAsync(() =>
+                    {
+                        statusMessage = msg;
+                        StateHasChanged();
+                    });
+                });
+        });
+
+        if (result.Success)
+        {
+            successMessage = result.Message;
+            statusMessage = "Completed successfully.";
+
+            try
+            {
+                await JS.SetLocal(trimmedConn, "ConString");
+                FormFactor.SetConInRegistryForWin(trimmedConn);
+            }
+            catch { }
+
+            StateHasChanged();
+            await Task.Delay(400);
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            isProcessing = false;
+            errorMessage = result.Message;
+            statusMessage = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        if (!isProcessing)
+        {
+            MudDialog.Cancel();
+        }
+    }
+}

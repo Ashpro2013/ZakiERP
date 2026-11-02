@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	  <CompressionEnabled>false</CompressionEnabled>
+	  <StaticWebAssetsFingerprintingEnabled>false</StaticWebAssetsFingerprintingEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AshproStringExtension" Version="3.2.0" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.16" />
+    <PackageReference Include="FileDownloader" Version="1.2.0" ExcludeAssets="contentFiles" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+    <PackageReference Include="MudBlazor" Version="8.15.0" />
+    <PackageReference Include="Refit" Version="9.0.2" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="9.0.2" />
+    <PackageReference Include="Syncfusion.Pdf.NET" Version="23.1.36" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ZakiSAASERP.Models\ZakiSAASERP.Models.csproj" />
+    <ProjectReference Include="..\..\ZakiSAASERP.Interface\ZakiSAASERP.Interface.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Fonts\arial.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Pages\Reports\Accounts\" />
+    <Folder Include="Pages\Transactions\Inventory\" />
+    <Folder Include="Pages\Transactions\Purchase\" />
+  </ItemGroup>
+
+</Project>

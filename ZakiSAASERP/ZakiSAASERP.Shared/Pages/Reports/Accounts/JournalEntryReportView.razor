@@ -1,0 +1,70 @@
+@page "/journalentryreport"
+@using ZakiSAASERP.Shared.Pages.Component
+@using ZakiSAASERP.Shared.SubWindows
+@inject IViewService api;
+@inject Downloader downloader
+@inject ModelService Dialog
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService TabService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Journal Entry Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Journal Entry Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Date Range *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+
+            @* Branch *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var branch in branchList)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Account *@
+            <MudItem xs="12" sm="3">
+                <MudText>@Localizer("Account")</MudText>
+                <MudStack Row>
+                    <MudTextField @bind-Value="AccountName" Variant="Variant.Outlined"
+                                  Class="w-100" Margin="Margin.Dense" Clearable="true" Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  OnAdornmentClick="AccountSearchMethod" ReadOnly="true" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => { AccountId = 0; AccountName = ""; })" Disabled="@(AccountId == 0)" />
+                </MudStack>
+            </MudItem>
+
+        </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+        <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Success" OnClick="ReportGenerate">@Localizer("Generate")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.TableView" Color="Color.Primary" OnClick="ExcelExportMethod">@Localizer("Excel")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PictureAsPdf" Color="Color.Error" OnClick="PDFExportMethod">@Localizer("PDF")</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Warning" OnClick="ClearMethod">@Localizer("Clear")</MudButton>
+        </MudStack>
+    </MudCardActions>
+</MudCard>
+
+<ReportView pdfData="@pdfData" />

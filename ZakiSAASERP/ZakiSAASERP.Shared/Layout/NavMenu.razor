@@ -1,0 +1,108 @@
+@using System.Reflection
+@using ZakiSAASERP.Models.User
+@using ZakiSAASERP.Models.Settings
+@using ZakiSAASERP.Shared.Services
+@inject IViewService api
+@inject ISnackbar Snackbar
+@inject IndexDBHelper indexdbHelper
+
+<MudNavMenu>
+    @if (loading)
+    {
+        <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" Class="ma-4" />
+    }
+    else
+    {
+        @* Dashboard - Always visible *@
+        <MudNavLink Icon="@Icons.Material.Filled.Dashboard" OnClick="@(() => OnLinkClicked(0, Localizer("Dashboard"), "ZakiSAASERP.Shared.Pages.Home"))">@Localizer("Dashboard")</MudNavLink>
+        if(!AppData.IsMauiApi)
+        {
+            <MudNavLink Icon="@Icons.Material.Filled.PointOfSale" OnClick="@(() => OnLinkClicked(1000, Localizer("POS"), "ZakiSAASERP.Shared.Pages.Transactions.Sales.POSView"))">@Localizer("POS")</MudNavLink>
+        }
+        @foreach (var group in GetTopLevelMenus())
+        {
+            <NavMenuItem Menu="@group" AllMenus="@menuItems" OnLinkClick="@OnNavSelection" />
+        }
+    }
+</MudNavMenu>
+
+    @code {
+    [Parameter]
+    public EventCallback<(int, string, string)> OnNavSelection { get; set; }
+    private bool loading = true;
+    private List<MenuDetails> menuItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMenus();
+    }
+
+    private async Task LoadMenus()
+    {
+        try
+        {
+            loading = true;
+            StateHasChanged();
+            var cachedMenus = await indexdbHelper.LoadMenuDetails();
+            if (cachedMenus is not null && cachedMenus.Any())
+            {
+                var filteredMenus = cachedMenus.Where(x =>
+    new[]
+    {
+        "CustomerReceipt",
+        "SupplierPayment",
+        "DeliveryNoteTitle",
+        "SalesInvoiceTitle",
+        "SalesInvoiceRtnTitle",
+        "SalesQuotTitle",
+        "ProformaInvoiceTitle",
+        "PendingZatca",
+        "PurchaseTitle",
+        "Purchase Return",
+        "JournalEntry",
+        "ExpenseEntry",
+        "CustomerOpeningEntry",
+        "SupplierOpeningEntry",
+        "LedgerReport",
+        "Sales Report"
+    }.Contains(x.Name));
+
+                AppData.menuList = new List<MenuDetails>(filteredMenus);
+
+                menuItems = ApplyVisibilityFilter(cachedMenus);
+                loading = false;
+                StateHasChanged();
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading menus: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private IEnumerable<MenuDetails> GetTopLevelMenus()
+    {
+        return menuItems
+            .Where(m => m.ParentId == null)
+            .OrderBy(m => m.Position);
+    }
+
+    private async Task OnLinkClicked(int id, string name, string viewClass)
+    {
+        await OnNavSelection.InvokeAsync((id, name, viewClass));
+    }
+
+    private List<MenuDetails> ApplyVisibilityFilter(List<MenuDetails> menus)
+    {
+        return menus.Where(m =>
+            (PermanentSettingsData.ZatcaPhase == 2) ||
+            (m.Name != "PendingZatca" && m.Name != "ZATCA CSR" && m.Name != "ZATCA Pending")
+        ).ToList();
+    }
+}

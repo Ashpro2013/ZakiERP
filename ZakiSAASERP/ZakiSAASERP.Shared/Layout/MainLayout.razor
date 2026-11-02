@@ -1,0 +1,567 @@
+@inherits LayoutComponentBase
+@inject NavigationManager navManager
+@implements IDisposable
+@inject AppBarState AppBarState
+@inject IViewService api
+@inject IndexDBHelper IndexDBHelper
+@inject ISnackbar Snackbar
+@inject TabService TabService
+@inject ZakiSAASERP.Shared.Services.DashboardState DashboardState
+@inject ModelService? Dialog
+@inject IJSRuntime? iJsRuntime
+@inject IBrowserViewportService? ResizeService
+@inject JSService? JSService
+@inject IDialogService? DialogService
+@inject ZakiSAASERP.Shared.Services.ShiftService ShiftService
+<PageTitle>@AppData.OEMAgency</PageTitle>
+
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudDialogProvider FullWidth="true" MaxWidth="MaxWidth.ExtraSmall" />
+<MudPopoverProvider />
+<MudSnackbarProvider />
+
+@if (AppData.IsLogin)
+{
+<CascadingValue Value="this">
+    <MudLayout>
+        <MudRTLProvider RightToLeft="@AppData.IsArabic">
+            <MudAppBar Elevation="25" Dense="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <MudSpacer />
+                   
+                <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+                    @if(string.IsNullOrEmpty(sActivationMessage))
+                    {
+                        <MudText Align="Align.Center" Color="Color.Inherit">@time</MudText>
+                    }
+                    else
+                    {
+                        <MudText Align="Align.Center" Color="Color.Error">@sActivationMessage</MudText>
+                    }
+                    <MudSpacer />
+                        @if (PermanentSettingsData.IsZatca && PermanentSettingsData.ZatcaPhase == 2)
+                        {
+                            var hasPending = AppBarState.NotificationCount > 0;
+                            <MudTooltip Text="@(hasPending ? $"{AppBarState.NotificationCount} {Localizer("ZatcaPendInvs")}" : Localizer("ZatcaPendInvs"))">
+                                <button type="button"
+                                        @onclick="ZatcaRemiderClick"
+                                        class="zatca-notif-pill @(hasPending ? "zatca-red-blinking" : "zatca-black-static")"
+                                        title="@Localizer("ZatcaPendInvs")">
+                                    <MudIcon Icon="@Icons.Material.Filled.Shield" Class="zatca-shield-icon" />
+                                    <span class="zatca-badge-count">@AppBarState.NotificationCount</span>
+                                </button>
+                            </MudTooltip>
+                        }
+                    @if (PermanentSettingsData.EnableShiftClosing)
+                    {
+                        <MudTooltip Text="@Localizer("ShiftClosing")">
+                            <MudIconButton OnClick="ShiftClosingClick"
+                                           Color="Color.Warning"
+                                           Class="mx-2">
+                                <MudIcon Icon="@Icons.Material.Filled.PunchClock" />
+                            </MudIconButton>
+                        </MudTooltip>
+                    }
+                    <MudTooltip Text=@Localizer("Language")>
+                        <MudIconButton Icon="@Icons.Material.Filled.FormatTextdirectionRToL" Color="Color.Inherit" OnClick="@((e) => RightToLeft())" />
+                    </MudTooltip>
+                    <MudTooltip Text=@Localizer("Theme")>
+                        <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" OnClick="DarkMode" />
+                    </MudTooltip>
+                    @* Hide in MAUI, show only in Blazor Web *@
+                    @if (!AppData.IsMaui)
+                    {
+                        <MudTooltip Text=@Localizer("Full Screen")>
+                            <MudIconButton Icon="@Icons.Material.Filled.Fullscreen" Color="Color.Inherit" OnClick="@((e) => FullScreen())" />
+                        </MudTooltip>
+
+                        <MudTooltip Text=@Localizer("Close App")>
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" OnClick="@((e) => CloseTab())" />
+                        </MudTooltip>
+                        }
+                        <MudTooltip Text=@Localizer("Refresh")>
+                            <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Inherit" OnClick="@((e) => Refresh())" />
+                        </MudTooltip>
+                    <MudTooltip Text=@Localizer("Quick Navigation")>
+                        <MudIconButton Icon="@Icons.Material.Filled.FlashOn" Color="Color.Inherit" OnClick="@((e) => QuickNavToggle())" />
+                    </MudTooltip>
+                    <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <ActivatorContent>
+                            <MudTooltip Text="@AppData.UserName">
+                                <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" Color="Color.Inherit" />
+                            </MudTooltip>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <div class="px-4 py-2 d-flex align-center gap-3" style="border-bottom: 1px solid var(--mud-palette-divider); min-width: 180px;">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                    @(string.IsNullOrWhiteSpace(AppData.UserName) ? "U" : AppData.UserName.Substring(0, 1).ToUpper())
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">@AppData.UserName</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer("User")</MudText>
+                                </div>
+                            </div>
+                            <MudMenuItem Icon="@Icons.Material.Filled.LockReset" OnClick="OpenChangePasswordDialog">
+                                @Localizer("ChangePassword")
+                            </MudMenuItem>
+                            <MudDivider />
+                            <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnClick="Logout">
+                                @Localizer("Logout")
+                            </MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                </MudHidden>
+               
+                <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert="true">
+                    <MudMenu Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <div class="px-2">
+                            <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Inherit" OnClick="@((e) => Refresh())" />
+                            <MudIconButton Icon="@Icons.Material.Filled.FormatTextdirectionRToL" Color="Color.Inherit" OnClick="@((e) => RightToLeft())" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" OnClick="DarkMode" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Fullscreen" Color="Color.Inherit" OnClick="@((e) => FullScreen())" />
+                            <MudIconButton Icon="@Icons.Material.Filled.FlashOn" Color="Color.Inherit" OnClick="@((e) => QuickNavToggle())" />
+                        </div>
+                    </MudMenu>
+                    <MudMenu Dense="true" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <ActivatorContent>
+                            <MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" Color="Color.Inherit" />
+                        </ActivatorContent>
+                        <ChildContent>
+                            <div class="px-4 py-2 d-flex align-center gap-3" style="border-bottom: 1px solid var(--mud-palette-divider); min-width: 180px;">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small">
+                                    @(string.IsNullOrWhiteSpace(AppData.UserName) ? "U" : AppData.UserName.Substring(0, 1).ToUpper())
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">@AppData.UserName</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer("User")</MudText>
+                                </div>
+                            </div>
+                            <MudMenuItem Icon="@Icons.Material.Filled.LockReset" OnClick="OpenChangePasswordDialog">
+                                @Localizer("ChangePassword")
+                            </MudMenuItem>
+                            <MudDivider />
+                            <MudMenuItem Icon="@Icons.Material.Filled.Logout" IconColor="Color.Error" OnClick="Logout">
+                                @Localizer("Logout")
+                            </MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                </MudHidden>
+            </MudAppBar>
+            <MudDrawer @bind-Open=_drawerOpen Elevation="25" >
+                <MudDrawerHeader>
+                    <MudText Typo="Typo.h6">@AppData.OEMAgency</MudText>
+                </MudDrawerHeader>
+                <NavMenu OnNavSelection="(args) => LoadComponent(args.Item1, args.Item2, args.Item3)" />
+            </MudDrawer>
+
+            <!-- Quick Navigation Drawer (Right Side) -->
+            <MudDrawer @bind-Open="_quickNavOpen" Anchor="Anchor.Right" Elevation="25" Width="300px" Variant="DrawerVariant.Temporary" Class="quick-nav-drawer">
+                <MudDrawerHeader Class="quick-nav-header">
+                    <MudText Typo="Typo.h6" Class="quick-nav-title">
+                        <MudIcon Icon="@Icons.Material.Filled.FlashOn" Class="mr-2 text-warning animate-pulse" Style="color: #ffb300;" />
+                        @Localizer("Quick Navigation")
+                    </MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="@((e) => _quickNavOpen = false)" Size="Size.Small" />
+                </MudDrawerHeader>
+                
+                <div class="quick-nav-content py-4 px-3">
+                    <!-- Masters Section -->
+                    <div class="quick-nav-section mb-6">
+                        <div class="section-header mb-3">
+                            <MudText Typo="Typo.subtitle2" Class="section-title text-muted">@Localizer("MASTERS")</MudText>
+                            <div class="section-divider"></div>
+                        </div>
+                        <div class="grid-buttons">
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_customerMenu, 445, "CustomerMaster", "Customer Master", "ZakiSAASERP.Shared.Pages.Masters.CustomerMasterView"))">
+                                <div class="quick-btn-icon-wrapper customer-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.People" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Customer")</span>
+                            </button>
+                            
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_supplierMenu, 446, "SupplierMaster", "Supplier Master", "ZakiSAASERP.Shared.Pages.Masters.SupplierMasterView"))">
+                                <div class="quick-btn-icon-wrapper supplier-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.PersonOutline" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Supplier")</span>
+                            </button>
+                            
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_productMenu, 421, "ItemMaster", "Item Master", "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView"))">
+                                <div class="quick-btn-icon-wrapper product-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.Inventory2" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Product")</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Section -->
+                    <div class="quick-nav-section mb-6">
+                        <div class="section-header mb-3">
+                            <MudText Typo="Typo.subtitle2" Class="section-title text-muted">@Localizer("TRANSACTIONS")</MudText>
+                            <div class="section-divider"></div>
+                        </div>
+                        <div class="grid-buttons">
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_salesMenu, 462, "SalesInvoiceTitle", "Sales Invoice", "ZakiSAASERP.Shared.Pages.Transactions.Sales.SalesInvoiceView"))">
+                                <div class="quick-btn-icon-wrapper sales-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Sales")</span>
+                            </button>
+
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_returnMenu, 463, "SalesInvoiceRtnTitle", "Sales Invoice Return", "ZakiSAASERP.Shared.Pages.Transactions.Sales.SalesInvoiceRtnView"))">
+                                <div class="quick-btn-icon-wrapper return-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.AssignmentReturn" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Return")</span>
+                            </button>
+                            
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_orderMenu, 461, "SalesOrderTitle", "Sales Order", "ZakiSAASERP.Shared.Pages.Transactions.Sales.SalesOrderView"))">
+                                <div class="quick-btn-icon-wrapper order-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Order")</span>
+                            </button>
+
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_purchaseMenu, 470, "PurchaseTitle", "Purchase", "ZakiSAASERP.Shared.Pages.Transactions.Purchase.PurchaseView"))">
+                                <div class="quick-btn-icon-wrapper purchase-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.ShoppingBag" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Purchase")</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Accounting Section -->
+                    <div class="quick-nav-section mb-6">
+                        <div class="section-header mb-3">
+                            <MudText Typo="Typo.subtitle2" Class="section-title text-muted">@Localizer("ACCOUNTING")</MudText>
+                            <div class="section-divider"></div>
+                        </div>
+                        <div class="grid-buttons">
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_receiptMenu, 489, "CustomerReceipt", "Customer Receipt", "ZakiSAASERP.Shared.Pages.Transactions.Accounts.CustomerReceiptView"))">
+                                <div class="quick-btn-icon-wrapper receipt-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.Description" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Receipt")</span>
+                            </button>
+
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_paymentMenu, 492, "SupplierPayment", "Supplier Payment", "ZakiSAASERP.Shared.Pages.Transactions.Accounts.SupplierPaymentView"))">
+                                <div class="quick-btn-icon-wrapper payment-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.Payment" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Payment")</span>
+                            </button>
+
+                            <button type="button" class="quick-btn" @onclick="@(() => OpenQuickMenu(_expenseMenu, 490, "ExpenseEntry", "Expense Entry", "ZakiSAASERP.Shared.Pages.Transactions.Accounts.ExpenseEntryView"))">
+                                <div class="quick-btn-icon-wrapper expense-icon">
+                                    <MudIcon Icon="@Icons.Material.Filled.AttachMoney" />
+                                </div>
+                                <span class="quick-btn-label">@Localizer("Expense Entry")</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </MudDrawer>
+            <MudMainContent>
+                @* @Body *@
+                <MudDynamicTabs AddTabIcon="false"  KeepPanelsAlive="true" @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex" CloseTab="@CloseTabCallback" CloseIconToolTip="Close tab. All data will be lost" PanelClass="px-4 py-6" Elevation="4" Rounded ApplyEffectsToContainer>
+                    <ChildContent>
+                        <MudTabPanel ID="0" Text=@Localizer("Dashboard") ShowCloseIcon="false">
+                            <ZakiSAASERP.Shared.Pages.Home />
+                        </MudTabPanel>
+                        @foreach (var tab in UserTabs)
+                        {
+                            <MudTabPanel ID="@tab.Id" Text="@tab.Name" ShowCloseIcon="true">
+                                    <DynamicComponent Type="@Type.GetType(tab.View)" Parameters="@(GetParameters(tab))" />
+                            </MudTabPanel>
+                        }
+                    </ChildContent>
+                </MudDynamicTabs>
+                <MudScrollToTop TopOffset="400">
+                    <MudFab StartIcon="@Icons.Material.Filled.KeyboardArrowUp" Color="Color.Primary" />
+                </MudScrollToTop>
+            </MudMainContent>
+
+            <style>
+                /* ZATCA Notification Pill in App Bar */
+                .zatca-notif-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 34px;
+                    padding: 0 10px 0 8px;
+                    border-radius: 17px;
+                    cursor: pointer;
+                    border: 1px solid transparent;
+                    outline: none;
+                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                    margin: 0 8px;
+                    font-family: inherit;
+                    user-select: none;
+                    vertical-align: middle;
+                }
+
+                .zatca-notif-pill .zatca-shield-icon {
+                    font-size: 18px !important;
+                    width: 18px;
+                    height: 18px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .zatca-notif-pill .zatca-badge-count {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 20px;
+                    height: 20px;
+                    padding: 0 6px;
+                    border-radius: 10px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    line-height: 1;
+                }
+
+                /* Zero pending: Attractive sleek black */
+                .zatca-black-static {
+                    background: #0f172a;
+                    border: 1px solid #334155;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+                }
+
+                .zatca-black-static .zatca-shield-icon {
+                    color: #94a3b8;
+                }
+
+                .zatca-black-static .zatca-badge-count {
+                    background: #000000;
+                    color: #f8fafc;
+                    border: 1px solid #475569;
+                }
+
+                .zatca-black-static:hover {
+                    background: #1e293b;
+                    border-color: #64748b;
+                    transform: translateY(-1px);
+                    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+                }
+
+                .zatca-black-static:hover .zatca-shield-icon {
+                    color: #ffffff;
+                }
+
+                /* More than zero pending: Red with blinking/pulsing animation */
+                .zatca-red-blinking {
+                    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                    border: 1px solid #f87171;
+                    color: #ffffff;
+                    box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+                    animation: zatca-pulse-blink 1.1s infinite alternate ease-in-out;
+                }
+
+                .zatca-red-blinking .zatca-shield-icon {
+                    color: #ffffff;
+                }
+
+                .zatca-red-blinking .zatca-badge-count {
+                    background: #ffffff;
+                    color: #dc2626;
+                    font-weight: 900;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+                }
+
+                .zatca-red-blinking:hover {
+                    background: #b91c1c;
+                    transform: translateY(-1px);
+                    box-shadow: 0 0 18px rgba(239, 68, 68, 0.85);
+                }
+
+                @@keyframes zatca-pulse-blink {
+                    0% {
+                        opacity: 1;
+                        transform: scale(1);
+                        box-shadow: 0 0 5px 0 rgba(239, 68, 68, 0.5);
+                    }
+                    50% {
+                        opacity: 0.55;
+                        transform: scale(1.05);
+                        box-shadow: 0 0 16px 4px rgba(239, 68, 68, 0.85);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1);
+                        box-shadow: 0 0 5px 0 rgba(239, 68, 68, 0.5);
+                    }
+                }
+
+
+                /* Quick Navigation Drawer Styles */
+                .quick-nav-drawer {
+                    background-color: var(--mud-palette-background-grey) !important;
+                    border-left: 1px solid var(--mud-palette-divider) !important;
+                }
+
+                .quick-nav-header {
+                    border-bottom: 1px solid var(--mud-palette-divider);
+                    background-color: var(--mud-palette-background) !important;
+                }
+
+                .quick-nav-title {
+                    display: flex;
+                    align-items: center;
+                    font-weight: 600 !important;
+                    color: var(--mud-palette-text-primary);
+                }
+
+                .section-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .section-title {
+                    font-size: 0.75rem !important;
+                    font-weight: 700 !important;
+                    letter-spacing: 1px;
+                    color: var(--mud-palette-text-secondary) !important;
+                    white-space: nowrap;
+                }
+
+                .section-divider {
+                    flex-grow: 1;
+                    height: 1px;
+                    background-color: var(--mud-palette-divider);
+                }
+
+                .grid-buttons {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 12px;
+                }
+
+                .quick-btn {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 16px 10px;
+                    border-radius: 12px;
+                    background-color: var(--mud-palette-background);
+                    border: 1px solid var(--mud-palette-divider);
+                    cursor: pointer;
+                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                    outline: none;
+                }
+
+                .quick-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+                    border-color: var(--mud-palette-primary);
+                }
+
+                .quick-btn:active {
+                    transform: translateY(0);
+                }
+
+                .quick-btn-icon-wrapper {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 8px;
+                    transition: transform 0.3s ease;
+                }
+
+                .quick-btn:hover .quick-btn-icon-wrapper {
+                    transform: scale(1.1);
+                }
+
+                .quick-btn-label {
+                    font-size: 0.8rem;
+                    font-weight: 550;
+                    color: var(--mud-palette-text-primary);
+                    text-align: center;
+                }
+
+                /* Masters Icon Colors */
+                .customer-icon {
+                    background-color: rgba(59, 130, 246, 0.1);
+                    color: #3b82f6;
+                }
+                .supplier-icon {
+                    background-color: rgba(16, 185, 129, 0.1);
+                    color: #10b981;
+                }
+                .product-icon {
+                    background-color: rgba(245, 158, 11, 0.1);
+                    color: #f59e0b;
+                }
+                .expense-icon {
+                    background-color: rgba(239, 68, 68, 0.1);
+                    color: #ef4444;
+                }
+
+                /* Transactions Icon Colors */
+                .sales-icon {
+                    background-color: rgba(139, 92, 246, 0.1);
+                    color: #8b5cf6;
+                }
+                .return-icon {
+                    background-color: rgba(236, 72, 153, 0.1);
+                    color: #ec4899;
+                }
+                .order-icon {
+                    background-color: rgba(6, 182, 212, 0.1);
+                    color: #06b6d4;
+                }
+                .purchase-icon {
+                    background-color: rgba(20, 184, 166, 0.1);
+                    color: #14b8a6;
+                }
+
+                /* Accounting Icon Colors */
+                .receipt-icon {
+                    background-color: rgba(99, 102, 241, 0.1);
+                    color: #6366f1;
+                }
+                .payment-icon {
+                    background-color: rgba(14, 165, 233, 0.1);
+                    color: #0ea5e9;
+                }
+
+                .animate-pulse {
+                    animation: btn-pulse 2s infinite;
+                }
+
+                @@keyframes btn-pulse {
+                    0%, 100% {
+                        opacity: 1;
+                    }
+                    50% {
+                        opacity: 0.6;
+                    }
+                }
+            </style>
+            
+            <!-- Permanent Settings Overlay -->
+            @if (_showPermanentSettings)
+            {
+                <MudOverlay Visible="true" DarkBackground="true" Absolute="false" ZIndex="9999" Style="display: flex; align-items: center; justify-content: center;">
+                    <ZakiSAASERP.Shared.Pages.Settings.PermanentSettingsView OnClose="ClosePermanentSettings" />
+                </MudOverlay>
+            }
+            
+        </MudRTLProvider>
+
+    </MudLayout>
+</CascadingValue>
+}
+else
+{
+    <LoginView/>
+}
+

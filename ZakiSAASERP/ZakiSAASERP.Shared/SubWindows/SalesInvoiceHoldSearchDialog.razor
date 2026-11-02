@@ -1,0 +1,183 @@
+@using ZakiSAASERP.Models.Transactions.Sales
+@using ZakiSAASERP.Models.ViewModel
+@using ZakiSAASERP.Shared.Services
+@inject IViewService ViewService 
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudTable ServerData="@(new Func<TableState, CancellationToken, Task<TableData<ExMasters>>>(ServerReload))"
+                  Dense="true" Hover="true" Bordered="true" Striped="true" @ref="table"
+                  SelectedItem="@selectedItem" SelectedItemChanged="@((ExMasters item) => selectedItem = item)"
+                  OnRowClick="RowClickEvent" T="ExMasters">
+            <ToolBarContent>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudText Typo="Typo.h6">@Localizer("HeldTransactions")</MudText>
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Computer">
+                        @Terminal
+                    </MudChip>
+                </MudStack>
+                <MudSpacer />
+                <MudTextField AutoFocus="true" @bind-Value="strSearch" Immediate="true" Placeholder="@Localizer("Search")"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+                              Class="mt-0" OnDebounceIntervalElapsed="OnSearch" DebounceInterval="300" 
+                              OnKeyDown="OnTextKeyDown" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortLabel="Code" T="ExMasters">@Localizer("InvoiceNo")</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Date" T="ExMasters">@Localizer("Date")</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Customer" T="ExMasters">@Localizer("Customer")</MudTableSortLabel></MudTh>
+                <MudTh>@Localizer("Amount")</MudTh>
+                <MudTh Style="width: 100px; text-align: center;">@Localizer("Actions")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="InvoiceNo">@context.Code</MudTd>
+                <MudTd DataLabel="Date">@context.Description</MudTd>
+                <MudTd DataLabel="Customer">@context.Name</MudTd>
+                <MudTd DataLabel="Amount">@PermanentSettingsData.FormatCurrency(context.Amount)</MudTd>
+                <MudTd Style="text-align: center;">
+                    <MudTooltip Text="Retrieve">
+                        <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Primary" Size="Size.Small" OnClick="@(() => { selectedItem = context; Submit(); })" />
+                    </MudTooltip>
+                    <MudTooltip Text="Delete">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => ConfirmDeleteHold(context))" />
+                    </MudTooltip>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteForever" OnClick="DeleteAllHoldAsync">
+            Delete All
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" Disabled="@(selectedItem == null || selectedItem.Id <= 0)" OnClick="DeleteSelectedHoldAsync">
+            Delete Selected
+        </MudButton>
+        <MudSpacer />
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="@(selectedItem == null || selectedItem.Id <= 0)">@Localizer("Retrieve")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int BranchId { get; set; }
+    [Parameter] public string? Terminal { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(Terminal))
+        {
+            Terminal = AppData.Terminal;
+        }
+    }
+
+    string strSearch = string.Empty;
+    MudTable<ExMasters> table = default!;
+    ExMasters? selectedItem;
+
+    private async Task<TableData<ExMasters>> ServerReload(TableState state, CancellationToken token)
+    {
+        var pagination = new PaginationModel(state.Page + 1, state.PageSize, state.SortLabel, state.SortDirection == SortDirection.Descending ? "desc" : "asc", strSearch, BranchId: BranchId, Terminal: Terminal);
+        var result = await ViewService.GetSalesInvoiceHoldPDetails(pagination);
+        return new TableData<ExMasters>() { TotalItems = result.TotalCount, Items = result.PTransactions };
+    }
+
+    private void OnSearch(string text)
+    {
+        strSearch = text;
+        table.ReloadServerData();
+    }
+
+    void RowClickEvent(TableRowClickEventArgs<ExMasters> args)
+    {
+        selectedItem = args.Item;
+    }
+
+    private async Task ConfirmDeleteHold(ExMasters item)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Delete Confirmation",
+            $"Are you sure you want to delete held transaction '{item.Code}'?",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            await DeleteHold(item.Id);
+            if (selectedItem?.Id == item.Id)
+            {
+                selectedItem = null;
+            }
+        }
+    }
+
+    private async Task DeleteSelectedHoldAsync()
+    {
+        if (selectedItem == null || selectedItem.Id <= 0) return;
+        await ConfirmDeleteHold(selectedItem);
+    }
+
+    private async Task DeleteAllHoldAsync()
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Delete All Confirmation",
+            $"Are you sure you want to delete ALL held transactions for terminal machine '{(string.IsNullOrWhiteSpace(Terminal) ? AppData.Terminal : Terminal)}'? This action cannot be undone.",
+            yesText: "Delete All",
+            cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            var res = await ViewService.DeleteAllSalesInvoiceHold(BranchId, Terminal);
+            if (res.Id > 0)
+            {
+                Snackbar.Add("All held transactions for current machine deleted successfully", Severity.Success);
+                selectedItem = null;
+                await table.ReloadServerData();
+            }
+            else
+            {
+                Snackbar.Add($"Failed to delete all held transactions: {res.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DeleteHold(int id)
+    {
+        var res = await ViewService.DeleteSalesInvoiceHold(id);
+        if (res.Id > 0)
+        {
+            Snackbar.Add("Held transaction deleted", Severity.Success);
+            await table.ReloadServerData();
+        }
+        else
+        {
+            Snackbar.Add($"Failed to delete held transaction: {res.Message}", Severity.Error);
+        }
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if (selectedItem is not null && selectedItem.Id > 0)
+            MudDialog.Close(DialogResult.Ok(selectedItem.Id));
+        else
+            MudDialog.Cancel();
+    }
+
+    private async Task OnTextKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await table.ReloadServerData();
+        }
+    }
+}

@@ -1,0 +1,16 @@
+<MudDrawer Elevation="2" Variant="DrawerVariant.Persistent" Open="true">
+    <MudNavMenu>
+        <br />
+        <MudNavLink Icon="@Icons.Material.Filled.Dashboard" OnClick="@(() => OnLinkClicked(0, "Dashboard", "ZakiSAASERP.Shared.Pages.Admin.AdminHomeView"))"> Dashboard</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.Lock" OnClick="@(() => OnLinkClicked(1, "Admin User", "ZakiSAASERP.Shared.Pages.Admin.AdminHomeView"))">Admin User</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.AccountBox" OnClick="@(() => OnLinkClicked(2, "Tickets", "ZakiSAASERP.Shared.Pages.Admin.AdminHomeView"))">Tickets</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.ShoppingCart" OnClick="@(() => OnLinkClicked(3, "Enquiry", "ZakiSAASERP.Shared.Pages.Admin.AdminHomeView"))">Enquiry</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.People" OnClick="@(() => OnLinkClicked(4, "Subscription", "ZakiSAASERP.Shared.Pages.Admin.AdminHomeView"))">Subscription</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Filled.AdminPanelSettings" OnClick="@(() => OnLinkClicked(5, "Renew Subscription", "ZakiSAASERP.Shared.Pages.Admin.AdminHomeView"))">Renew Subscription</MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+@code {
+    [Parameter]
+    public EventCallback<(int, string, string)> OnNavSelection { get; set; }
+    private async Task OnLinkClicked(int iValue, string Name, string view) => await OnNavSelection.InvokeAsync((iValue, Name, view));
+}

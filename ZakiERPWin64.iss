@@ -6,7 +6,7 @@
 #define MyAppVersion "26.11.01"
 #define MyAppPublisher "Ashpro Technology"
 #define MyAppURL "https://www.ashprotechnology.com/"
-#define MyAppExeName "AshproSAASERP.Desk.exe"
+#define MyAppExeName "ZakiSAASERP.Desk.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".myp"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
@@ -39,7 +39,7 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 OutputDir=D:\AshproSAAS\Output
 OutputBaseFilename=ZakiERPSetup
-SetupIconFile=D:\AshproSAAS\AshproSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\appicon.ico
+SetupIconFile=D:\AshproSAAS\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\appicon.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -50,8 +50,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\AshproSAAS\AshproSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\AshproSAAS\AshproSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\AshproSAAS\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\AshproSAAS\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files.
 
 [Registry]

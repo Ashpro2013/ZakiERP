@@ -1,0 +1,221 @@
+@using ZakiSAASERP.Models.Masters
+@using ZakiSAASERP.Models.DTO
+@inject IViewService api
+@using ZakiSAASERP.Shared.Services
+
+<MudDialog>
+    <DialogContent>
+
+        <MudDataGrid T="ItemDialogDTO"
+                  ServerData="LoadServerData"
+                  @ref="grid"
+                  RowClick="RowClickEvent"
+                  Hover="true"
+                  Dense="true"
+                  Bordered="true"
+                  RowStyleFunc="@RowStyleFunc"
+                  Striped="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("Item Search")</MudText>
+                <MudSpacer />
+
+                <MudTextField @ref="searchField" AutoFocus="true"
+                              Value="@strSearch"
+                              ValueChanged="@(async (string s) => await OnSearch(s))"
+                              Immediate="true"
+                              Placeholder="@Localizer("SearchItem")"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0"
+                              OnKeyDown="@(e => OnTextKeyDown(e))" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Barcode" Title="@Localizer("Barcode")" />
+                <PropertyColumn Property="x => x.ItemCode" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.ItemName" Title="@Localizer("Name")" />
+                <PropertyColumn Property="x => x.ItemNameArabic" Title="@Localizer("ArabicName")" />
+                @if (IsSales)
+                {
+                    <PropertyColumn Property="x => x.SalesRate" Format="@PermanentSettingsData.CurrencyFormat" Title="@Localizer("Rate")" />
+                    <PropertyColumn Property="x => x.InclusiveRate" Format="@PermanentSettingsData.CurrencyFormat" Title="@Localizer("InclusiveRate")" />
+                }
+                else
+                {
+                    <PropertyColumn Property="x => (x.PurchaseRate ?? x.StandardCost)" Format="@PermanentSettingsData.CurrencyFormat" Title="@Localizer("PurchaseRate")" />
+                }
+                <PropertyColumn Property="x => x.CurrentStock" Title="@Localizer("Stock")" Format="@PermanentSettingsData.QuantityFormat" />
+                <PropertyColumn Property="x => x.StockMode" Title="@Localizer("StockMode")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="ItemDialogDTO" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="NavigateToItemMaster" Variant="Variant.Filled" Color="Color.Tertiary" Class="mr-auto">@Localizer("CreateItem")</MudButton>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public string InitialSearch { get; set; } = "";
+    [Parameter] public int BranchId { get; set; } = AppData.BranchId;
+    [Parameter] public int? StoreId { get; set; }
+    [Parameter] public bool IsSales { get; set; } = true;
+    private ItemDialogDTO selectedItem = new();
+
+    private int selectedIndex = 0;
+    private List<ItemDialogDTO> pItems = new();
+    private string strSearch = "";
+    private MudDataGrid<ItemDialogDTO> grid;
+    private MudTextField<string> searchField;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Force focus
+            await Task.Delay(100);
+            await searchField.FocusAsync();
+        }
+    }
+    
+    protected override void OnInitialized()
+    {
+        if(!string.IsNullOrEmpty(InitialSearch))
+        {
+             strSearch = InitialSearch;
+        }
+    }
+
+    
+
+    private async Task<GridData<ItemDialogDTO>> LoadServerData(GridState<ItemDialogDTO> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch,
+            BranchId: BranchId,
+            StoreId: StoreId
+        );
+        var result = await api.GetItemDialogDetails(pagination);
+        pItems = result.PItems ?? new List<ItemDialogDTO>();
+        selectedIndex = 0; // Reset selection on reload
+        return new GridData<ItemDialogDTO>
+        {
+            Items = pItems,
+            TotalItems = result.TotalCount
+        };
+    }
+
+    private string RowStyleFunc(ItemDialogDTO item, int index)
+    {
+        // Use index for safer comparison
+        if (index == selectedIndex)
+        {
+            // Use theme-aware color (Primary color with 25% opacity) for visibility in both Light & Dark modes
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<ItemDialogDTO> args)
+    {
+        selectedItem = args.Item;
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    [CascadingParameter] public MainLayout Layout { get; set; }
+
+    void NavigateToItemMaster()
+    {
+        if (Layout is not null)
+        {
+            // ID=5 for ItemMaster as per NavMenu
+            Layout.AddTab(5, Localizer("ItemMaster"), "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView");
+        }
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if (selectedItem is not null && selectedItem.ItemId != 0)
+        {
+            // Convert ItemDialogDTO to ItemMaster for compatibility with existing callers
+            var itemMaster = new ItemMaster
+            {
+                ItemId = selectedItem.ItemId,
+                Barcode = selectedItem.Barcode,
+                ItemCode = selectedItem.ItemCode,
+                ItemName = selectedItem.ItemName,
+                ItemNameArabic = selectedItem.ItemNameArabic,
+                SalesRate = selectedItem.SalesRate,
+                PurchaseRate = selectedItem.PurchaseRate ?? selectedItem.StandardCost,
+                StockMode = selectedItem.StockMode,
+                FK_UnitId = selectedItem.FK_UnitId,
+                InclusiveRate = selectedItem.InclusiveRate,
+                StandardCost = selectedItem.StandardCost
+            };
+            MudDialog.Close(DialogResult.Ok(itemMaster));
+        }
+        else
+        {
+            MudDialog.Cancel();
+        }
+    }
+
+    private async Task OnSearch(string text)
+    {
+        strSearch = text;
+        await grid.ReloadServerData();
+    }
+
+    private void OnTextKeyDown(KeyboardEventArgs e)
+    {
+        // Support both modern and legacy key names
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < pItems.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (pItems.Count > 0 && selectedIndex >= 0 && selectedIndex < pItems.Count)
+            {
+                selectedItem = pItems[selectedIndex];
+                Submit();
+            }
+        }
+    }
+
+
+}
+

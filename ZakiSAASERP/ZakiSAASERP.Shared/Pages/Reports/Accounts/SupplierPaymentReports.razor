@@ -1,0 +1,105 @@
+@page "/supplierpaymentreport"
+@using ZakiSAASERP.Models.DTO
+@using ZakiSAASERP.Shared
+@using FileDownloader
+@inject TabService TabService
+
+<PageTitle>@Localizer("Supplier Payment Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Supplier Payment Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            @* Filters *@
+            <MudItem xs="12" sm="3">
+                <MudDatePicker Label="@Localizer("FromDate")" @bind-Date="fromDate" Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd/MM/yyyy" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudDatePicker Label="@Localizer("ToDate")" @bind-Date="toDate" Variant="Variant.Outlined" Margin="Margin.Dense" DateFormat="dd/MM/yyyy" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudSelect T="int" Label="@Localizer("Branch")" @bind-Value="branchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var item in branchList)
+                    {
+                        <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                 <MudTextField @bind-Value="supplierName" Label="@Localizer("Supplier")" Variant="Variant.Outlined" Margin="Margin.Dense"
+                               OnAdornmentClick="SupplierSearchMethod" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" OnClearButtonClick="ClearSupplier" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudSelect T="string" Label="@Localizer("Payment Mode")" @bind-Value="billType" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("All")">@Localizer("All")</MudSelectItem>
+                    <MudSelectItem Value="@("Cash")">@Localizer("Cash")</MudSelectItem>
+                    <MudSelectItem Value="@("Cheque")">@Localizer("Cheque")</MudSelectItem>
+                    <MudSelectItem Value="@("Card")">@Localizer("Card")</MudSelectItem>
+                    <MudSelectItem Value="@("Transfer")">@Localizer("Transfer")</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudStack Row="true" Spacing="3" Class="pa-4 ma-2">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="DetailSearch" StartIcon="@Icons.Material.Filled.Search">@Localizer("Generate")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Print" StartIcon="@Icons.Material.Filled.Print">@Localizer("Print")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="Preview" StartIcon="@Icons.Material.Filled.Preview">@Localizer("Preview")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ExportExcel" StartIcon="@Icons.Material.Filled.TableView">@Localizer("Excel")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick="ClearMethod" StartIcon="@Icons.Material.Filled.ClearAll">@Localizer("Clear")</MudButton>
+        </MudStack>
+    </MudCardActions>
+</MudCard>
+
+@if (reportData.Any())
+{
+    <MudGrid Class="ma-2">
+        <MudItem xs="12" sm="4">
+            <MudText><b>@Localizer("Total Paid Amount"):</b> @PermanentSettingsData.FormatCurrency(reportData.Sum(x => x.Amount))</MudText>
+        </MudItem>
+    </MudGrid>
+}
+
+@if (reportData.Any())
+{
+    @* Result Grid *@
+    <MudTable T="SupplierPaymentReportDTO" Items="@reportData" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px" Class="ma-2" Elevation="3">
+        <HeaderContent>
+            <MudTh>#</MudTh>
+            <MudTh>@Localizer("Date")</MudTh>
+            <MudTh>@Localizer("VoucherNo")</MudTh>
+            <MudTh>@Localizer("Payment Mode")</MudTh>
+            <MudTh>@Localizer("Supplier")</MudTh>
+            @* <MudTh>@Localizer("Narration")</MudTh>
+            <MudTh>@Localizer("ChequeNo")</MudTh>
+            <MudTh>@Localizer("ChequeDate")</MudTh>
+            <MudTh>@Localizer("Bank")</MudTh> *@
+            <MudTh>@Localizer("Amount")</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="SL">@context.SL</MudTd>
+            <MudTd DataLabel="Date">@(context.Date.HasValue? context.Date.Value.ToString("dd/MM/yyyy") : "")</MudTd>
+            <MudTd DataLabel="VoucherNo">@context.VoucherNo</MudTd>
+            <MudTd DataLabel="Payment Mode">@context.PaymentMode</MudTd>
+            <MudTd DataLabel="Supplier">@context.SupplierName</MudTd>
+            @* <MudTd DataLabel="Narration">@context.Narration</MudTd>
+             <MudTd DataLabel="ChequeNo">@context.ChequeNo</MudTd>
+            <MudTd DataLabel="ChequeDate">@(context.ChequeDate.HasValue ? context.ChequeDate.Value.ToString("dd/MM/yyyy") : "")</MudTd>
+             <MudTd DataLabel="Bank">@context.Bank</MudTd> *@
+            <MudTd DataLabel="Amount" Style="font-weight:bold; color:green">@PermanentSettingsData.FormatCurrency(context.Amount)</MudTd>
+        </RowTemplate>
+        <FooterContent>
+            <MudTd ColSpan="5" Style="font-weight:bold; text-align:right">@Localizer("Total")</MudTd>
+            <MudTd Style="font-weight:bold; color:green">@PermanentSettingsData.FormatCurrency(reportData.Sum(x => x.Amount))</MudTd>
+        </FooterContent>
+    </MudTable>
+}

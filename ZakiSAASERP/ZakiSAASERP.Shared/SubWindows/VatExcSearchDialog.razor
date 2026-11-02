@@ -1,0 +1,143 @@
+@using ZakiSAASERP.Models.Masters
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudDataGrid T="VATCategoryDetails"
+                  Items="@vatExcList"
+                  @ref="grid"
+                  Filterable="true"
+                  QuickFilter="@_quickFilter"
+                  RowClick="RowClickEvent"
+                  Hover="true"
+                  Dense="true"
+                  Bordered="true"
+                  RowStyleFunc="@RowStyleFunc"
+                  Striped="true">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("SearchVatExemption")</MudText>
+                <MudSpacer />
+                <MudTextField @ref="_searchRef"
+                              @bind-Value="searchString1"
+                              Placeholder="@Localizer("Search")"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0"
+                              OnKeyDown="OnTextKeyDown"
+                              Immediate="true"/>
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+                <PropertyColumn Property="x => x.DescriptionEN" Title="@Localizer("Description")" />
+                <PropertyColumn Property="x => x.ExemptionCode" Title="@Localizer("ExemptionCode")" />
+                <PropertyColumn Property="x => x.ExemptionTextEN" Title="@Localizer("ExemptionText")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="VATCategoryDetails" />
+            </PagerContent>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer("Cancel")</MudButton>
+        <MudButton OnClick="SubmitManual" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public List<VATCategoryDetails> vatExcList { get; set; } = new();
+
+    private string searchString1 = "";
+    private MudDataGrid<VATCategoryDetails> grid;
+    private VATCategoryDetails selectedItem = new();
+    
+    private int selectedIndex = 0;
+    private MudTextField<string> _searchRef;
+    
+    // Quick filter implementation
+    private Func<VATCategoryDetails, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(searchString1))
+            return true;
+
+        return $"{x.Code} {x.DescriptionEN} {x.ExemptionCode} {x.ExemptionTextEN}".Contains(searchString1, StringComparison.OrdinalIgnoreCase);
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(150);
+            await _searchRef!.FocusAsync();
+        }
+    }
+
+    private string RowStyleFunc(VATCategoryDetails item, int index)
+    {
+        if (index == selectedIndex)
+        {
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<VATCategoryDetails> args)
+    {
+        selectedItem = args.Item;
+        Submit(selectedItem);
+    }
+
+    void Submit(VATCategoryDetails data)
+    {
+        MudDialog.Close(DialogResult.Ok(data));
+    }
+    
+    void SubmitManual()
+    {
+         if(selectedItem is not null && !string.IsNullOrEmpty(selectedItem.Code))
+             Submit(selectedItem);
+         else
+             MudDialog.Cancel();
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private void OnTextKeyDown(KeyboardEventArgs e)
+    {
+        // Get filtered items - for client side data we need to filter manually to know count/index
+        var filteredList = vatExcList.Where(_quickFilter).ToList();
+
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < filteredList.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (filteredList.Count > 0 && selectedIndex >= 0 && selectedIndex < filteredList.Count)
+            {
+                selectedItem = filteredList[selectedIndex];
+                Submit(selectedItem);
+            }
+        }
+        else
+        {
+            // Reset index on other keys (typing)
+            selectedIndex = 0; 
+        }
+    }
+}

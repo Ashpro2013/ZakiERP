@@ -1,0 +1,70 @@
+@page "/customerlist"
+@inject ISnackbar Snackbar
+@inject IViewService api
+@inject IDialogService Dialog
+@inject ModelService DialogModel
+@inject IJSRuntime JSRuntime
+@using ZakiSAASERP.Models.DTO
+@using ZakiSAASERP.Shared
+@using FileDownloader
+@inject Downloader downloader
+@inject TabService TabService
+
+<PageTitle>@Localizer("Customer List")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true">
+                <MudText Typo="Typo.h6">@Localizer("Customer List")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudStack Row="true" Spacing="3" Class="pa-4 ma-2" AlignItems="AlignItems.Center" Style="width:100%">
+            <MudSelect T="string" Label="@Localizer("Columns")" MultiSelection="true" @bind-SelectedValues="selectedOptions" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var state in options)
+                {
+                    <MudSelectItem T="string" Value="@state">@state</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadData" StartIcon="@Icons.Material.Filled.Search">@Localizer("Search")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Print" StartIcon="@Icons.Material.Filled.Print">@Localizer("Print")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="Preview" StartIcon="@Icons.Material.Filled.Preview">@Localizer("Preview")</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ExportExcel" StartIcon="@Icons.Material.Filled.TableView">@Localizer("Excel")</MudButton>
+        </MudStack>
+    </MudCardActions>
+</MudCard>
+
+@if (reportData.Any())
+{
+    @* Result Grid *@
+    <MudTable T="CustomerListDTO" Items="@reportData" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px" Class="ma-2" Elevation="3">
+        <HeaderContent>
+            <MudTh>@Localizer("SL")</MudTh>
+            <MudTh>@Localizer("Code")</MudTh>
+            <MudTh>@Localizer("Name")</MudTh>
+            <MudTh>@Localizer("Address")</MudTh>
+            <MudTh>@Localizer("Telephone")</MudTh>
+            <MudTh>@Localizer("Mail")</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="SL">@context.SL</MudTd>
+            <MudTd DataLabel="Code">@context.Code</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Address">@context.Address</MudTd>
+            <MudTd DataLabel="Telephone">@context.Telephone</MudTd>
+            <MudTd DataLabel="Mail">@context.Mail</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}

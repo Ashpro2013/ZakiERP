@@ -1,0 +1,87 @@
+@using ZakiSAASERP.Models.Transactions.Sales
+@using ZakiSAASERP.Models.ViewModel
+@using ZakiSAASERP.Shared.Services
+@inject IViewService ViewService 
+
+<MudDialog>
+    <DialogContent>
+        <MudTable ServerData="@(new Func<TableState, CancellationToken, Task<TableData<ExMasters>>>(ServerReload))"
+                  Dense="true" Hover="true" Bordered="true" Striped="true" @ref="table" OnRowClick="RowClickEvent" T="ExMasters">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("InvoiceList")</MudText>
+                <MudSpacer />
+                <MudTextField AutoFocus="true" @bind-Value="strSearch" Immediate="true" Placeholder="@Localizer("Search")"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+                              Class="mt-0" OnDebounceIntervalElapsed="OnSearch" DebounceInterval="300" 
+                              OnKeyDown="OnTextKeyDown" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortLabel="Code" T="ExMasters">@Localizer("InvoiceNo")</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Date" T="ExMasters">@Localizer("Date")</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortLabel="Customer" T="ExMasters">@Localizer("Customer")</MudTableSortLabel></MudTh>
+                <MudTh>@Localizer("Amount")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="InvoiceNo">@context.Code</MudTd>
+                <MudTd DataLabel="Date">@context.Description</MudTd>
+                <MudTd DataLabel="Customer">@context.Name</MudTd>
+                <MudTd DataLabel="Amount">@PermanentSettingsData.FormatCurrency(context.Amount)</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    
+    string strSearch = string.Empty;
+    MudTable<ExMasters> table;
+    ExMasters selectedItem = new();
+
+    private async Task<TableData<ExMasters>> ServerReload(TableState state, CancellationToken token)
+    {
+        var pagination = new PaginationModel(state.Page + 1, state.PageSize, state.SortLabel, state.SortDirection == SortDirection.Descending ? "desc" : "asc", strSearch);
+        var result = await ViewService.GetSalesInvoicePDetails(pagination);
+        return new TableData<ExMasters>() { TotalItems = result.TotalCount, Items = result.PTransactions };
+    }
+
+    private void OnSearch(string text)
+    {
+        strSearch = text;
+        table.ReloadServerData();
+    }
+
+    void RowClickEvent(TableRowClickEventArgs<ExMasters> args)
+    {
+        selectedItem = args.Item;
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    void Submit()
+    {
+        if(selectedItem is not null && !string.IsNullOrEmpty(selectedItem.Code))
+             MudDialog.Close(DialogResult.Ok(selectedItem));
+        else
+             MudDialog.Cancel();
+    }
+
+    private async Task OnTextKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+           await table.ReloadServerData();
+        }
+    }
+}

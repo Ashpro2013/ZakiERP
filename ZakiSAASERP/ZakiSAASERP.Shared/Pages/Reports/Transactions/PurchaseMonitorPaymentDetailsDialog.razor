@@ -1,0 +1,64 @@
+@using ZakiSAASERP.Models.DTO
+@using ZakiSAASERP.Shared.Services
+@using System.Threading.Tasks
+@inject IViewService api
+@inject TabService NavService
+@inject IDialogService DialogService
+
+    <MudDialog>
+    <DialogContent>
+        <MudTable Items="@payments" Dense="true" Hover="true" Bordered="true" Striped="true" T="PurchaseMonitorPaymentItem">
+            <HeaderContent>
+                 <MudTh>@Localizer("Payment No")</MudTh>
+                 <MudTh>@Localizer("Date")</MudTh>
+                 <MudTh Style="text-align:right">@Localizer("Amount")</MudTh>
+                 <MudTh Style="text-align:right">@Localizer("Discount")</MudTh>
+                 <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Payment No">@context.PaymentNo</MudTd>
+                <MudTd DataLabel="Date">@context.Date</MudTd>
+                <MudTd DataLabel="Amount" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.Amount)</MudTd>
+                <MudTd DataLabel="Discount" Style="text-align:right">@PermanentSettingsData.FormatCurrency(context.Discount)</MudTd>
+                 <MudTd><MudIconButton Icon="@Icons.Material.Filled.RemoveRedEye" Color="Color.Info" Size="Size.Small" OnClick="@(() => NavigateToPayment(context.PaymentId))"/></MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer("Close")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int PurchaseId { get; set; }
+
+    private List<PurchaseMonitorPaymentItem> payments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            payments = await api.GetPaymentsByPurchaseAsync(PurchaseId);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+    }
+
+    private async Task NavigateToPayment(int Id)
+    {
+        await CrudHelper.Navigation(NavService, Id, "SupplierPayment");
+        MudDialog.Close(DialogResult.Cancel());
+    }
+    void Cancel() => MudDialog.Cancel();
+}

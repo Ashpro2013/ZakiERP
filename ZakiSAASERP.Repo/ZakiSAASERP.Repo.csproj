@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="LoginLogic\CompanyHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AshproStringExtension" Version="3.2.0" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.400" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.400" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Transaction\Purchase\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZakiSAASERP.Interface\ZakiSAASERP.Interface.csproj" />
+    <ProjectReference Include="..\ZakiSAASERP.Models\ZakiSAASERP.Models.csproj" />
+    <ProjectReference Include="..\ZakiSAASERP.MSSQL\ZakiSAASERP.MSSQL.csproj" />
+    <ProjectReference Include="..\ZakiSAASERP.MySQL\ZakiSAASERP.MySQL.csproj" />
+    <ProjectReference Include="..\ZakiSAASERP.PSQL\ZakiSAASERP.PSQL.csproj" />
+    <ProjectReference Include="..\ZakiSAASERP.SQlite\ZakiSAASERP.SQlite.csproj" />
+    <ProjectReference Include="..\ZakiSAASERP.Oracle\ZakiSAASERP.Oracle.csproj" />
+  </ItemGroup>
+
+</Project>

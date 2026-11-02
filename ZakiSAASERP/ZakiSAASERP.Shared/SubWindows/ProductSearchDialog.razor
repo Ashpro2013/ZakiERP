@@ -1,0 +1,191 @@
+@using ZakiSAASERP.Models.DTO
+@inject IViewService api
+
+<MudDialog>
+    <DialogContent>
+
+        <MudDataGrid T="ItemMultiUnitDialogDTO"
+                     ServerData="LoadServerData"
+                     @ref="grid"
+                     RowClick="RowClickEvent"
+                     Hover="true"
+                     Dense="true"
+                     Bordered="true"
+                     RowStyleFunc="@RowStyleFunc"
+                     Striped="true">
+
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer("Item List")</MudText>
+                <MudSpacer />
+
+                <MudTextField @ref="txtSearch"
+                              Value="@strSearch"
+                              ValueChanged="@(async (string s) => await OnSearch(s))"
+                              Immediate="true"
+                              DebounceInterval="300"
+                              Placeholder="@Localizer("Search Item")"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              Class="mt-0" 
+                              OnKeyDown="@(e => OnTextKeyDown(e))" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Barcode" Title="@Localizer("Barcode")" />
+                <PropertyColumn Property="x => x.MultiUnitName" Title="@Localizer("Name")" />
+                <PropertyColumn Property="x => x.MultiUnitArabicName" Title="@Localizer("ArabicName")" />
+                @if (IsSales)
+                {
+                    <PropertyColumn Property="x => x.Rate" Format="@PermanentSettingsData.CurrencyFormat" Title="@Localizer("Rate")" />
+                    <PropertyColumn Property="x => x.IncRate" Format="@PermanentSettingsData.CurrencyFormat" Title="@Localizer("IncRate")" />
+                }
+                else
+                {
+                    <PropertyColumn Property="x => x.Cost" Format="@PermanentSettingsData.CurrencyFormat" Title="@Localizer("PurchaseRate")" />
+                }
+                <PropertyColumn Property="x => x.CurrentStock" Format="@PermanentSettingsData.QuantityFormat" Title="@Localizer("Stock")" />
+            </Columns>
+
+            <PagerContent>
+                <MudDataGridPager T="ItemMultiUnitDialogDTO" />
+            </PagerContent>
+
+        </MudDataGrid>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public string FormTitle { get; set; }
+    [Parameter] public string SearchText { get; set; }
+    [Parameter] public int BranchId { get; set; } = AppData.BranchId;
+    [Parameter] public int? StoreId { get; set; }
+    [Parameter] public bool IsSales { get; set; } = true;
+    private string strSearch = "";
+    MudTextField<string> txtSearch;
+    private MudDataGrid<ItemMultiUnitDialogDTO> grid;
+    private ItemMultiUnitDialogDTO selectedProduct = new();
+    List<ItemMultiUnitDialogDTO> entMasters = new();
+    private int selectedIndex = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        strSearch = SearchText;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(100); // small delay helps with dialogs
+            await txtSearch.FocusAsync();
+        }
+    }
+    private async Task<GridData<ItemMultiUnitDialogDTO>> LoadServerData(GridState<ItemMultiUnitDialogDTO> state)
+    {
+        var pagination = new PaginationModel(
+            page: state.Page + 1,
+            pageSize: state.PageSize,
+            sortColumn: state.SortDefinitions?.FirstOrDefault()?.SortBy,
+            sortDirection: state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc",
+            search: strSearch,
+            BranchId: BranchId,
+            StoreId: StoreId
+        );
+        var result = await api.GetMultiUnitDialogDetails(pagination);
+        entMasters = (result.PItems ?? new List<ItemMultiUnitDialogDTO>()).ToList();
+        selectedIndex = 0;
+        return new GridData<ItemMultiUnitDialogDTO>
+        {
+            Items = entMasters,
+            TotalItems = result.TotalCount
+        };
+    }
+
+    void RowClickEvent(DataGridRowClickEventArgs<ItemMultiUnitDialogDTO> args)
+    {
+        selectedProduct = args.Item;
+        Submit();
+    }
+
+    void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+    void Submit()
+    {
+        if (selectedProduct is not null && selectedProduct.FK_ItemId != 0)
+        {
+            // Convert to ItemMultiUnit for compatibility with existing callers
+            var itemMultiUnit = new ItemMultiUnit
+            {
+                MultiUnitId = selectedProduct.MultiUnitId,
+                FK_ItemId = selectedProduct.FK_ItemId,
+                FK_UnitId = selectedProduct.FK_UnitId,
+                QTYPerUnit = selectedProduct.QTYPerUnit,
+                Rate = selectedProduct.Rate,
+                IncRate = selectedProduct.IncRate,
+                Barcode = selectedProduct.Barcode,
+                Cost = selectedProduct.Cost,
+                MultiUnitName = selectedProduct.MultiUnitName,
+                MultiUnitArabicName = selectedProduct.MultiUnitArabicName
+            };
+            MudDialog.Close(DialogResult.Ok(itemMultiUnit));
+        }
+        else
+            MudDialog.Cancel();
+    }
+
+    private async Task OnSearch(string text)
+    {
+        strSearch = text;
+        if (grid is not null)
+            await grid.ReloadServerData();
+    }
+    private string RowStyleFunc(ItemMultiUnitDialogDTO item, int index)
+    {
+        // Use index for safer comparison
+        if (index == selectedIndex)
+        {
+            // Use theme-aware color (Primary color with 25% opacity) for visibility in both Light & Dark modes
+            return "background-color: rgba(var(--mud-palette-primary-rgb), 0.25); cursor: pointer; font-weight: bold;";
+        }
+        return "cursor: pointer;";
+    }
+    private void OnTextKeyDown(KeyboardEventArgs e)
+    {
+        // Support both modern and legacy key names
+        if (e.Key == "ArrowDown" || e.Key == "Down")
+        {
+            if (selectedIndex < entMasters.Count - 1)
+            {
+                selectedIndex++;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "ArrowUp" || e.Key == "Up")
+        {
+            if (selectedIndex > 0)
+            {
+                selectedIndex--;
+                StateHasChanged();
+            }
+        }
+        else if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            if (entMasters.Count > 0 && selectedIndex >= 0 && selectedIndex < entMasters.Count)
+            {
+                selectedProduct = entMasters[selectedIndex];
+                Submit();
+            }
+        }
+    }
+
+}   
+

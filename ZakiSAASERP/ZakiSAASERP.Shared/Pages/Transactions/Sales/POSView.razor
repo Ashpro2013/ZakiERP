@@ -1,0 +1,2244 @@
+﻿@page "/pos"
+@using ZakiSAASERP.Models.Enums
+@using ZakiSAASERP.Models.ViewModel
+@using ZakiSAASERP.Models.Transactions.Sales
+@using ZakiSAASERP.Models.DTO
+@using ZakiSAASERP.Models.Settings
+@using ZakiSAASERP.Shared.SubWindows
+@inject IViewService api
+@inject IDialogService DialogService
+@inject ISnackbar snackbar
+@inject ModelService Dialog
+@inject TabService tabService
+@inject IndexDBHelper indexdbHelper
+@inject IJSRuntime js
+@inject AppBarState appBar
+@inject ICustomerDisplayService CustomerDisplay
+@inject Downloader Downloader
+@inject IFormFactor formFactor
+@inject POSSettingsService PosSettingsService
+@inject ShiftService ShiftService
+<PageTitle>Zaki ERP | POS View</PageTitle>
+
+<div class="pos-container">
+    @* --- DESKTOP POS LAYOUT --- *@
+    <div class="pos-desktop-layout">
+        @* --- HEADER BAR --- *@
+        <div class="pos-header">
+            <div class="pos-logo">
+                <MudIcon Icon="@Icons.Material.Filled.Store" Class="mr-2" Color="Color.Primary" />
+                <span class="logo-text">ZAKI ERP</span>
+            </div>
+
+            <div class="pos-invoice-area">
+                <MudTextField T="string" @ref="txtInvoiceNo"
+                              @bind-Value="salesInvoice.SalesInvoiceNo"
+                              Label="@Localizer("InvoiceNo")"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              ReadOnly="posSettings.ReadonlyInvoiceNumber"
+                              Adornment="IsAutoCode ? Adornment.End : Adornment.None"
+                              AdornmentIcon="@Icons.Material.Filled.AutoAwesome"
+                              AdornmentColor="Color.Secondary"
+                              OnKeyDown="OnInvoiceNoKeyDown"
+                              Class="pos-invoice-field" />
+            </div>
+
+            <div class="pos-search-area">
+                <MudTextField T="string" @ref="txtBarcode" Immediate="true"
+                placeholder="Barcode Search..."
+                @bind-Value="_barcodeSearchQuery"
+                @onclick='() => SetActiveField("BarcodeSearch")'
+                OnKeyDown="OnBarcodeSearchKeyDown" />
+
+                <button class="header-btn look-up-btn" @onclick="SearchProductLookUp">
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="mr-1" />
+                    Look Up
+                </button>
+            </div>
+
+            <div class="pos-header-actions">
+                <button class="icon-circle-btn" title="Add Customer" @onclick="CreateCustomerClick">
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Small" />
+                </button>
+                <button class="icon-circle-btn" title="Add Product" @onclick="CreateProductClick">
+                    <MudIcon Icon="@Icons.Material.Filled.PostAdd" Size="Size.Small" />
+                </button>
+                <button class="icon-circle-btn" title="Sales Report" @onclick="SalesReportClick">
+                    <MudIcon Icon="@Icons.Material.Filled.Assessment" Size="Size.Small" />
+                </button>
+                <button class="icon-circle-btn" title="Settings" @onclick="OpenSettings">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" />
+                </button>
+                <button class="icon-circle-btn" title="Customer Display" @onclick="OpenCustomerDisplay">
+                    <MudIcon Icon="@Icons.Material.Filled.DisplaySettings" Size="Size.Small" />
+                </button>
+                <button class="icon-circle-btn @(_showNumPad ? "numpad-active" : "")" title="Toggle Number Pad" @onclick="ToggleNumPad">
+                    <MudIcon Icon="@(_showNumPad ? Icons.Material.Filled.Keyboard : Icons.Material.Filled.KeyboardHide)" Size="Size.Small" />
+                </button>
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
+            </div>
+        </div>
+
+        @* --- MAIN CONTENT AREA --- *@
+        <div class="pos-main-body">
+
+            @* --- LEFT SIDE: TABS, GRID, PRODUCTS --- *@
+            <div class="pos-left-panel">
+
+                @* Grid and Category Tabs Split *@
+                <div class="pos-grid-section" style="@($"height: {100 - posSettings.ProductAreaHeight}%;")">
+
+                    @* Category Vertical Tabs *@
+                    <div class="pos-category-tabs" style="@($"width: {posSettings.CategoryPanelWidth}px; min-width: {posSettings.CategoryPanelWidth}px;")">
+                        @if (categories != null)
+                        {
+                            @foreach (var cat in categories)
+                            {
+                                var catImg = GetCategoryImage(cat);
+                                var catName = AppData.IsArabic && !string.IsNullOrEmpty(cat.NameArabic) ? cat.NameArabic : cat.Name;
+                                <button class="cat-tab @(selectedCategory?.CategoryId == cat.CategoryId ? "active" : "")"
+                                        style="@($"min-height: {posSettings.CategoryButtonHeight}px;")"
+                                        @onclick="() => SelectCategory(cat)"
+                                        title="@catName">
+                                    @if (posSettings.ShowCategoryImages)
+                                    {
+                                        <div class="cat-tab-icon-wrap" style="@($"width: {posSettings.CategoryIconSize}px; height: {posSettings.CategoryIconSize}px;")">
+                                            @if (!string.IsNullOrEmpty(catImg))
+                                            {
+                                                <img src="@catImg" class="cat-tab-img" alt="@cat.Name" />
+                                            }
+                                            else
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.Category" Class="cat-icon-placeholder" Style="@($"font-size: {(int)(posSettings.CategoryIconSize * 0.65)}px !important;")" />
+                                            }
+                                        </div>
+                                    }
+                                    <span class="cat-tab-text" style="@($"font-size: {posSettings.CategoryFontSize}px;")">@catName</span>
+                                </button>
+                            }
+                        }
+                    </div>
+
+                @* The Datagrid (MudTable) *@
+                <div class="pos-table-wrapper">
+                    <MudTable Items="@entTransactions"
+                    Hover="true"
+                    Dense="@(posSettings.GridRowDensity == "Dense")"
+                    FixedHeader="true"
+                    Height="100%"
+                    Elevation="0"
+                    Class="pos-table"
+                    T="TransactionDtls"
+                    OnRowClick="RowClickEvent"
+                    RowClassFunc="@((x, idx) => x.SL == _selectedRow?.SL ? "selected-row-highlight" : "")">
+                    <HeaderContent>
+                        <MudTh Class="tbl-hdr-cell">#</MudTh>
+                        @if (posSettings.ShowItemCode)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Code</MudTh>
+                        }
+                        @if (posSettings.ShowBarcode)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Barcode</MudTh>
+                        }
+                        @if (posSettings.ShowItemName)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Name</MudTh>
+                        }
+                        @if (posSettings.ShowArabicName)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Arabic Name</MudTh>
+                        }
+                        <MudTh Class="tbl-hdr-cell">Qty</MudTh>
+                        @if (posSettings.ShowUnit)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Unit</MudTh>
+                        }
+                        @if (posSettings.ShowExRate)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Rate</MudTh>
+                        }
+                        @if (posSettings.ShowIncRate)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Inc. Rate</MudTh>
+                        }
+                        @if (posSettings.ShowGross)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Gross</MudTh>
+                        }
+                        @if (posSettings.ShowDiscPercentage)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Disc (%)</MudTh>
+                        }
+                        @if (posSettings.ShowDiscAmount)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Disc</MudTh>
+                        }
+                        @if (posSettings.ShowTaxableAmount)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Taxable Amt</MudTh>
+                        }
+                        @if (posSettings.ShowTaxPercentage)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Tax (%)</MudTh>
+                        }
+                        @if (posSettings.ShowTaxAmount)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Tax</MudTh>
+                        }
+                        @if (posSettings.ShowAmount)
+                        {
+                            <MudTh Class="tbl-hdr-cell">Amount</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="#" Class="tbl-cell text-center">@context.SL</MudTd>
+                        @if (posSettings.ShowItemCode)
+                        {
+                            <MudTd DataLabel="Code" Class="tbl-cell">@context.FK_ItemId.ToString("D5")</MudTd>
+                        }
+                        @if (posSettings.ShowBarcode)
+                        {
+                            <MudTd DataLabel="Barcode" Class="tbl-cell">@context.Barcode</MudTd>
+                        }
+                        @if (posSettings.ShowItemName)
+                        {
+                            <MudTd DataLabel="Name" Class="tbl-cell font-weight-bold">@context.ItemName</MudTd>
+                        }
+                        @if (posSettings.ShowArabicName)
+                        {
+                            <MudTd DataLabel="Arabic Name" Class="tbl-cell">@context.ItemArabicName</MudTd>
+                        }
+                        <MudTd DataLabel="Qty"
+                        Class="@($"tbl-cell text-right pos-cell-editable {(IsCellActive(context, "Qty") ? "pos-cell-active" : "")}")"
+                        @onclick='() => SetActiveCell(context, "Qty")'>
+                        @context.Quantity.ToString(strQuantityFormat)
+                    </MudTd>
+                    @if (posSettings.ShowUnit)
+                    {
+                        <MudTd DataLabel="Unit" Class="tbl-cell">@context.UnitName</MudTd>
+                    }
+                    @if (posSettings.ShowExRate)
+                    {
+                        <MudTd DataLabel="Rate" Class="tbl-cell text-right" @onclick='() => SetActiveCell(context, "Rate")'>
+                            @if (posSettings.AllowEditExcRate)
+                            {
+                                <input id="@($"rate-input-{context.SL}")"
+                                       type="number"
+                                       step="any"
+                                       class="pos-grid-input @(IsCellActive(context, "Rate") ? "pos-cell-active" : "")"
+                                       @bind="context.ExRate"
+                                       @bind:after="() => OnRowRateChanged(context)"
+                                       title="@($"Inc. Rate: {context.InRate.ToString("F2")}")"
+                                       @onfocus='() => SetActiveCell(context, "Rate")'
+                                       @onkeydown="OnNumericFieldKeyDown" />
+                            }
+                            else
+                            {
+                                @context.ExRate.ToString(strCurencyFormat)
+                            }
+                        </MudTd>
+                    }
+                    @if (posSettings.ShowIncRate)
+                    {
+                        <MudTd DataLabel="Inc. Rate" Class="tbl-cell text-right" @onclick='() => SetActiveCell(context, "IncRate")'>
+                            @if (posSettings.AllowEditIncRate)
+                            {
+                                <input id="@($"incrate-input-{context.SL}")"
+                                       type="number"
+                                       step="any"
+                                       class="pos-grid-input @(IsCellActive(context, "IncRate") ? "pos-cell-active" : "")"
+                                       @bind="context.InRate"
+                                       @bind:after="() => OnRowIncRateChanged(context)"
+                                       title="@($"Ex. Rate: {context.ExRate.ToString("F2")}")"
+                                       @onfocus='() => SetActiveCell(context, "IncRate")'
+                                       @onkeydown="OnNumericFieldKeyDown" />
+                            }
+                            else
+                            {
+                                @context.InRate.ToString(strCurencyFormat)
+                            }
+                        </MudTd>
+                    }
+                    @if (posSettings.ShowGross)
+                    {
+                        <MudTd DataLabel="Gross" Class="tbl-cell text-right">@context.GrossAmount.ToString(strCurencyFormat)</MudTd>
+                    }
+                    @if (posSettings.ShowDiscPercentage)
+                    {
+                        <MudTd DataLabel="Disc (%)" Class="tbl-cell text-right" @onclick='() => SetActiveCell(context, "Disc%")'>
+                            @if (posSettings.AllowEditDiscPer)
+                            {
+                                <input id="@($"disc-input-{context.SL}")"
+                                       type="number"
+                                       step="any"
+                                       class="pos-grid-input @(IsCellActive(context, "Disc%") ? "pos-cell-active" : "")"
+                                       @bind="context.DiscountPerc"
+                                       @bind:after="() => OnRowDiscountPercChanged(context)"
+                                       @onfocus='() => SetActiveCell(context, "Disc%")'
+                                       @onkeydown="OnNumericFieldKeyDown" />
+                            }
+                            else
+                            {
+                                @context.DiscountPerc.ToString("F2")
+                            }
+                        </MudTd>
+                    }
+                    @if (posSettings.ShowDiscAmount)
+                    {
+                        <MudTd DataLabel="Disc" Class="tbl-cell text-right" @onclick='() => SetActiveCell(context, "DiscAmt")'>
+                            @if (posSettings.AllowEditDiscAmount)
+                            {
+                                <input id="@($"discamt-input-{context.SL}")"
+                                       type="number"
+                                       step="any"
+                                       class="pos-grid-input @(IsCellActive(context, "DiscAmt") ? "pos-cell-active" : "")"
+                                       @bind="context.DiscountAmnt"
+                                       @bind:after="() => OnRowDiscountAmountChanged(context)"
+                                       @onfocus='() => SetActiveCell(context, "DiscAmt")'
+                                       @onkeydown="OnNumericFieldKeyDown" />
+                            }
+                            else
+                            {
+                                @context.DiscountAmnt.ToString(strCurencyFormat)
+                            }
+                        </MudTd>
+                    }
+                    @if (posSettings.ShowTaxableAmount)
+                    {
+                        <MudTd DataLabel="Taxable Amt" Class="tbl-cell text-right">@((context.GrossAmount - context.DiscountAmnt).ToString(strCurencyFormat))</MudTd>
+                    }
+                    @if (posSettings.ShowTaxPercentage)
+                    {
+                        <MudTd DataLabel="Tax (%)" Class="tbl-cell text-right">@context.TaxPerc.ToString(strQuantityFormat)</MudTd>
+                    }
+                    @if (posSettings.ShowTaxAmount)
+                    {
+                        <MudTd DataLabel="Tax" Class="tbl-cell text-right">@context.TaxAmount.ToString(strCurencyFormat)</MudTd>
+                    }
+                    @if (posSettings.ShowAmount)
+                    {
+                        <MudTd DataLabel="Amount" Class="tbl-cell text-right font-weight-bold total-amt-cell">@context.LineTotal.ToString(strCurencyFormat)</MudTd>
+                    }
+                </RowTemplate>
+            </MudTable>
+        </div>
+
+        @* Vertical Action Buttons on Right side of Grid *@
+        <div class="pos-grid-actions">
+            <button class="grid-act-btn plus" title="Increment Qty" @onclick="IncrementSelectedQty">
+                <MudIcon Icon="@Icons.Material.Filled.Add" />
+            </button>
+            <button class="grid-act-btn minus" title="Decrement Qty" @onclick="DecrementSelectedQty">
+                <MudIcon Icon="@Icons.Material.Filled.Remove" />
+            </button>
+            <button class="grid-act-btn delete" title="Delete Item" @onclick="DeleteSelectedLine">
+                <MudIcon Icon="@Icons.Material.Filled.Delete" />
+            </button>
+            <button class="grid-act-btn return" title="Return Line" @onclick="ReturnSelectedLine">
+                <MudIcon Icon="@Icons.Material.Filled.Undo" />
+            </button>
+            <button class="grid-act-btn calc" title="Calculator" @onclick="OpenCalculatorDialog">
+                <MudIcon Icon="@Icons.Material.Filled.Calculate" />
+            </button>
+            <button class="grid-act-btn drawer" title="Open Cash Drawer" @onclick="OpenCashDrawerClick">
+                <MudIcon Icon="@Icons.Material.Filled.PointOfSale" />
+            </button>
+            <button class="grid-act-btn grid-layout" title="Layout & Settings" @onclick="OpenSettings">
+                <MudIcon Icon="@Icons.Material.Filled.GridView" />
+            </button>
+        </div>
+
+    </div>
+
+    @* Bottom Products Card Grid *@
+    <div class="pos-products-section" style="@($"height: {posSettings.ProductAreaHeight}%; flex-grow: unset;")">
+        @{
+            var filteredProducts = selectedCategory == null
+                ? products
+                : products.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+
+            var totalCount = filteredProducts?.Count ?? 0;
+            var pageSize = posSettings.ProductPageSize > 0 ? posSettings.ProductPageSize : 12;
+            var isPaged = posSettings.EnableProductPagination;
+            var totalPages = isPaged && pageSize > 0 
+                ? (int)Math.Max(1, Math.Ceiling((double)totalCount / pageSize)) 
+                : 1;
+
+            if (_productPage > totalPages) { _productPage = totalPages; }
+            if (_productPage < 1) { _productPage = 1; }
+
+            var displayProducts = (isPaged && filteredProducts != null)
+                ? filteredProducts.Skip((_productPage - 1) * pageSize).Take(pageSize).ToList()
+                : (filteredProducts ?? new List<ExMasters>());
+        }
+        @if (filteredProducts == null || !filteredProducts.Any())
+        {
+            <div class="no-products">
+                <MudIcon Icon="@Icons.Material.Outlined.Inventory" Style="font-size: 32px; color: #94a3b8; margin-bottom: 6px;" />
+                <span>No products loaded or found.</span>
+            </div>
+        }
+        else
+        {
+            <div class="pos-products-scroll-area">
+                <div class="products-grid" style="@($"grid-template-columns: repeat(auto-fill, minmax({posSettings.ProductButtonWidth}px, 1fr));")">
+                    @foreach (var prod in displayProducts)
+                    {
+                        var prodImg = GetProductImage(prod);
+                        <button class="product-card @(posSettings.ShowProductImages && !string.IsNullOrEmpty(prodImg) ? "has-img" : "no-img")" 
+                                style="@($"min-height: {posSettings.ProductButtonHeight}px;")"
+                                @onclick="() => AddProductToBill(prod)"
+                                title="@prod.Name">
+                            @if (posSettings.ShowProductImages)
+                            {
+                                <div class="prod-card-media">
+                                    @if (!string.IsNullOrEmpty(prodImg))
+                                    {
+                                        <img src="@prodImg" class="prod-card-img" alt="@prod.Name" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <div class="prod-placeholder-wrap">
+                                            <MudIcon Icon="@Icons.Material.Filled.Inventory2" Class="prod-placeholder-icon" />
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <div class="prod-card-body">
+                                <span class="prod-card-name" style="@($"font-size: {posSettings.ProductFontSize}px;")">@prod.Name</span>
+                                <div class="prod-card-footer">
+                                    <span class="prod-card-price" style="@($"font-size: {posSettings.ProductPriceFontSize}px;")">@((prod.Amount > 0 ? prod.Amount : 0).ToString(strCurencyFormat))</span>
+                                    <div class="prod-card-add" title="Add to bill">
+                                        <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @if (isPaged && totalCount > 0)
+            {
+                <div class="pos-products-pagination">
+                    <div class="pos-pagination-meta">
+                        <span class="pos-page-info">
+                            Showing @(((_productPage - 1) * pageSize) + 1) - @Math.Min(_productPage * pageSize, totalCount) of @totalCount products
+                        </span>
+                        @if (selectedCategory != null)
+                        {
+                            var catDisplayName = AppData.IsArabic && !string.IsNullOrEmpty(selectedCategory.NameArabic) ? selectedCategory.NameArabic : selectedCategory.Name;
+                            <span class="pos-page-cat">(@catDisplayName)</span>
+                        }
+                    </div>
+
+                    @if (totalPages > 1)
+                    {
+                        <div class="pos-pagination-actions">
+                            <MudPagination Count="@totalPages"
+                                           Selected="@_productPage"
+                                           SelectedChanged="OnProductPageChanged"
+                                           Color="Color.Primary"
+                                           Variant="Variant.Filled"
+                                           Size="Size.Small"
+                                           ShowFirstButton="true"
+                                           ShowLastButton="true"
+                                           MiddleCount="3"
+                                           BoundaryCount="1" />
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    </div>
+
+    @* --- RIGHT SIDE: BILL ACTIONS, SUMMARY, NUMPAD --- *@
+    <div class="pos-right-panel">
+
+        @* 2x5 Control Grid *@
+        <div class="pos-bill-actions">
+            <button class="act-btn" @onclick="NewClick" title="New Bill (F1)">
+                <span class="btn-kbd">F1</span>
+                <span>New Bill</span>
+            </button>
+            <button class="act-btn" @onclick="HoldBillClick" title="Hold Bill (F2) - @heldInvoicesCount held">
+                <span class="btn-kbd">F2</span>
+                <span>Hold</span>
+                <span class="hold-count-badge @(heldInvoicesCount > 0 ? "has-held" : "no-held")">@heldInvoicesCount</span>
+            </button>
+
+            <button class="act-btn" @onclick="RetrieveBillClick" title="Retrieve Held Bill (F3)">
+                <span class="btn-kbd">F3</span>
+                <span>Retrieve</span>
+            </button>
+            <button class="act-btn" @onclick="ReturnBillClick" title="Return Bill (F4)">
+                <span class="btn-kbd">F4</span>
+                <span>Return</span>
+            </button>
+
+            <button class="act-btn" @onclick="OpenDiscountDialog" title="Discount (F5)">
+                <span class="btn-kbd">F5</span>
+                <span>Discount</span>
+            </button>
+            <button class="act-btn" @onclick="SearchCustomerClick" title="Search Customer (F6)">
+                <span class="btn-kbd">F6</span>
+                <span>Search Customer</span>
+            </button>
+
+            <button class="act-btn" @onclick="SearchBillClick" title="Search Bill (F7)">
+                <span class="btn-kbd">F7</span>
+                <span>Search Bill</span>
+            </button>
+            <button class="act-btn" @onclick="PrintBillClick" title="Print Bill (F8)">
+                <span class="btn-kbd">F8</span>
+                <span>Print</span>
+            </button>
+
+            <button class="act-btn" @onclick="PdfBillClick" title="PDF (F9)">
+                <span class="btn-kbd">F9</span>
+                <span>PDF</span>
+            </button>
+            <button class="act-btn" @onclick="OpenPaymentDialog" title="Payment (F10)">
+                <span class="btn-kbd">F10</span>
+                <span>Payment</span>
+            </button>
+        </div>
+
+        @* Totals Summary *@
+        <div class="pos-totals-summary">
+            <div class="summary-row">
+                <span class="summary-label">Total Qty:</span>
+                <span class="summary-val">@_totalQty.ToString(strQuantityFormat)</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Sub Total:</span>
+                <span class="summary-val">@salesInvoice.GrossAmount.ToString(strCurencyFormat)</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Discount:</span>
+                <span class="summary-val">@(((salesInvoice.AdditionalDiscAmnt ?? 0) > 0 ? (salesInvoice.AdditionalDiscAmnt ?? 0) : salesInvoice.LineDsicount).ToString(strCurencyFormat))</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Tax:</span>
+                <span class="summary-val">@salesInvoice.TaxTotal.ToString(strCurencyFormat)</span>
+            </div>
+            <div class="summary-row total-highlight">
+                <span class="summary-label total-lbl">Total :</span>
+                <span class="summary-val total-val">@salesInvoice.GrandTotal.ToString(strCurencyFormat)</span>
+            </div>
+        </div>
+
+        @* Separated Number Pad Component *@
+        <div class="pos-numpad-wrapper @(!_showNumPad ? "numpad-hidden" : (_forceShowNumPad ? "numpad-force-show" : ""))">
+            <POSNumPad OnKeyClick="HandleNumPadKey" />
+        </div>
+
+        @* Payment Footer Buttons *@
+        <div class="pos-payment-actions">
+            <button class="pay-btn pay-cash" @onclick="OpenPaymentDialog" title="Pay Cash (F11)">
+                <span class="pay-kbd">F11</span>
+                <span>Pay Cash</span>
+            </button>
+            <button class="pay-btn pay-card" @onclick='() => SaveInvoiceClick("Bank")' title="Pay Card (F12)">
+                <span class="pay-kbd">F12</span>
+                <span>Pay Card</span>
+            </button>
+        </div>
+
+    </div>
+
+    </div>
+
+    @* --- FOOTER INFORMATIONAL BAR --- *@
+    <div class="pos-footer">
+        <div class="footer-info-item">Party Account : <span class="foot-highlight">@salesInvoice.CustomerName</span></div>
+        <div class="footer-info-item">Sales Account : <span class="foot-highlight">SALES ACCOUNT</span></div>
+        <div class="footer-info-item">Invoice No : <span class="foot-highlight">@salesInvoice.SalesInvoiceNo</span></div>
+        <div class="footer-info-item">Shift No : <span class="foot-highlight">1</span></div>
+        <div class="footer-spacer"></div>
+        <div class="footer-time">@_currentDateTimeString</div>
+    </div>
+    </div>
+
+    @* --- MOBILE RESPONSIVE POS LAYOUT --- *@
+    <div class="pos-mobile-layout">
+        @if (_mobileStep == 1)
+        {
+            @* --- MOBILE PAGE 1: CATEGORIES & PRODUCTS --- *@
+            <div class="mob-header">
+                <div class="mob-header-left">
+                    <MudIcon Icon="@Icons.Material.Filled.Store" Color="Color.Primary" Class="mr-1" />
+                    <span class="mob-logo-text">ASHPRO</span>
+                    <span class="mob-inv-badge" title="@Localizer("InvoiceNo")">#@salesInvoice.SalesInvoiceNo</span>
+                </div>
+                <div class="mob-search-box">
+                    <input type="text"
+                           id="mob-barcode-input"
+                           class="mob-barcode-input"
+                           placeholder="Scan / Search barcode..."
+                           value="@_barcodeSearchQuery"
+                           @oninput="OnBarcodeSearchInput"
+                           @onkeydown="OnBarcodeSearchKeyDown" />
+                    <button class="mob-icon-btn" @onclick="SearchProductLookUp">
+                        <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" />
+                    </button>
+                </div>
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
+            </div>
+
+            @* Small group / category buttons at the top *@
+            <div class="mob-categories-scroll">
+                @if (categories != null)
+                {
+                    @foreach (var cat in categories)
+                    {
+                        var catImg = GetCategoryImage(cat);
+                        var catName = AppData.IsArabic && !string.IsNullOrEmpty(cat.NameArabic) ? cat.NameArabic : cat.Name;
+                        <button class="mob-cat-btn @(selectedCategory?.CategoryId == cat.CategoryId ? "active" : "")"
+                                @onclick="() => SelectCategory(cat)">
+                            <div class="mob-cat-icon-wrap">
+                                @if (!string.IsNullOrEmpty(catImg))
+                                {
+                                    <img src="@catImg" class="mob-cat-img" alt="@cat.Name" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Small" Class="mob-cat-placeholder" />
+                                }
+                            </div>
+                            <span>@catName</span>
+                        </button>
+                    }
+                }
+            </div>
+
+            @* Products grid with rates *@
+            <div class="mob-products-container">
+                @{
+                    var filteredProductsMob = selectedCategory == null
+                        ? products
+                        : products.Where(p => p.CategoryId == selectedCategory.CategoryId).ToList();
+
+                    var totalCountMob = filteredProductsMob?.Count ?? 0;
+                    var pageSizeMob = posSettings.ProductPageSize > 0 ? posSettings.ProductPageSize : 12;
+                    var isPagedMob = posSettings.EnableProductPagination;
+                    var totalPagesMob = isPagedMob && pageSizeMob > 0 
+                        ? (int)Math.Max(1, Math.Ceiling((double)totalCountMob / pageSizeMob)) 
+                        : 1;
+
+                    if (_productPage > totalPagesMob) { _productPage = totalPagesMob; }
+                    if (_productPage < 1) { _productPage = 1; }
+
+                    var displayProductsMob = (isPagedMob && filteredProductsMob != null)
+                        ? filteredProductsMob.Skip((_productPage - 1) * pageSizeMob).Take(pageSizeMob).ToList()
+                        : (filteredProductsMob ?? new List<ExMasters>());
+                }
+                @if (filteredProductsMob == null || !filteredProductsMob.Any())
+                {
+                    <div class="mob-no-products">
+                        <MudIcon Icon="@Icons.Material.Outlined.Inventory" Style="font-size: 28px; color: #94a3b8; margin-bottom: 4px;" />
+                        <span>No products found</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="mob-products-grid">
+                        @foreach (var prod in displayProductsMob)
+                        {
+                            var prodImg = GetProductImage(prod);
+                            <button class="mob-product-card" @onclick="() => AddProductToBill(prod)">
+                                <div class="mob-prod-media">
+                                    @if (!string.IsNullOrEmpty(prodImg))
+                                    {
+                                        <img src="@prodImg" class="mob-prod-img" alt="@prod.Name" loading="lazy" />
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Inventory2" Class="mob-prod-placeholder" />
+                                    }
+                                </div>
+                                <div class="mob-prod-info">
+                                    <span class="mob-prod-name">@prod.Name</span>
+                                    @if (!string.IsNullOrEmpty(prod.Code))
+                                    {
+                                        <span class="mob-prod-code">@prod.Code</span>
+                                    }
+                                </div>
+                                <div class="mob-prod-end">
+                                    <span class="mob-prod-rate">@((prod.Amount > 0 ? prod.Amount : 0).ToString(strCurencyFormat))</span>
+                                    <div class="mob-prod-add">
+                                        <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                                    </div>
+                                </div>
+                            </button>
+                        }
+                    </div>
+
+                    @if (isPagedMob && totalCountMob > 0)
+                    {
+                        <div class="mob-products-pagination">
+                            <span class="mob-page-info">
+                                @(((_productPage - 1) * pageSizeMob) + 1)-@Math.Min(_productPage * pageSizeMob, totalCountMob) of @totalCountMob
+                            </span>
+                            @if (totalPagesMob > 1)
+                            {
+                                <div class="mob-page-btns">
+                                    <button class="mob-page-nav-btn" disabled="@(_productPage <= 1)" @onclick="() => OnProductPageChanged(_productPage - 1)">
+                                        <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
+                                    </button>
+                                    <span class="mob-page-num">@_productPage / @totalPagesMob</span>
+                                    <button class="mob-page-nav-btn" disabled="@(_productPage >= totalPagesMob)" @onclick="() => OnProductPageChanged(_productPage + 1)">
+                                        <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+
+            @* Bottom Cart & Next button bar *@
+            <div class="mob-bottom-bar">
+                <div class="mob-cart-summary-btn" @onclick="() => SetMobileStep(2)">
+                    <div class="mob-cart-icon-wrapper">
+                        <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" Size="Size.Medium" />
+                        @if (entTransactions.Any())
+                        {
+                            <span class="mob-cart-badge">@((int)entTransactions.Sum(x => x.Quantity))</span>
+                        }
+                    </div>
+                    <div class="mob-cart-text-group">
+                        <span class="mob-cart-count">@entTransactions.Count Items</span>
+                        <span class="mob-cart-total">@salesInvoice.GrandTotal.ToString(strCurencyFormat)</span>
+                    </div>
+                </div>
+                <button class="mob-next-btn" disabled="@(!entTransactions.Any())" @onclick="() => SetMobileStep(2)">
+                    <span>Next</span>
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Class="ml-1" />
+                </button>
+            </div>
+        }
+        else
+        {
+            @* --- MOBILE PAGE 2: CART DETAILS & PAYMENT --- *@
+            <div class="mob-header">
+                <button class="mob-back-btn" @onclick="() => SetMobileStep(1)">
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />
+                    <span>Back</span>
+                </button>
+                <div class="mob-header-title">Cart (@entTransactions.Sum(x => x.Quantity).ToString("N0") items)</div>
+                <button class="mob-clear-btn" @onclick="NewClick" title="Clear Bill">
+                    <MudIcon Icon="@Icons.Material.Filled.DeleteSweep" Size="Size.Small" />
+                </button>
+            </div>
+
+            @* Added Products List with Rate *@
+            <div class="mob-cart-list-container">
+                @if (!entTransactions.Any())
+                {
+                    <div class="mob-empty-cart">
+                        <MudIcon Icon="@Icons.Material.Filled.RemoveShoppingCart" Size="Size.Large" Color="Color.Secondary" />
+                        <p>Your cart is empty</p>
+                        <button class="mob-add-prod-btn" @onclick="() => SetMobileStep(1)">Add Products</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="mob-cart-items">
+                        @foreach (var item in entTransactions)
+                        {
+                            <div class="mob-cart-item-card">
+                                <div class="mob-cart-item-info">
+                                    <div class="mob-item-name">@item.ItemName</div>
+                                    <div class="mob-item-rate-unit">
+                                        Rate: <span class="mob-highlight-rate">@item.ExRate.ToString(strCurencyFormat)</span> / @item.UnitName
+                                    </div>
+                                </div>
+                                <div class="mob-cart-item-controls">
+                                    <div class="mob-qty-control">
+                                        <button class="mob-qty-btn" @onclick="() => DecrementQty(item)">-</button>
+                                        <span class="mob-qty-val">@item.Quantity.ToString("G29")</span>
+                                        <button class="mob-qty-btn" @onclick="() => IncrementQty(item)">+</button>
+                                    </div>
+                                    <div class="mob-item-total">
+                                        @item.LineTotal.ToString(strCurencyFormat)
+                                    </div>
+                                    <button class="mob-item-delete" @onclick="() => RemoveItem(item)">
+                                        <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" />
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            @* Total Amount & Financial Summary *@
+            <div class="mob-summary-section">
+                <div class="mob-summary-row">
+                    <span>Sub Total:</span>
+                    <span>@salesInvoice.GrossAmount.ToString(strCurencyFormat)</span>
+                </div>
+                @if ((salesInvoice.AdditionalDiscAmnt ?? 0) > 0 || salesInvoice.LineDsicount > 0)
+                {
+                    <div class="mob-summary-row">
+                        <span>Discount:</span>
+                        <span>@(((salesInvoice.AdditionalDiscAmnt ?? 0) > 0 ? (salesInvoice.AdditionalDiscAmnt ?? 0) : salesInvoice.LineDsicount).ToString(strCurencyFormat))</span>
+                    </div>
+                }
+                <div class="mob-summary-row">
+                    <span>Tax:</span>
+                    <span>@salesInvoice.TaxTotal.ToString(strCurencyFormat)</span>
+                </div>
+                <div class="mob-summary-total-card">
+                    <span class="mob-total-label">Total Amount:</span>
+                    <span class="mob-total-amount">@salesInvoice.GrandTotal.ToString(strCurencyFormat)</span>
+                </div>
+            </div>
+
+            @* Bottom Payment Buttons *@
+            <div class="mob-payment-footer">
+                <button class="mob-pay-btn mob-pay-cash" disabled="@(!entTransactions.Any() || _isSaving)" @onclick="OpenPaymentDialog">
+                    Pay Cash
+                </button>
+                <button class="mob-pay-btn mob-pay-card" disabled="@(!entTransactions.Any() || _isSaving)" @onclick='() => SaveInvoiceClick("Bank")'>
+                    Pay Card
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* Premium Scoped Styles for POS View to match exact screenshot design */
+
+    .pos-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    background-color: #f8fafc;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    color: #0f172a;
+    overflow: hidden;
+}
+
+/* Header styling */
+.pos-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+height: 55px;
+background-color: #ffffff;
+border-bottom: 1px solid #e2e8f0;
+padding: 0 16px;
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.pos-logo {
+display: flex;
+align-items: center;
+font-size: 1.3rem;
+font-weight: 800;
+color: #1e3a8a;
+flex-shrink: 0;
+}
+.pos-logo .logo-text {
+letter-spacing: -0.5px;
+}
+.pos-invoice-area {
+display: flex;
+align-items: center;
+width: 190px;
+min-width: 160px;
+max-width: 220px;
+margin: 0 10px;
+flex-shrink: 0;
+}
+.pos-invoice-field {
+width: 100%;
+}
+.pos-invoice-field .mud-input-control {
+margin-top: 0 !important;
+margin-bottom: 0 !important;
+}
+.pos-invoice-field .mud-input-outlined {
+background-color: #f8fafc;
+border-radius: 6px;
+}
+.pos-invoice-field .mud-input-slot {
+font-weight: 700;
+color: #1e3a8a;
+font-size: 0.95rem;
+}
+.mob-inv-badge {
+font-size: 0.75rem;
+font-weight: 700;
+background: #eff6ff;
+color: #2563eb;
+padding: 2px 6px;
+border-radius: 4px;
+margin-left: 6px;
+border: 1px solid #bfdbfe;
+}
+.pos-search-area {
+display: flex;
+align-items: center;
+flex-grow: 0.6;
+max-width: 600px;
+gap: 8px;
+}
+.barcode-input {
+width: 100%;
+height: 38px;
+border: 1px solid #cbd5e1;
+border-radius: 4px;
+padding: 0 12px;
+font-size: 0.95rem;
+outline: none;
+transition: border-color 0.2s, box-shadow 0.2s;
+}
+.barcode-input:focus, .barcode-input.field-active {
+border-color: #3b82f6;
+box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.header-btn {
+display: flex;
+align-items: center;
+height: 38px;
+padding: 0 16px;
+font-weight: 600;
+font-size: 0.9rem;
+border-radius: 4px;
+cursor: pointer;
+transition: background-color 0.2s;
+}
+.look-up-btn {
+background-color: #f1f5f9;
+border: 1px solid #cbd5e1;
+color: #334155;
+}
+.look-up-btn:hover {
+background-color: #e2e8f0;
+}
+.pos-header-actions {
+display: flex;
+gap: 8px;
+}
+.icon-circle-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+width: 38px;
+height: 38px;
+border-radius: 50%;
+background-color: #f1f5f9;
+border: none;
+color: #475569;
+cursor: pointer;
+transition: background-color 0.2s, color 0.2s;
+}
+.icon-circle-btn:hover {
+background-color: #1e3a8a;
+color: #ffffff;
+}
+
+/* Main body layout */
+.pos-main-body {
+display: flex;
+flex-grow: 1;
+overflow: hidden;
+background-color: #f1f5f9;
+}
+.pos-left-panel {
+display: flex;
+flex-direction: column;
+flex-grow: 1;
+overflow: hidden;
+padding: 8px;
+gap: 8px;
+}
+.pos-right-panel {
+width: 380px;
+background-color: #ffffff;
+border-left: 1px solid #e2e8f0;
+padding: 8px;
+display: flex;
+flex-direction: column;
+gap: 12px;
+overflow-y: auto;
+height: 100%;
+max-height: 100%;
+}
+
+/* Grid Section containing Categories + Grid + Grid Actions */
+.pos-grid-section {
+display: flex;
+height: 55%;
+background-color: #ffffff;
+border-radius: 6px;
+border: 1px solid #e2e8f0;
+overflow: hidden;
+position: relative;
+}
+
+/* Categories Panel */
+.pos-category-tabs {
+    display: flex;
+    flex-direction: column;
+    width: 108px;
+    border-right: 1px solid #e2e8f0;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    overflow-y: auto;
+    padding: 6px;
+    gap: 6px;
+}
+.pos-category-tabs::-webkit-scrollbar {
+    width: 4px;
+}
+.pos-category-tabs::-webkit-scrollbar-track {
+    background: transparent;
+}
+.pos-category-tabs::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.cat-tab {
+    min-height: 64px;
+    height: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    padding: 7px 4px 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+.cat-tab-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, background-color 0.2s, border-color 0.2s;
+}
+.cat-tab-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 7px;
+    transition: transform 0.25s ease;
+}
+.cat-icon-placeholder {
+    color: #64748b;
+    font-size: 22px !important;
+    transition: color 0.2s ease;
+}
+.cat-tab-text {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1.18;
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    max-width: 100%;
+    transition: color 0.2s ease;
+}
+.cat-tab:hover {
+    background: #ffffff;
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);
+}
+.cat-tab:hover .cat-tab-icon-wrap {
+    border-color: #93c5fd;
+    transform: scale(1.05);
+}
+.cat-tab:hover .cat-icon-placeholder {
+    color: #2563eb;
+}
+.cat-tab:hover .cat-tab-text {
+    color: #1d4ed8;
+}
+.cat-tab.active {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
+}
+.cat-tab.active .cat-tab-icon-wrap {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.cat-tab.active .cat-icon-placeholder {
+    color: #ffffff;
+}
+.cat-tab.active .cat-tab-text {
+    color: #ffffff;
+    font-weight: 700;
+}
+.cat-tab.empty-tab {
+    display: none;
+}
+
+/* Table styles */
+.pos-table-wrapper {
+flex-grow: 1;
+overflow: auto;
+}
+.pos-table {
+width: 100%;
+border-collapse: collapse;
+}
+.pos-grid-input {
+width: 100%;
+max-width: 90px;
+border: 1px solid #cbd5e1;
+border-radius: 4px;
+padding: 4px 6px;
+text-align: right;
+font-size: 0.85rem;
+background-color: #ffffff;
+outline: none;
+transition: all 0.2s;
+-moz-appearance: textfield;
+}
+.pos-grid-input::-webkit-outer-spin-button,
+.pos-grid-input::-webkit-inner-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.pos-grid-input:focus,
+.pos-grid-input.pos-cell-active {
+background-color: #dcfce7 !important; /* light green */
+border: 1px solid #22c55e !important;
+outline: 2px solid #22c55e !important;
+font-weight: bold;
+}
+.tbl-hdr-cell {
+background-color: #ffffff !important;
+border-bottom: 2px solid #cbd5e1 !important;
+color: #334155 !important;
+font-weight: 700 !important;
+font-size: 0.85rem !important;
+padding: 10px 8px !important;
+}
+.tbl-cell {
+font-size: 0.85rem !important;
+padding: 8px 8px !important;
+border-bottom: 1px solid #f1f5f9 !important;
+white-space: nowrap;
+}
+.pos-cell-editable {
+cursor: pointer;
+border: 1px dashed #c084fc;
+transition: background-color 0.2s;
+}
+.pos-cell-editable:hover {
+background-color: #f3e8ff;
+}
+.pos-cell-active {
+background-color: #dcfce7 !important; /* light green */
+outline: 2px solid #22c55e !important;
+font-weight: bold;
+}
+.total-amt-cell {
+color: #1e3a8a;
+}
+.selected-row-highlight td,
+tr.selected-row-highlight td,
+tr.selected-row-highlight .tbl-cell,
+.selected-row-highlight .mud-table-cell {
+background-color: #dbeafe !important;
+}
+tr.selected-row-highlight:hover td,
+tr.selected-row-highlight:hover .tbl-cell,
+tr.selected-row-highlight:hover .mud-table-cell {
+background-color: #bfdbfe !important;
+}
+
+/* Grid vertical actions on right */
+.pos-grid-actions {
+display: flex;
+flex-direction: column;
+width: 50px;
+border-left: 1px solid #e2e8f0;
+background-color: #f8fafc;
+justify-content: flex-start;
+align-items: center;
+padding: 8px 0;
+gap: 12px;
+}
+.grid-act-btn {
+width: 36px;
+height: 36px;
+border-radius: 4px;
+border: 1px solid #cbd5e1;
+background-color: #ffffff;
+color: #475569;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: all 0.2s;
+}
+.grid-act-btn:hover {
+background-color: #e2e8f0;
+color: #0f172a;
+}
+.grid-act-btn.delete:hover {
+background-color: #ef4444;
+color: #ffffff;
+border-color: #ef4444;
+}
+.grid-act-btn.calc:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+.grid-act-btn.drawer:hover {
+    background-color: #10b981;
+    color: #ffffff;
+    border-color: #10b981;
+}
+
+/* Bottom Products Grid */
+.pos-products-section {
+    flex-grow: 1;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+.pos-products-scroll-area {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 4px;
+    padding-bottom: 4px;
+}
+.pos-products-scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+.pos-products-scroll-area::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+.pos-products-pagination {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 8px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+.pos-pagination-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #475569;
+}
+.pos-page-info {
+    font-weight: 600;
+    color: #1e293b;
+}
+.pos-page-cat {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+.pos-pagination-actions {
+    display: flex;
+    align-items: center;
+}
+.pos-pagination-actions .mud-pagination {
+    margin: 0;
+}
+.pos-pagination-actions .mud-pagination-item {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+}
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+.product-card {
+    min-height: 148px;
+    height: auto;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+    text-align: left;
+}
+.product-card:hover {
+    border-color: #93c5fd;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+.product-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+}
+.prod-card-media {
+    height: 84px;
+    width: 100%;
+    background-color: #f1f5f9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #f1f5f9;
+}
+.prod-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.product-card:hover .prod-card-img {
+    transform: scale(1.08);
+}
+.prod-placeholder-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15);
+    transition: transform 0.25s ease;
+}
+.product-card:hover .prod-placeholder-wrap {
+    transform: scale(1.1);
+}
+.prod-placeholder-icon {
+    color: #4f46e5;
+    font-size: 24px !important;
+}
+.prod-card-body {
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
+    gap: 6px;
+}
+.prod-card-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.1em;
+    word-break: break-word;
+    transition: color 0.2s ease;
+}
+.product-card:hover .prod-card-name {
+    color: #1d4ed8;
+}
+.prod-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    gap: 4px;
+}
+.prod-card-price {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #047857;
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
+.prod-card-add {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+.prod-card-add .mud-icon-root {
+    font-size: 15px !important;
+}
+.product-card:hover .prod-card-add {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    transform: scale(1.1);
+}
+.no-products {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 120px;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Right column: Action grid */
+.pos-bill-actions {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 6px;
+}
+.act-btn {
+height: 40px;
+border-radius: 4px;
+background-color: #0f172a; /* Dark Navy Blue */
+color: #ffffff;
+font-weight: 700;
+font-size: 0.8rem;
+border: 1px solid #1e293b;
+cursor: pointer;
+transition: all 0.2s;
+text-transform: capitalize;
+display: flex;
+align-items: center;
+justify-content: flex-start;
+padding: 0 8px;
+gap: 7px;
+overflow: hidden;
+}
+.act-btn:hover {
+background-color: #1e293b;
+border-color: #38bdf8;
+}
+.act-btn span:not(.btn-kbd) {
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+.hold-count-badge {
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    flex-shrink: 0;
+}
+.hold-count-badge.has-held {
+    background-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4);
+}
+.hold-count-badge.no-held {
+    background-color: #334155;
+    color: #94a3b8;
+}
+.btn-kbd {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+background: #1e293b;
+color: #38bdf8;
+border: 1px solid #334155;
+border-radius: 4px;
+font-size: 0.72rem;
+font-weight: 800;
+padding: 1px 5px;
+min-width: 27px;
+line-height: 1.2;
+font-family: Consolas, monospace, sans-serif;
+box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+flex-shrink: 0;
+}
+.act-btn:hover .hold-count-badge {
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    flex-shrink: 0;
+}
+.hold-count-badge.has-held {
+    background-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4);
+}
+.hold-count-badge.no-held {
+    background-color: #334155;
+    color: #94a3b8;
+}
+.btn-kbd {
+background: #38bdf8;
+color: #0f172a;
+border-color: #38bdf8;
+}
+
+/* Financial Summary display */
+.pos-totals-summary {
+background-color: #f8fafc;
+border: 1px solid #e2e8f0;
+border-radius: 6px;
+padding: 10px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+.summary-row {
+display: flex;
+justify-content: space-between;
+font-size: 0.9rem;
+color: #475569;
+}
+.summary-val {
+font-weight: 700;
+color: #0f172a;
+}
+.total-highlight {
+background-color: #bbf7d0; /* Soft green */
+border: 1px solid #86efac;
+padding: 8px;
+border-radius: 4px;
+margin-top: 4px;
+font-size: 1.2rem;
+color: #14532d;
+}
+.total-lbl {
+font-weight: 800;
+color: #14532d;
+}
+.total-val {
+font-weight: 800;
+font-size: 1.3rem;
+color: #15803d;
+}
+
+/* Payment Buttons */
+.pos-payment-actions {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+}
+.pay-btn {
+height: 50px;
+border-radius: 6px;
+font-weight: 800;
+font-size: 1rem;
+border: none;
+cursor: pointer;
+box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+transition: all 0.2s;
+color: #ffffff;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+}
+.pay-kbd {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+background: rgba(0, 0, 0, 0.25);
+color: #ffffff;
+border: 1px solid rgba(255, 255, 255, 0.4);
+border-radius: 4px;
+font-size: 0.78rem;
+font-weight: 800;
+padding: 2px 7px;
+min-width: 32px;
+line-height: 1.2;
+font-family: Consolas, monospace, sans-serif;
+box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+flex-shrink: 0;
+}
+.pay-cash {
+background-color: #ea580c; /* Orange */
+}
+.pay-cash:hover {
+background-color: #c2410c;
+}
+.pay-card {
+background-color: #2563eb; /* Blue */
+}
+.pay-card:hover {
+background-color: #1d4ed8;
+}
+
+/* Footer styling */
+.pos-footer {
+display: flex;
+align-items: center;
+height: 35px;
+background-color: #3b0712; /* Dark brown/maroon as in image */
+color: #cbd5e1;
+font-size: 0.8rem;
+padding: 0 16px;
+gap: 20px;
+}
+.foot-highlight {
+color: #ffffff;
+font-weight: bold;
+}
+.footer-spacer {
+flex-grow: 1;
+}
+.footer-time {
+color: #e2e8f0;
+font-weight: bold;
+}
+
+/* Number Pad Wrapper responsive styles */
+.pos-numpad-wrapper {
+display: block;
+width: 100%;
+}
+
+.pos-numpad-wrapper.numpad-hidden {
+display: none !important;
+}
+
+@@media (max-height: 820px) {
+.pos-numpad-wrapper {
+display: none;
+}
+.pos-numpad-wrapper.numpad-force-show {
+display: block !important;
+}
+}
+
+.icon-circle-btn.numpad-active {
+background-color: #1e3a8a !important;
+color: #ffffff !important;
+}
+
+/* Responsive layout controls */
+@@media (min-width: 769px) {
+    .pos-desktop-layout {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+    }
+    .pos-mobile-layout {
+        display: none !important;
+    }
+}
+
+@@media (max-width: 768px) {
+    .pos-desktop-layout {
+        display: none !important;
+    }
+    .pos-mobile-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100%;
+        background-color: #f8fafc;
+        position: relative;
+        overflow: hidden;
+    }
+}
+
+/* Mobile Header */
+.mob-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    gap: 8px;
+    min-height: 52px;
+}
+.mob-header-left {
+    display: flex;
+    align-items: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #1e3a8a;
+}
+.mob-header-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.mob-search-box {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 4px;
+    background-color: #f1f5f9;
+    border-radius: 20px;
+    padding: 2px 8px;
+    border: 1px solid #cbd5e1;
+}
+.mob-barcode-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    padding: 6px;
+    outline: none;
+}
+.mob-icon-btn {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mob-back-btn, .mob-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: #f1f5f9;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+}
+
+/* Mobile Small Category Group Buttons at Top */
+.mob-categories-scroll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    -webkit-overflow-scrolling: touch;
+}
+.mob-categories-scroll::-webkit-scrollbar {
+    display: none;
+}
+.mob-cat-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 14px 5px 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+.mob-cat-icon-wrap {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+.mob-cat-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.mob-cat-placeholder {
+    color: #64748b;
+    font-size: 15px !important;
+}
+.mob-cat-btn.active {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    color: #ffffff;
+    border-color: #1d4ed8;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+}
+.mob-cat-btn.active .mob-cat-icon-wrap {
+    background: rgba(255, 255, 255, 0.22);
+}
+.mob-cat-btn.active .mob-cat-placeholder {
+    color: #ffffff;
+}
+
+/* Mobile Products Grid */
+.mob-products-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+.mob-products-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+.mob-product-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    min-height: 58px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 12px;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    transition: transform 0.15s, border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+    gap: 12px;
+}
+.mob-prod-media {
+    width: 44px;
+    height: 44px;
+    border-radius: 9px;
+    flex-shrink: 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mob-prod-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.mob-prod-placeholder {
+    color: #94a3b8;
+    font-size: 22px !important;
+}
+.mob-product-card:active {
+    transform: scale(0.98);
+    border-color: #86efac;
+    background-color: #f0fdf4;
+}
+.mob-prod-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+    min-width: 0;
+}
+.mob-prod-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+.mob-prod-code {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 500;
+}
+.mob-prod-end {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.mob-prod-rate {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #047857;
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.mob-prod-add {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dbeafe;
+}
+.mob-prod-add .mud-icon-root {
+    font-size: 16px !important;
+}
+.mob-no-products {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 120px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Mobile Products Pagination */
+.mob-products-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 8px 8px;
+    font-size: 0.75rem;
+}
+.mob-page-info {
+    color: #64748b;
+    font-weight: 600;
+}
+.mob-page-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mob-page-nav-btn {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #334155;
+    cursor: pointer;
+}
+.mob-page-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.mob-page-num {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Mobile Bottom Bar (Cart Summary + Next Button) */
+.mob-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    gap: 12px;
+}
+.mob-cart-summary-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    flex-grow: 1;
+}
+.mob-cart-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background-color: #eff6ff;
+    border-radius: 50%;
+    color: #2563eb;
+}
+.mob-cart-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+}
+.mob-cart-text-group {
+    display: flex;
+    flex-direction: column;
+}
+.mob-cart-count {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+}
+.mob-cart-total {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+.mob-next-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 20px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.mob-next-btn:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+}
+
+/* Mobile Cart List (Page 2) */
+.mob-cart-list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+.mob-empty-cart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: #64748b;
+}
+.mob-add-prod-btn {
+    padding: 8px 16px;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.mob-cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mob-cart-item-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+.mob-cart-item-info {
+    flex-grow: 1;
+    padding-right: 8px;
+}
+.mob-item-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #0f172a;
+}
+.mob-item-rate-unit {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+.mob-highlight-rate {
+    font-weight: 700;
+    color: #2563eb;
+}
+.mob-cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mob-qty-control {
+    display: flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.mob-qty-btn {
+    width: 28px;
+    height: 28px;
+    background-color: #f1f5f9;
+    border: none;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #334155;
+    cursor: pointer;
+}
+.mob-qty-val {
+    padding: 0 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.mob-item-total {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #0f172a;
+    min-width: 60px;
+    text-align: right;
+}
+.mob-item-delete {
+    border: none;
+    background: transparent;
+    color: #ef4444;
+    cursor: pointer;
+}
+
+/* Summary Section (Page 2) */
+.mob-summary-section {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.mob-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.mob-summary-total-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #dcfce7;
+    border: 1px solid #86efac;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 6px;
+}
+.mob-total-label {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #14532d;
+}
+.mob-total-amount {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #15803d;
+}
+
+/* Mobile Payment Footer Buttons */
+.mob-payment-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+}
+.mob-pay-btn {
+    height: 48px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1rem;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.mob-pay-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.mob-pay-cash {
+    background-color: #ea580c; /* Orange */
+}
+.mob-pay-cash:hover {
+    background-color: #c2410c;
+}
+.mob-pay-card {
+    background-color: #2563eb; /* Blue */
+}
+.mob-pay-card:hover {
+    background-color: #1d4ed8;
+}
+</style>
