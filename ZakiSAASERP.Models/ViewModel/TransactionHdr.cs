@@ -15,6 +15,7 @@ public class TransactionHdr
     public decimal? Freight { get; set; }
     public decimal? AdditionalDiscPertge { get; set; }
     public decimal? AdditionalDiscAmnt { get; set; }
+    public int AdditionalDiscountType { get; set; } = 1;
     public decimal GrandTotal { get; set; }
     public decimal TotalQuantity { get; set; }
     public string? Remarks { get; set; }

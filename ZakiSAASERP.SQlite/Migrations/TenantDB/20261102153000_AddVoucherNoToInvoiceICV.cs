@@ -26,7 +26,7 @@ namespace ZakiSAASERP.SQlite.Migrations.TenantDB
                 name: "VoucherNo",
                 table: "InvoiceICV");
 
-
+        }
     }
 }
 

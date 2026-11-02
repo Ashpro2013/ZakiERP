@@ -444,6 +444,8 @@ public class ZatcaRepo : IZatcaRepo
                     (!string.IsNullOrEmpty(invoiceICV.VoucherNo) && x.SalesInvoiceNo == invoiceICV.VoucherNo) ||
                     x.SalesInvoiceId == invoiceICV.InvoiceICVId);
                 var entTransactions = await db.SalesInvoiceDtls.Where(x => x.FK_SalesInvoiceHdrId == entsaleshdr.SalesInvoiceId).ToListAsync();
+                var lineDiscount = entTransactions.Sum(x => x.DiscountAmnt);
+                if (lineDiscount > 0) { entsaleshdr.AdditionalDiscAmnt = 0; }
                 return await UploadSales(db, entsaleshdr, entTransactions, company);
             }
             else

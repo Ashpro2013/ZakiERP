@@ -154,6 +154,8 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
                     return new OutputResponse(headerId, "Already uploaded the zatca e-invoice!", hdr);
                 }
                 bool IsCash = hdr.BillType == "Cash" ? true : false;
+                var lineDiscount = dtls.Sum(x => x.DiscountAmnt);
+                if (lineDiscount > 0) { tHdr.AdditionalDiscAmnt = 0; }
                 var response = await _zService.UploadZatcaInvoice(tHdr, dtls, entity.CompanyDetails, customer, voucherType, isUpload, IsCash);
                 try
                 {

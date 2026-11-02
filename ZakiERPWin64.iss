@@ -3,7 +3,7 @@
 ; Non-commercial use only.
 
 #define MyAppName "Zaki ERP"
-#define MyAppVersion "26.11.01"
+#define MyAppVersion "26.11.02"
 #define MyAppPublisher "Ashpro Technology"
 #define MyAppURL "https://www.ashprotechnology.com/"
 #define MyAppExeName "ZakiSAASERP.Desk.exe"
@@ -37,9 +37,9 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
-OutputDir=D:\AshproSAAS\Output
+OutputDir=D:\ZakiERP Project\Output
 OutputBaseFilename=ZakiERPSetup
-SetupIconFile=D:\AshproSAAS\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\appicon.ico
+SetupIconFile=D:\ZakiERP Project\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\appicon.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -50,8 +50,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\AshproSAAS\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\AshproSAAS\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\ZakiERP Project\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\ZakiERP Project\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files.
 
 [Registry]
