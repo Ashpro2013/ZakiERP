@@ -98,6 +98,10 @@ public partial class POSView : ITabAware, IDisposable
     private void HandleSettingsChanged()
     {
         posSettings = PosSettingsService.CurrentSettings;
+        if (!posSettings.ShowCategoryPanel)
+        {
+            selectedCategory = null;
+        }
         _productPage = 1;
         InvokeAsync(StateHasChanged);
     }
@@ -1439,6 +1443,10 @@ public partial class POSView : ITabAware, IDisposable
         if (!result.Canceled && result.Data is POSSettings updatedSettings)
         {
             posSettings = updatedSettings;
+            if (!posSettings.ShowCategoryPanel)
+            {
+                selectedCategory = null;
+            }
             _productPage = 1;
             await PosSettingsService.SaveSettingsAsync(posSettings);
             if (posSettings.ShowNumPadByDefault && !_isShortScreen)

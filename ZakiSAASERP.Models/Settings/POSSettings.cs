@@ -21,6 +21,7 @@ public class POSSettings
 
     #region Layout & Sizing
     // Category Panel
+    public bool ShowCategoryPanel { get; set; } = true;
     public int CategoryPanelWidth { get; set; } = 108; // px (range: 70 - 240)
     public int CategoryButtonHeight { get; set; } = 64; // px (range: 45 - 120)
     public int CategoryIconSize { get; set; } = 36; // px (range: 20 - 60)

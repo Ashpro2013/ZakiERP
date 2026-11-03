@@ -90,7 +90,9 @@
                 <div class="pos-grid-section" style="@($"height: {100 - posSettings.ProductAreaHeight}%;")">
 
                     @* Category Vertical Tabs *@
-                    <div class="pos-category-tabs" style="@($"width: {posSettings.CategoryPanelWidth}px; min-width: {posSettings.CategoryPanelWidth}px;")">
+                    @if (posSettings.ShowCategoryPanel)
+                    {
+                        <div class="pos-category-tabs" style="@($"width: {posSettings.CategoryPanelWidth}px; min-width: {posSettings.CategoryPanelWidth}px;")">
                         @if (categories != null)
                         {
                             @foreach (var cat in categories)
@@ -119,6 +121,7 @@
                             }
                         }
                     </div>
+                    }
 
                 @* The Datagrid (MudTable) *@
                 <div class="pos-table-wrapper">
@@ -591,7 +594,9 @@
             </div>
 
             @* Small group / category buttons at the top *@
-            <div class="mob-categories-scroll">
+            @if (posSettings.ShowCategoryPanel)
+            {
+                <div class="mob-categories-scroll">
                 @if (categories != null)
                 {
                     @foreach (var cat in categories)
@@ -615,6 +620,7 @@
                     }
                 }
             </div>
+            }
 
             @* Products grid with rates *@
             <div class="mob-products-container">

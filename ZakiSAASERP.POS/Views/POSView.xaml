@@ -1,4 +1,4 @@
-<UserControl x:Class="ZakiSAASERP.POS.Views.POSView"
+﻿<UserControl x:Class="ZakiSAASERP.POS.Views.POSView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -410,16 +410,27 @@
                 <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,0,6">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding Settings.CategoryPanelWidth}" />
-                            <!-- Categories Strip -->
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition>
+                                <ColumnDefinition.Style>
+                                    <Style TargetType="ColumnDefinition">
+                                        <Setter Property="Width" Value="{Binding Settings.CategoryPanelWidth}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Settings.ShowCategoryPanel}" Value="False">
+                                                <Setter Property="Width" Value="0" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ColumnDefinition.Style>
+                            </ColumnDefinition>
                             <!-- DataGrid -->
-                            <ColumnDefinition Width="46" />
+                            <ColumnDefinition Width="*" />
                             <!-- Vertical Action Buttons -->
+                            <ColumnDefinition Width="46" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Category Vertical Tab Strip -->
-                        <Border Grid.Column="0" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="0,0,6,0">
+                        <Border Grid.Column="0" BorderBrush="#E2E8F0" BorderThickness="0,0,1,0" Padding="0,0,6,0"
+                                Visibility="{Binding Settings.ShowCategoryPanel, Converter={StaticResource BoolToVisibilityConverter}}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding Categories}">
                                     <ItemsControl.ItemTemplate>

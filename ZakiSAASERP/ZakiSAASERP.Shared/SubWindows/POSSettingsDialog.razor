@@ -251,42 +251,53 @@
                                     <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Category Navigation Panel</MudText>
                                 </div>
 
-                                <div class="slider-control mb-3">
-                                    <div class="d-flex justify-space-between align-center mb-1">
-                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Panel Width</MudText>
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryPanelWidth)px</MudChip>
-                                    </div>
-                                    <MudSlider @bind-Value="Model.CategoryPanelWidth" Min="70" Max="220" Step="2" Color="Color.Primary" />
+                                <div class="column-card @(Model.ShowCategoryPanel ? "card-active" : "") mb-3">
+                                    <MudSwitch @bind-Value="Model.ShowCategoryPanel"
+                                               Color="Color.Primary"
+                                               Label="Show Product Category Panel"
+                                               T="bool" />
+                                    <span class="card-caption">Display category vertical navigation tabs in POS</span>
                                 </div>
 
-                                <div class="slider-control mb-3">
-                                    <div class="d-flex justify-space-between align-center mb-1">
-                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Button Height</MudText>
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryButtonHeight)px</MudChip>
+                                @if (Model.ShowCategoryPanel)
+                                {
+                                    <div class="slider-control mb-3">
+                                        <div class="d-flex justify-space-between align-center mb-1">
+                                            <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Panel Width</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryPanelWidth)px</MudChip>
+                                        </div>
+                                        <MudSlider @bind-Value="Model.CategoryPanelWidth" Min="70" Max="220" Step="2" Color="Color.Primary" />
                                     </div>
-                                    <MudSlider @bind-Value="Model.CategoryButtonHeight" Min="45" Max="110" Step="2" Color="Color.Primary" />
-                                </div>
 
-                                <div class="slider-control mb-3">
-                                    <div class="d-flex justify-space-between align-center mb-1">
-                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Icon / Image Size</MudText>
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryIconSize)px</MudChip>
+                                    <div class="slider-control mb-3">
+                                        <div class="d-flex justify-space-between align-center mb-1">
+                                            <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Button Height</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryButtonHeight)px</MudChip>
+                                        </div>
+                                        <MudSlider @bind-Value="Model.CategoryButtonHeight" Min="45" Max="110" Step="2" Color="Color.Primary" />
                                     </div>
-                                    <MudSlider @bind-Value="Model.CategoryIconSize" Min="20" Max="56" Step="2" Color="Color.Primary" />
-                                </div>
 
-                                <div class="slider-control mb-3">
-                                    <div class="d-flex justify-space-between align-center mb-1">
-                                        <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Font Size</MudText>
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryFontSize)px</MudChip>
+                                    <div class="slider-control mb-3">
+                                        <div class="d-flex justify-space-between align-center mb-1">
+                                            <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Icon / Image Size</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryIconSize)px</MudChip>
+                                        </div>
+                                        <MudSlider @bind-Value="Model.CategoryIconSize" Min="20" Max="56" Step="2" Color="Color.Primary" />
                                     </div>
-                                    <MudSlider @bind-Value="Model.CategoryFontSize" Min="9" Max="16" Step="1" Color="Color.Primary" />
-                                </div>
 
-                                <MudSwitch @bind-Value="Model.ShowCategoryImages"
-                                           Color="Color.Primary"
-                                           Label="Show Category Images/Icons"
-                                           T="bool" />
+                                    <div class="slider-control mb-3">
+                                        <div class="d-flex justify-space-between align-center mb-1">
+                                            <MudText Typo="Typo.caption" Style="font-weight: 600;">Category Font Size</MudText>
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.CategoryFontSize)px</MudChip>
+                                        </div>
+                                        <MudSlider @bind-Value="Model.CategoryFontSize" Min="9" Max="16" Step="1" Color="Color.Primary" />
+                                    </div>
+
+                                    <MudSwitch @bind-Value="Model.ShowCategoryImages"
+                                               Color="Color.Primary"
+                                               Label="Show Category Images/Icons"
+                                               T="bool" />
+                                }
                             </div>
                         </MudItem>
 

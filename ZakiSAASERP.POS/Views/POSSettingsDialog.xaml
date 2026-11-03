@@ -270,23 +270,32 @@
                                     <StackPanel>
                                         <TextBlock Text="Category Navigation Panel" FontSize="14" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,10" />
 
-                                        <!-- Panel Width Slider -->
-                                        <TextBlock Text="{Binding Model.CategoryPanelWidth, StringFormat='Category Panel Width: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
-                                        <Slider Minimum="70" Maximum="220" Value="{Binding Model.CategoryPanelWidth, Mode=TwoWay}" SmallChange="2" LargeChange="10" Margin="0,4,0,12" />
+                                        <Border Style="{StaticResource SettingCard}" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <CheckBox Content="Show Product Category Panel" IsChecked="{Binding Model.ShowCategoryPanel, Mode=TwoWay}" Style="{StaticResource SettingCardCheckBox}" />
+                                                <TextBlock Text="Display category vertical navigation tabs in POS" FontSize="11" Foreground="#94A3B8" />
+                                            </StackPanel>
+                                        </Border>
 
-                                        <!-- Button Height Slider -->
-                                        <TextBlock Text="{Binding Model.CategoryButtonHeight, StringFormat='Button Height: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
-                                        <Slider Minimum="45" Maximum="110" Value="{Binding Model.CategoryButtonHeight, Mode=TwoWay}" SmallChange="2" LargeChange="10" Margin="0,4,0,12" />
+                                        <StackPanel Visibility="{Binding Model.ShowCategoryPanel, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <!-- Panel Width Slider -->
+                                            <TextBlock Text="{Binding Model.CategoryPanelWidth, StringFormat='Category Panel Width: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
+                                            <Slider Minimum="70" Maximum="220" Value="{Binding Model.CategoryPanelWidth, Mode=TwoWay}" SmallChange="2" LargeChange="10" Margin="0,4,0,12" />
 
-                                        <!-- Icon Size Slider -->
-                                        <TextBlock Text="{Binding Model.CategoryIconSize, StringFormat='Icon Size: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
-                                        <Slider Minimum="20" Maximum="56" Value="{Binding Model.CategoryIconSize, Mode=TwoWay}" SmallChange="2" LargeChange="6" Margin="0,4,0,12" />
+                                            <!-- Button Height Slider -->
+                                            <TextBlock Text="{Binding Model.CategoryButtonHeight, StringFormat='Button Height: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
+                                            <Slider Minimum="45" Maximum="110" Value="{Binding Model.CategoryButtonHeight, Mode=TwoWay}" SmallChange="2" LargeChange="10" Margin="0,4,0,12" />
 
-                                        <!-- Font Size Slider -->
-                                        <TextBlock Text="{Binding Model.CategoryFontSize, StringFormat='Font Size: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
-                                        <Slider Minimum="9" Maximum="16" Value="{Binding Model.CategoryFontSize, Mode=TwoWay}" SmallChange="1" LargeChange="2" Margin="0,4,0,12" />
+                                            <!-- Icon Size Slider -->
+                                            <TextBlock Text="{Binding Model.CategoryIconSize, StringFormat='Icon Size: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
+                                            <Slider Minimum="20" Maximum="56" Value="{Binding Model.CategoryIconSize, Mode=TwoWay}" SmallChange="2" LargeChange="6" Margin="0,4,0,12" />
 
-                                        <CheckBox Content="Show Category Images / Icons" IsChecked="{Binding Model.ShowCategoryImages, Mode=TwoWay}" Style="{StaticResource SettingCardCheckBox}" Margin="0,4,0,0" />
+                                            <!-- Font Size Slider -->
+                                            <TextBlock Text="{Binding Model.CategoryFontSize, StringFormat='Font Size: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
+                                            <Slider Minimum="9" Maximum="16" Value="{Binding Model.CategoryFontSize, Mode=TwoWay}" SmallChange="1" LargeChange="2" Margin="0,4,0,12" />
+
+                                            <CheckBox Content="Show Category Images / Icons" IsChecked="{Binding Model.ShowCategoryImages, Mode=TwoWay}" Style="{StaticResource SettingCardCheckBox}" Margin="0,4,0,0" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 

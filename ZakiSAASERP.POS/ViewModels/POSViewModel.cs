@@ -1,4 +1,4 @@
-using ZakiSAASERP.Interface.Transaction.Sales;
+﻿using ZakiSAASERP.Interface.Transaction.Sales;
 using ZakiSAASERP.Models.Company;
 using ZakiSAASERP.Models.DTO;
 using ZakiSAASERP.Models.Masters;
@@ -190,6 +190,11 @@ public partial class POSViewModel : ObservableObject
         _settingsService.OnSettingsChanged += () =>
         {
             Settings = _settingsService.CurrentSettings;
+            if (!Settings.ShowCategoryPanel)
+            {
+                SelectedCategory = null;
+                FilterProducts();
+            }
             ShowNumPad = Settings.ShowNumPadByDefault;
             OnPropertyChanged(nameof(Settings));
         };
@@ -1332,6 +1337,11 @@ public partial class POSViewModel : ObservableObject
             if (saved)
             {
                 Settings = _settingsService.CurrentSettings;
+                if (!Settings.ShowCategoryPanel)
+                {
+                    SelectedCategory = null;
+                    FilterProducts();
+                }
                 ShowNumPad = Settings.ShowNumPadByDefault;
                 OnPropertyChanged(nameof(Settings));
             }

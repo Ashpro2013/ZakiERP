@@ -6,6 +6,8 @@ namespace ZakiSAASERP.POS.Views;
 
 public partial class CustomerDisplayWindow : Window
 {
+    public bool AllowClose { get; set; } = false;
+
     public CustomerDisplayWindow(CustomerDisplayViewModel viewModel)
     {
         InitializeComponent();
@@ -30,9 +32,14 @@ public partial class CustomerDisplayWindow : Window
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        // Don't destroy window on close, hide it so service can re-show cleanly
+        if (AllowClose)
+        {
+            base.OnClosing(e);
+            return;
+        }
+
+        // Don't destroy window on user close, hide it so service can re-show cleanly
         e.Cancel = true;
         Hide();
     }
 }
-
