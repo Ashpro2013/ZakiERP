@@ -12,7 +12,7 @@ public class CustomerDisplayService : ICustomerDisplayService
     private CustomerDisplayWindow? _window;
     private CustomerDisplayViewModel? _viewModel;
 
-    public bool IsOpen => _window != null && _window.IsVisible;
+    public bool IsOpen => _window != null && _window.IsLoaded && _window.IsVisible;
 
     public CustomerDisplayService(IServiceProvider serviceProvider)
     {
@@ -23,10 +23,22 @@ public class CustomerDisplayService : ICustomerDisplayService
     {
         Application.Current?.Dispatcher.Invoke(() =>
         {
+            if (_window != null && !_window.IsLoaded)
+            {
+                _window = null;
+                _viewModel = null;
+            }
+
             if (_window == null)
             {
                 _viewModel = _serviceProvider.GetRequiredService<CustomerDisplayViewModel>();
                 _window = new CustomerDisplayWindow(_viewModel);
+
+                _window.Closed += (s, e) =>
+                {
+                    _window = null;
+                    _viewModel = null;
+                };
 
                 // Detect secondary monitor
                 if (SystemParameters.VirtualScreenWidth > SystemParameters.PrimaryScreenWidth)
@@ -39,6 +51,10 @@ public class CustomerDisplayService : ICustomerDisplayService
             }
 
             _window.Show();
+            if (_window.WindowState == WindowState.Minimized)
+            {
+                _window.WindowState = WindowState.Normal;
+            }
             _window.Activate();
         });
 

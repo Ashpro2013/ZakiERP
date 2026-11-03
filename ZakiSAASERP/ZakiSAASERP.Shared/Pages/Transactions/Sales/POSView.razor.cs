@@ -1647,10 +1647,26 @@ public partial class POSView : ITabAware, IDisposable
             if (AppData.IsMaui)
             {
                 await CustomerDisplay.OpenAsync();
+                var items = entTransactions.Select(x => new SaleItem
+                {
+                    ItemName = x.ItemName,
+                    Qty = x.Quantity,
+                    Rate = x.InRate > 0 ? x.InRate : x.ExRate,
+                    Total = x.LineTotal,
+                }).ToList();
+                await CustomerDisplay.UpdateAsync(new CustomerDisplayDto { Items = items });
             }
             else
             {
                 await js.InvokeVoidAsync("customerDisplay.openWindow");
+                var items = entTransactions.Select(x => new SaleItem
+                {
+                    ItemName = x.ItemName,
+                    Qty = x.Quantity,
+                    Rate = x.InRate > 0 ? x.InRate : x.ExRate,
+                    Total = x.LineTotal,
+                }).ToList();
+                await SendCustomerDisplay(items);
             }
         }
         catch (Exception ex)
