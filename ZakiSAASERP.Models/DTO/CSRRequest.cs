@@ -24,7 +24,7 @@ namespace ZakiSAASERP.Models.DTO
         public string BusinessCategory { get; set; } = string.Empty;
         public string InvoiceType { get; set; } = string.Empty;
         [Required(ErrorMessage = "Zatca Mode Required")]
-        public string CSRGenerationType { get; set; } = "Developer";
+        public string CSRGenerationType { get; set; } = "Production";
         public CompanyDetails company { get; set; }
     }
 

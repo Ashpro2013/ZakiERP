@@ -21,6 +21,12 @@ public class UblInvoiceBuilder
 
         var issueDate = invoice.IssueDate.Year >= 2000 ? invoice.IssueDate : DateTime.Now;
 
+        decimal lineExtensionTotal = invoice.Lines?.Sum(l => l.LineTotal) ?? 0;
+        decimal allowanceTotal = invoice.Allowances?.Where(a => !a.ChargeIndicator).Sum(a => a.Amount) ?? 0;
+        decimal chargeTotal = invoice.Allowances?.Where(a => a.ChargeIndicator).Sum(a => a.Amount) ?? 0;
+        decimal taxExclusiveAmount = lineExtensionTotal - allowanceTotal + chargeTotal;
+        decimal taxInclusiveAmount = taxExclusiveAmount + invoice.VatAmount;
+
         var doc = new XDocument(
             new XElement(UblNamespaces.invoice + "Invoice",
                 new XAttribute(XNamespace.Xmlns + "cac", cac),
@@ -104,14 +110,14 @@ public class UblInvoiceBuilder
                 // =============================
                 invoice.Allowances.Select(allowance =>
                     new XElement(cac + "AllowanceCharge",
-                        new XElement(cbc + "ChargeIndicator", allowance.ChargeIndicator),
+                        new XElement(cbc + "ChargeIndicator", allowance.ChargeIndicator ? "true" : "false"),
                         new XElement(cbc + "AllowanceChargeReason", allowance.Reason),
                         new XElement(cbc + "Amount",
                             new XAttribute("currencyID", "SAR"),
                             allowance.Amount.ToString("0.00")),
                          new XElement(cac + "TaxCategory",
                                 new XElement(cbc + "ID", allowance.TaxCategory),
-                                new XElement(cbc + "Percent", allowance.TaxRate),
+                                new XElement(cbc + "Percent", allowance.TaxRate.ToString("0.00")),
                                 new XElement(cac + "TaxScheme",
                                     new XElement(cbc + "ID", "VAT")))
                     )),
@@ -134,7 +140,7 @@ public class UblInvoiceBuilder
                     new XElement(cac + "TaxSubtotal",
                         new XElement(cbc + "TaxableAmount",
                             new XAttribute("currencyID", "SAR"),
-                            (invoice.TotalAmount - invoice.VatAmount).ToString("0.00")),
+                            taxExclusiveAmount.ToString("0.00")),
                         new XElement(cbc + "TaxAmount",
                             new XAttribute("currencyID", "SAR"),
                             invoice.VatAmount.ToString("0.00")),
@@ -150,16 +156,22 @@ public class UblInvoiceBuilder
                 new XElement(cac + "LegalMonetaryTotal",
                     new XElement(cbc + "LineExtensionAmount",
                         new XAttribute("currencyID", "SAR"),
-                        (invoice.TotalAmount - invoice.VatAmount).ToString("0.00")),
+                        lineExtensionTotal.ToString("0.00")),
                     new XElement(cbc + "TaxExclusiveAmount",
                         new XAttribute("currencyID", "SAR"),
-                        (invoice.TotalAmount - invoice.VatAmount).ToString("0.00")),
+                        taxExclusiveAmount.ToString("0.00")),
                     new XElement(cbc + "TaxInclusiveAmount",
                         new XAttribute("currencyID", "SAR"),
-                        invoice.TotalAmount.ToString("0.00")),
+                        taxInclusiveAmount.ToString("0.00")),
+                    allowanceTotal > 0 ? new XElement(cbc + "AllowanceTotalAmount",
+                        new XAttribute("currencyID", "SAR"),
+                        allowanceTotal.ToString("0.00")) : null,
+                    chargeTotal > 0 ? new XElement(cbc + "ChargeTotalAmount",
+                        new XAttribute("currencyID", "SAR"),
+                        chargeTotal.ToString("0.00")) : null,
                     new XElement(cbc + "PayableAmount",
                         new XAttribute("currencyID", "SAR"),
-                        invoice.TotalAmount.ToString("0.00"))),
+                        taxInclusiveAmount.ToString("0.00"))),
 
                 // =============================
                 // Invoice Lines

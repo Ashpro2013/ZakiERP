@@ -9,7 +9,7 @@ public class MasterValueRepo(IDbContextProvider contextProvider) : IMasterValueR
         await using var db = contextProvider.CreateDbContext();
         try
         {
-            var exist = await db.MasterValues.FirstOrDefaultAsync(x => x.MasterType == value.MasterType && x.BranchId == value.BranchId);
+            var exist = await db.MasterValues.OrderBy(y=> y.Id).LastOrDefaultAsync(x => x.MasterType == value.MasterType && x.BranchId == value.BranchId);
             if(exist != null)
             {
                 exist.FieldOne = value.FieldOne;

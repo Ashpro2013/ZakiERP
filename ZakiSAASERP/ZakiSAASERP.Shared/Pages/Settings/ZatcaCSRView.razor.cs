@@ -26,12 +26,12 @@ namespace ZakiSAASERP.Shared.Pages.Settings
             csrModel = new CSRRequest
             {
                 CountryCode = "SA",
-                CSRGenerationType = PermanentSettingsData.ZatcaConnection,
-                OTP = "123456",
+                CSRGenerationType = !string.IsNullOrWhiteSpace(PermanentSettingsData.ZatcaConnection) ? PermanentSettingsData.ZatcaConnection : "Production",
+                OTP = PermanentSettingsData.ZatcaConnection == "Developer" ? "123456" : "",
                 CommonName = $"{AppData.CompanyDetails?.Name ?? "TST"}-{AppData.CompanyDetails?.IdentificationNo ?? "2050012095"}-{AppData.CompanyDetails?.VatNo ?? "300000134310003"}",
                 Organization = AppData.CompanyDetails?.Name ?? "TST",
                 UnitName = AppData.CompanyDetails?.IdentificationNo ?? "2050012095",
-                SerialNumber = $"1-{AppData.CompanyDetails?.Name ?? "TST"}|2-{AppData.CompanyDetails?.IdentificationNo ?? "2050012095"}|3-f60f4518-72dc-45a1-a053-3899788b42d0",
+                SerialNumber = $"1-{AppData.CompanyDetails?.Name ?? "TST"}|2-{AppData.CompanyDetails?.IdentificationNo ?? "2050012095"}|3-{Guid.NewGuid():D}",
                 OrganizationIdentifier = AppData.CompanyDetails?.VatNo ?? "300000134310003",
                 Location = AppData.CompanyDetails?.City ?? "Riyadh",
                 BusinessCategory =  "Supply chain",
@@ -104,14 +104,14 @@ namespace ZakiSAASERP.Shared.Pages.Settings
                 var response = await api.AddNewCSR(csrResponse);
                 if (string.IsNullOrEmpty(response?.Message))
                 {
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                   await Dialog.DialogMethod(Localizer("SaveMessage"));
                 }
                 else
-                    Dialog.DialogMethod(response.Message);
+                   await Dialog.DialogMethod(response.Message);
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod($"Error saving details: {ex.Message}");
+                await Dialog.DialogMethod($"Error saving details: {ex.Message}");
             }
         }
 

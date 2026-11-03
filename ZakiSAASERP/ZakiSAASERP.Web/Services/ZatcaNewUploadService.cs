@@ -108,7 +108,7 @@ public class ZatcaNewUploadService(
             invoice.PaymentInstruction = "Payment Notes";
 
             // Allowances (Invoice Level Discount)
-            decimal invoiceDiscount = Convert.ToDecimal(master.AdditionalDiscAmnt);
+            decimal invoiceDiscount = Convert.ToDecimal(master.AdditionalDiscAmnt ?? 0);
             if (invoiceDiscount > 0)
             {
                 invoice.Allowances.Add(new Allowance
@@ -129,20 +129,41 @@ public class ZatcaNewUploadService(
             decimal totalAmount = 0;
             decimal totalVat = 0;
 
+            decimal totalGross = transactions.Sum(x => Convert.ToDecimal(x.Quantity) * Convert.ToDecimal(x.ExRate));
+            bool isDistributed = invoiceDiscount > 0 && master.AdditionalDiscountType != 3 && totalGross > 0;
+            decimal allocatedAddDisc = 0;
+            int itemIndex = 0;
+
             foreach (var item in transactions)
             {
+                itemIndex++;
                 var line = new InvoiceLine();
                 line.Description = item.ItemName!;
                 line.Quantity = Convert.ToDecimal(item.Quantity);
                 line.UnitPrice = Convert.ToDecimal(item.ExRate);
 
                 decimal discountVal = Convert.ToDecimal(item.DiscountAmnt);
+                if (isDistributed)
+                {
+                    decimal itemGross = line.UnitPrice * line.Quantity;
+                    decimal itemAddDisc;
+                    if (itemIndex == transactions.Count)
+                    {
+                        itemAddDisc = invoiceDiscount - allocatedAddDisc;
+                    }
+                    else
+                    {
+                        itemAddDisc = Math.Round((itemGross / totalGross) * invoiceDiscount, 2, MidpointRounding.AwayFromZero);
+                        allocatedAddDisc += itemAddDisc;
+                    }
+                    discountVal = Math.Max(0, discountVal - itemAddDisc);
+                }
                 line.DiscountAmount = discountVal;
 
                 // VAT
                 line.VatRate = Convert.ToDecimal(item.TaxPerc);
                 line.VatAmount = Convert.ToDecimal(item.TaxAmount);
-                line.TaxCategory = item.TaxAmount == 0 ? "Z" : "S"; // Basic logic, refine if needed
+                line.TaxCategory = item.TaxAmount == 0 ? "Z" : "S";
 
                 if (item.TaxAmount == 0)
                 {
@@ -158,9 +179,6 @@ public class ZatcaNewUploadService(
                     }
                 }
 
-                // LineTotal (Tax Exclusive usually, checks logic)
-                // Original: ProductPrice * Quantity - Discount
-                // UBL Builder expects LineExtensionAmount which is Net.
                 line.LineTotal = (line.UnitPrice * line.Quantity) - line.DiscountAmount;
 
                 totalAmount += line.LineTotal + line.VatAmount;
@@ -169,8 +187,8 @@ public class ZatcaNewUploadService(
                 invoice.Lines.Add(line);
             }
 
-            invoice.TotalAmount = totalAmount; // Inclusive
-            invoice.VatAmount = totalVat;
+            invoice.TotalAmount = Convert.ToDecimal(master.GrandTotal > 0 ? master.GrandTotal : totalAmount);
+            invoice.VatAmount = Convert.ToDecimal(master.TaxTotal > 0 ? master.TaxTotal : totalVat);
 
             // Submit
             var request = new ZatcaInvoiceRequest
