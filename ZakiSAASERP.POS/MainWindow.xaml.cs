@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using ZakiSAASERP.POS.ViewModels;
 using ZakiSAASERP.POS.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,6 +78,12 @@ public partial class MainWindow : Window
         catch
         {
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        Application.Current?.Shutdown();
     }
 
 

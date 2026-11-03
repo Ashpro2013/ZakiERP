@@ -17,6 +17,17 @@ public class CustomerDisplayService : ICustomerDisplayService
     public CustomerDisplayService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+        if (Application.Current != null)
+        {
+            Application.Current.Exit += (s, e) =>
+            {
+                if (_window != null)
+                {
+                    _window.AllowClose = true;
+                    _window.Close();
+                }
+            };
+        }
     }
 
     public Task OpenAsync()
