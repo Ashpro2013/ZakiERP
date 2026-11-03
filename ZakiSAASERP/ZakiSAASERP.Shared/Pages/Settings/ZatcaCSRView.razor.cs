@@ -26,7 +26,7 @@ namespace ZakiSAASERP.Shared.Pages.Settings
             csrModel = new CSRRequest
             {
                 CountryCode = "SA",
-                CSRGenerationType = !string.IsNullOrWhiteSpace(PermanentSettingsData.ZatcaConnection) ? PermanentSettingsData.ZatcaConnection : "Production",
+                CSRGenerationType = PermanentSettingsData.ZatcaConnection,
                 OTP = PermanentSettingsData.ZatcaConnection == "Developer" ? "123456" : "",
                 CommonName = $"{AppData.CompanyDetails?.Name ?? "TST"}-{AppData.CompanyDetails?.IdentificationNo ?? "2050012095"}-{AppData.CompanyDetails?.VatNo ?? "300000134310003"}",
                 Organization = AppData.CompanyDetails?.Name ?? "TST",

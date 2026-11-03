@@ -140,21 +140,18 @@ public class ZatcaEngine : IZatcaEngine
             {
                 var issuer = cert.Issuer ?? "";
                 if (issuer.Contains("TSTZATCA", StringComparison.OrdinalIgnoreCase) ||
-                    issuer.Contains("TST-", StringComparison.OrdinalIgnoreCase) ||
-                    issuer.Contains("eInvoicing", StringComparison.OrdinalIgnoreCase))
+                    issuer.Contains("TST-", StringComparison.OrdinalIgnoreCase))
                 {
                     // Certificate was issued by Developer Portal CA
                     env = EnvironmentType.Developer;
                 }
                 else if (issuer.Contains("PREZATCA", StringComparison.OrdinalIgnoreCase) ||
-                         issuer.Contains("PRE-", StringComparison.OrdinalIgnoreCase) ||
-                         issuer.Contains("TSZEINVOICE", StringComparison.OrdinalIgnoreCase))
+                         issuer.Contains("PRE-", StringComparison.OrdinalIgnoreCase))
                 {
                     // Certificate was issued by Simulation CA
                     env = EnvironmentType.Simulation;
                 }
-                else if (issuer.Contains("ZATCA-Code-Signing", StringComparison.OrdinalIgnoreCase) ||
-                         issuer.Contains("PEZEINVOICESCA", StringComparison.OrdinalIgnoreCase))
+                else if (issuer.Contains("ZATCA-Code-Signing", StringComparison.OrdinalIgnoreCase))
                 {
                     // Certificate was issued by Production CA
                     env = EnvironmentType.Production;
@@ -173,16 +170,6 @@ public class ZatcaEngine : IZatcaEngine
                         }
                     }
                 }
-            }
-
-            var configuredEnv = ParseEnvironment(request.Environment);
-            if (env == EnvironmentType.Developer && configuredEnv == EnvironmentType.Production)
-            {
-                return new ZatcaSubmissionResult
-                {
-                    IsSuccess = false,
-                    ErrorMessage = "ZATCA Configuration Error (401): The installed CSID certificate was issued by the Developer Portal / Sandbox (Issuer: " + (cert?.Issuer ?? "CN=eInvoicing") + "), but the system is configured for Production. A Developer Portal certificate cannot authenticate against the live Production gateway. Please open Settings -> ZATCA CSR, select 'Production' under ZATCA Environment, enter an active OTP generated from the live ZATCA Fatoora Portal (https://fatoora.zatca.gov.sa/), and click 'Generate' to onboard your Production CSID."
-                };
             }
 
             if (request.Invoice.IssueDate.Year < 2000)
@@ -229,7 +216,7 @@ public class ZatcaEngine : IZatcaEngine
             var finalSignedXml = _signer.EmbedQrCode(signedXml, qr);
 
             // 7. Submit to ZATCA Portal API
-            if(request.blnUploadXML == false)
+            if (request.blnUploadXML == false)
             {
                 return new ZatcaSubmissionResult
                 {

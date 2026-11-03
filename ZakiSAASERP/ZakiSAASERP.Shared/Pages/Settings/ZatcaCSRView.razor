@@ -93,24 +93,18 @@
                 </MudItem>
                 
                 <MudItem xs="12" sm="3">
-                    <MudSelect @bind-Value="csrModel.InvoiceType"
-                               Label="Invoice Type"
-                               Variant="Variant.Outlined"
-                               Margin="Margin.Dense">
-                        <MudSelectItem Value="@("1100")">Standard &amp; Simplified (1100)</MudSelectItem>
-                        <MudSelectItem Value="@("0100")">Standard Only - B2B (0100)</MudSelectItem>
-                        <MudSelectItem Value="@("1000")">Simplified Only - B2C (1000)</MudSelectItem>
-                    </MudSelect>
+                    <MudTextField @bind-Value="csrModel.InvoiceType"
+                                  Label="INVOICE TYPE"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="B2B - 0100, B2C - 1000, Both - 1100"
+                                  Margin="Margin.Dense" />
                 </MudItem>
                 <MudItem xs="12" sm="3">
-                    <MudSelect @bind-Value="csrModel.CSRGenerationType"
-                               Label="ZATCA Environment"
-                               Variant="Variant.Outlined"
-                               Margin="Margin.Dense">
-                        <MudSelectItem Value="@("Production")">Production (Live Core)</MudSelectItem>
-                        <MudSelectItem Value="@("Simulation")">Simulation (Pre-Production)</MudSelectItem>
-                        <MudSelectItem Value="@("Developer")">Developer Portal (Sandbox)</MudSelectItem>
-                    </MudSelect>
+                    <MudTextField @bind-Value="csrModel.CSRGenerationType"
+                                  Label="INVOICE TYPE"
+                                  Variant="Variant.Outlined"
+                                  Placeholder="B2B - 0100, B2C - 1000, Both - 1100"
+                                  Margin="Margin.Dense" />
                 </MudItem>
             </MudGrid>
 
