@@ -335,6 +335,30 @@
                                 </Border>
                             </Grid>
 
+                            <!-- Number Pad Sizing Controls -->
+                            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Number Pad Sizing (Touch &amp; Responsive)" FontSize="14" FontWeight="Bold" Foreground="#1E293B" Margin="0,0,0,10" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="14" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Model.NumPadButtonHeight, StringFormat='Button Height: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
+                                            <Slider Minimum="28" Maximum="65" Value="{Binding Model.NumPadButtonHeight, Mode=TwoWay}" SmallChange="2" LargeChange="6" Margin="0,4,0,4" />
+                                            <TextBlock Text="Resize button height (e.g. 34-42px) so Pay Cash and Pay Card are never hidden on smaller screens" FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{Binding Model.NumPadFontSize, StringFormat='Font Size: {0}px'}" FontSize="12" FontWeight="SemiBold" Foreground="#334155" />
+                                            <Slider Minimum="11" Maximum="22" Value="{Binding Model.NumPadFontSize, Mode=TwoWay}" SmallChange="1" LargeChange="2" Margin="0,4,0,4" />
+                                            <TextBlock Text="Font size of digits and action buttons" FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Live Interactive Preview Box -->
                             <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,14,0,0">
                                 <StackPanel>
@@ -363,6 +387,21 @@
                                                     <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#2563EB" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                                 </DockPanel>
                                             </Grid>
+                                        </Border>
+
+                                        <!-- NumPad Preview Items -->
+                                        <Border Background="#EEF2F6" CornerRadius="6" Padding="6" Margin="20,0,0,0" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="40" Height="{Binding Model.NumPadButtonHeight}" Background="#CBD5E1" BorderBrush="#94A3B8" BorderThickness="1" CornerRadius="4" Margin="2">
+                                                    <TextBlock Text="7" FontSize="{Binding Model.NumPadFontSize}" FontWeight="Bold" Foreground="#1E293B" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <Border Width="40" Height="{Binding Model.NumPadButtonHeight}" Background="#CBD5E1" BorderBrush="#94A3B8" BorderThickness="1" CornerRadius="4" Margin="2">
+                                                    <TextBlock Text="8" FontSize="{Binding Model.NumPadFontSize}" FontWeight="Bold" Foreground="#1E293B" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <Border Width="40" Height="{Binding Model.NumPadButtonHeight}" Background="#94A3B8" BorderBrush="#64748B" BorderThickness="1" CornerRadius="4" Margin="2">
+                                                    <TextBlock Text="Qty" FontSize="{Binding Model.NumPadFontSize}" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </StackPanel>
                                         </Border>
                                     </StackPanel>
                                 </StackPanel>

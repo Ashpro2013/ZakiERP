@@ -284,6 +284,20 @@
             </MudMainContent>
 
             <style>
+                /* POS View Full-Height & No-Scroll Lock */
+                body:has(.pos-container) {
+                    overflow: hidden !important;
+                }
+                .mud-tabs-panels:has(.pos-container) {
+                    padding: 0 !important;
+                    overflow: hidden !important;
+                }
+                .mud-tabpanel:has(.pos-container) {
+                    padding: 0 !important;
+                    overflow: hidden !important;
+                    height: 100% !important;
+                }
+
                 /* ZATCA Notification Pill in App Bar */
                 .zatca-notif-pill {
                     display: inline-flex;

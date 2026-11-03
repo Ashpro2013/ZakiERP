@@ -1,6 +1,6 @@
 @namespace ZakiSAASERP.Shared.Pages.Transactions.Sales
 
-<div class="pos-numpad-grid">
+<div class="pos-numpad-grid" style="@($"--numpad-btn-height: {(ButtonHeight > 0 ? ButtonHeight : 42)}px; --numpad-font-size: {(FontSize > 0 ? FontSize : 15)}px;")">
     <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("7")'>7</MudButton>
     <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("8")'>8</MudButton>
     <MudButton Variant="Variant.Filled" Class="numpad-btn" OnClick='() => ClickKey("9")'>9</MudButton>
@@ -26,16 +26,18 @@
     .pos-numpad-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
+        gap: 5px;
         width: 100%;
         background-color: #eef2f6;
-        padding: 8px;
+        padding: 6px;
         border-radius: 6px;
+        box-sizing: border-box;
     }
     .pos-numpad-grid .numpad-btn {
-        height: 55px !important;
-        min-width: 50px !important;
-        font-size: 1.2rem !important;
+        height: var(--numpad-btn-height, 42px) !important;
+        min-height: var(--numpad-btn-height, 42px) !important;
+        min-width: 36px !important;
+        font-size: var(--numpad-font-size, 15px) !important;
         font-weight: bold !important;
         border-radius: 4px !important;
         background-color: #cbd5e1 !important; /* slate-300 */
@@ -43,6 +45,8 @@
         text-transform: none !important;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
         border: 1px solid #94a3b8 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
     }
     .pos-numpad-grid .numpad-btn:hover {
         background-color: #94a3b8 !important;
@@ -52,15 +56,35 @@
         background-color: #94a3b8 !important; /* slate-400 */
         color: #ffffff !important;
         border: 1px solid #64748b !important;
+        font-size: calc(var(--numpad-font-size, 15px) * 0.88) !important;
     }
     .pos-numpad-grid .action-btn:hover {
         background-color: #64748b !important;
+    }
+
+    /* Extra responsive scaling on short display viewports */
+    @@media (max-height: 768px) {
+        .pos-numpad-grid {
+            gap: 4px;
+            padding: 4px;
+        }
+        .pos-numpad-grid .numpad-btn {
+            height: clamp(28px, var(--numpad-btn-height, 36px), 42px) !important;
+            min-height: clamp(28px, var(--numpad-btn-height, 36px), 42px) !important;
+            font-size: clamp(11px, var(--numpad-font-size, 14px), 16px) !important;
+        }
     }
 </style>
 
 @code {
     [Parameter]
     public EventCallback<string> OnKeyClick { get; set; }
+
+    [Parameter]
+    public int ButtonHeight { get; set; } = 42;
+
+    [Parameter]
+    public int FontSize { get; set; } = 15;
 
     private async Task ClickKey(string key)
     {

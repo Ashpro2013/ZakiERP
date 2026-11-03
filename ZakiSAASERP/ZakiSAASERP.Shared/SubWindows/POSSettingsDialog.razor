@@ -395,6 +395,38 @@
                             </div>
                         </MudItem>
 
+                        @* Number Pad Sizing Controls *@
+                        <MudItem xs="12">
+                            <div class="settings-group-card">
+                                <div class="d-flex align-center gap-2 mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Dialpad" Color="Color.Primary" Size="Size.Small" />
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Number Pad Sizing (Touch &amp; Responsive)</MudText>
+                                </div>
+                                <MudGrid Spacing="3">
+                                    <MudItem xs="12" sm="6">
+                                        <div class="slider-control">
+                                            <div class="d-flex justify-space-between align-center mb-1">
+                                                <MudText Typo="Typo.caption" Style="font-weight: 600;">Button Height</MudText>
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.NumPadButtonHeight)px</MudChip>
+                                            </div>
+                                            <MudSlider @bind-Value="Model.NumPadButtonHeight" Min="28" Max="65" Step="2" Color="Color.Primary" />
+                                            <span class="helper-text">Resize button height (e.g. 34-42px) so Pay Cash and Pay Card are never hidden on smaller screens</span>
+                                        </div>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <div class="slider-control">
+                                            <div class="d-flex justify-space-between align-center mb-1">
+                                                <MudText Typo="Typo.caption" Style="font-weight: 600;">Font Size</MudText>
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@(Model.NumPadFontSize)px</MudChip>
+                                            </div>
+                                            <MudSlider @bind-Value="Model.NumPadFontSize" Min="11" Max="22" Step="1" Color="Color.Primary" />
+                                            <span class="helper-text">Font size of digits and action buttons (Qty, Rate, Clear, Enter)</span>
+                                        </div>
+                                    </MudItem>
+                                </MudGrid>
+                            </div>
+                        </MudItem>
+
                         @* Live Interactive Preview Box *@
                         <MudItem xs="12">
                             <div class="preview-box">
@@ -431,6 +463,12 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div class="preview-numpad-col" style="display: flex; gap: 6px; align-items: center; align-self: center; padding: 6px; background: #eef2f6; border-radius: 6px;">
+                                        <div style="@($"height: {Model.NumPadButtonHeight}px; min-width: 40px; padding: 0 10px; font-size: {Model.NumPadFontSize}px; font-weight: bold; background: #cbd5e1; border: 1px solid #94a3b8; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #1e293b;")">7</div>
+                                        <div style="@($"height: {Model.NumPadButtonHeight}px; min-width: 40px; padding: 0 10px; font-size: {Model.NumPadFontSize}px; font-weight: bold; background: #cbd5e1; border: 1px solid #94a3b8; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #1e293b;")">8</div>
+                                        <div style="@($"height: {Model.NumPadButtonHeight}px; min-width: 40px; padding: 0 10px; font-size: {(int)(Model.NumPadFontSize * 0.88)}px; font-weight: bold; background: #94a3b8; border: 1px solid #64748b; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #ffffff;")">Qty</div>
                                     </div>
                                 </div>
                             </div>

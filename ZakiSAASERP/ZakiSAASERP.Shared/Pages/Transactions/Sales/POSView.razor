@@ -461,6 +461,7 @@
 
     @* --- RIGHT SIDE: BILL ACTIONS, SUMMARY, NUMPAD --- *@
     <div class="pos-right-panel">
+        <div class="pos-right-panel-body">
 
         @* 2x5 Control Grid *@
         <div class="pos-bill-actions">
@@ -537,10 +538,12 @@
 
         @* Separated Number Pad Component *@
         <div class="pos-numpad-wrapper @(!_showNumPad ? "numpad-hidden" : (_forceShowNumPad ? "numpad-force-show" : ""))">
-            <POSNumPad OnKeyClick="HandleNumPadKey" />
+            <POSNumPad OnKeyClick="HandleNumPadKey" ButtonHeight="posSettings.NumPadButtonHeight" FontSize="posSettings.NumPadFontSize" />
         </div>
 
-        @* Payment Footer Buttons *@
+        </div>
+
+        @* Payment Footer Buttons (Pinned at Bottom) *@
         <div class="pos-payment-actions">
             <button class="pay-btn pay-cash" @onclick="OpenPaymentDialog" title="Pay Cash (F11)">
                 <span class="pay-kbd">F11</span>
@@ -822,16 +825,37 @@
 <style>
     /* Premium Scoped Styles for POS View to match exact screenshot design */
 
+    /* POS View Full-Height & Viewport Lock */
+    body:has(.pos-container) {
+        overflow: hidden !important;
+    }
+
+    .mud-tabs:has(.pos-container) .mud-tabs-panels,
+    .mud-tabs-panels:has(.pos-container) {
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .mud-tabs:has(.pos-container) .mud-tabpanel,
+    .mud-tabpanel:has(.pos-container) {
+        padding: 0 !important;
+        overflow: hidden !important;
+        height: 100% !important;
+        max-height: 100% !important;
+    }
+
     .pos-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
-    background-color: #f8fafc;
-    font-family: 'Outfit', 'Inter', sans-serif;
-    color: #0f172a;
-    overflow: hidden;
-}
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - var(--mud-appbar-height, 48px) - 48px);
+        max-height: calc(100vh - var(--mud-appbar-height, 48px) - 48px);
+        width: 100%;
+        background-color: #f8fafc;
+        font-family: 'Outfit', 'Inter', sans-serif;
+        color: #0f172a;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
 
 /* Header styling */
 .pos-header {
@@ -839,6 +863,7 @@ display: flex;
 align-items: center;
 justify-content: space-between;
 height: 55px;
+flex-shrink: 0;
 background-color: #ffffff;
 border-bottom: 1px solid #e2e8f0;
 padding: 0 16px;
@@ -956,6 +981,7 @@ color: #ffffff;
 .pos-main-body {
 display: flex;
 flex-grow: 1;
+min-height: 0;
 overflow: hidden;
 background-color: #f1f5f9;
 }
@@ -963,6 +989,7 @@ background-color: #f1f5f9;
 display: flex;
 flex-direction: column;
 flex-grow: 1;
+min-height: 0;
 overflow: hidden;
 padding: 8px;
 gap: 8px;
@@ -974,10 +1001,21 @@ border-left: 1px solid #e2e8f0;
 padding: 8px;
 display: flex;
 flex-direction: column;
-gap: 12px;
-overflow-y: auto;
+gap: 6px;
+overflow: hidden;
 height: 100%;
 max-height: 100%;
+min-height: 0;
+box-sizing: border-box;
+}
+.pos-right-panel-body {
+flex: 1 1 auto;
+min-height: 0;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 8px;
+padding-right: 2px;
 }
 
 /* Grid Section containing Categories + Grid + Grid Actions */
@@ -1588,6 +1626,13 @@ color: #15803d;
 display: grid;
 grid-template-columns: 1fr 1fr;
 gap: 8px;
+flex-shrink: 0;
+margin-top: auto;
+padding: 6px 0 2px 0;
+position: sticky;
+bottom: 0;
+background-color: #ffffff;
+z-index: 10;
 }
 .pay-btn {
 height: 50px;
@@ -1639,6 +1684,7 @@ background-color: #1d4ed8;
 display: flex;
 align-items: center;
 height: 35px;
+flex-shrink: 0;
 background-color: #3b0712; /* Dark brown/maroon as in image */
 color: #cbd5e1;
 font-size: 0.8rem;
@@ -1687,8 +1733,10 @@ color: #ffffff !important;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        min-height: 0;
         overflow: hidden;
         height: 100%;
+        max-height: 100%;
         width: 100%;
     }
     .pos-mobile-layout {

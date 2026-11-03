@@ -46,6 +46,10 @@ public class POSSettings
         get => _productPageSize <= 0 ? 12 : _productPageSize;
         set => _productPageSize = value <= 0 ? 12 : value;
     }
+
+    // Number Pad Sizing & Responsive
+    public int NumPadButtonHeight { get; set; } = 42; // px (range: 28 - 65)
+    public int NumPadFontSize { get; set; } = 15; // px (range: 11 - 22)
     #endregion
 
     #region Grid Inline Field Editing
