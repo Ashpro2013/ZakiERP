@@ -888,12 +888,13 @@ public partial class SalesInvoiceView : ITabAware
             pdto = await indexdbHelper.LoadPrintDesignFromIndexedDB("Sales_Invoice");
             }
             var transctions = entTransactions.Where(x => !string.IsNullOrEmpty(x.ItemName)).ToList();
-            if (salesInvoice.SalesInvoiceId == 0 || !entTransactions.Any()) { Dialog.DialogMethod("No transaction found"); return; }
-            if (pdto == null || pdto.hdr == null || pdto.dtls.Any() == false) { Dialog.DialogMethod("No print design found"); return; }
+            if (salesInvoice.SalesInvoiceId == 0 || !entTransactions.Any()) { await Dialog.DialogMethod("No transaction found"); return; }
+            if (pdto == null || pdto.hdr == null || pdto.dtls.Any() == false) { await Dialog.DialogMethod("No print design found"); return; }
             var hdr = salesInvoice.CopyTo<TransactionHdr>();
             hdr.HdrNo = salesInvoice.SalesInvoiceNo;
             hdr.InvoiceDate = (salesInvoice.SalesInvoiceDate ?? DateTime.Now).ToString("dd-MM-yyyy");
             hdr.QRCode = salesInvoice.InvoiceQRCode;
+            hdr.BillType = salesInvoice.BillType;
             PrintParameterDTO dto = new PrintParameterDTO(pdto.hdr, pdto.dtls, hdr, transctions, party, AppData.CompanyDetails!, null);
             if (!IsPdf && !IsPreview && !AppData.IsMaui)
             {

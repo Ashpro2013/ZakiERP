@@ -1540,7 +1540,7 @@ public partial class POSView : ITabAware, IDisposable
             hdr.InvoiceDate = (salesInvoice.SalesInvoiceDate ?? DateTime.Now).ToString("dd-MM-yyyy");
             hdr.Tendered = tendered ?? salesInvoice.Tendered ?? salesInvoice.GrandTotal;
             hdr.Changes = changes ?? salesInvoice.Changes ?? 0m;
-
+            hdr.BillType = salesInvoice.BillType; 
             party = new Party
             {
                 Name = salesInvoice.CustomerName,
