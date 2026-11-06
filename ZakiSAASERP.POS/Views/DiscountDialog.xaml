@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Enter Discount" Height="260" Width="380"
+        Icon="/Assets/appicon.ico"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="#F8FAFC"

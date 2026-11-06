@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:ZakiSAASERP.POS.ViewModels"
         mc:Ignorable="d"
         Title="POS Display &amp; Layout Settings"
+        Icon="/Assets/appicon.ico"
         Height="720" Width="850"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"

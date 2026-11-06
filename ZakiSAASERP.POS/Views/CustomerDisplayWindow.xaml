@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:ZakiSAASERP.POS.ViewModels"
         mc:Ignorable="d"
         Title="Zaki ERP - Customer Display"
+        Icon="/Assets/appicon.ico"
         Height="700" Width="1000"
         MinHeight="500" MinWidth="750"
         WindowStartupLocation="CenterScreen"

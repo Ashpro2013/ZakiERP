@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Product Look Up" Height="520" Width="760"
+        Icon="/Assets/appicon.ico"
         WindowStartupLocation="CenterOwner"
         Background="#F8FAFC"
         FontFamily="Segoe UI, Inter, sans-serif">

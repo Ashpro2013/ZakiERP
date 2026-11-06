@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Search Customer" Height="500" Width="680"
+        Icon="/Assets/appicon.ico"
         WindowStartupLocation="CenterOwner"
         Background="#F8FAFC"
         FontFamily="Segoe UI, Inter, sans-serif">

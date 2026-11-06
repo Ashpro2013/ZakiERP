@@ -29,6 +29,11 @@
             <sys:Decimal x:Key="Dec200">200</sys:Decimal>
             <sys:Decimal x:Key="Dec500">500</sys:Decimal>
 
+            <!-- Default Window Icon Style -->
+            <Style TargetType="Window">
+                <Setter Property="Icon" Value="/Assets/appicon.ico" />
+            </Style>
+
             <!-- NumPad Styles -->
             <Style x:Key="NumPadBtnStyle" TargetType="Button">
                 <Setter Property="Height" Value="46" />

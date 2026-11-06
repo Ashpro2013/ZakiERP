@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationTitle>Zaki ERP - POS</ApplicationTitle>
+    <ApplicationIcon>Assets\appicon.ico</ApplicationIcon>
     <RootNamespace>ZakiSAASERP.POS</RootNamespace>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>

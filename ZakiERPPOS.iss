@@ -39,7 +39,7 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 OutputDir=D:\ZakiERP Project\Output
 OutputBaseFilename=ZakiERPPOSSetup
-SetupIconFile=D:\ZakiERP Project\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\appicon.ico
+SetupIconFile=D:\ZakiERP Project\ZakiSAASERP.POS\bin\Debug\net10.0-windows\appicon.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -50,8 +50,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\ZakiERP Project\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\ZakiERP Project\ZakiSAASERP.Desk\bin\Debug\net10.0-windows10.0.19041.0\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\ZakiERP Project\ZakiSAASERP.POS\bin\Debug\net10.0-windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\ZakiERP Project\ZakiSAASERP.POS\bin\Debug\net10.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files.
 
 [Registry]

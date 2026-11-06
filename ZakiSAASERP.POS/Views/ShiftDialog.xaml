@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:ZakiSAASERP.POS.ViewModels"
         mc:Ignorable="d"
         Title="Shift Reconciliation &amp; Handover"
+        Icon="/Assets/appicon.ico"
         Height="680" Width="760"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"

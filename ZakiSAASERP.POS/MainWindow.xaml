@@ -7,6 +7,7 @@
         xmlns:views="clr-namespace:ZakiSAASERP.POS.Views"
         mc:Ignorable="d"
         Title="Zaki ERP - POS System" Height="860" Width="1380"
+        Icon="/Assets/appicon.ico"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Background="#F8FAFC"

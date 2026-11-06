@@ -3,7 +3,7 @@
 ; Non-commercial use only.
 
 #define MyAppName "Zaki ERP"
-#define MyAppVersion "26.11.03"
+#define MyAppVersion "26.11.06"
 #define MyAppPublisher "Ashpro Technology"
 #define MyAppURL "https://www.ashprotechnology.com/"
 #define MyAppExeName "ZakiSAASERP.Desk.exe"

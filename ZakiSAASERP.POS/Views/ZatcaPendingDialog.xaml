@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:ZakiSAASERP.POS.ViewModels"
         mc:Ignorable="d"
         Title="ZATCA Pending Invoices"
+        Icon="/Assets/appicon.ico"
         Height="550" Width="800"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
