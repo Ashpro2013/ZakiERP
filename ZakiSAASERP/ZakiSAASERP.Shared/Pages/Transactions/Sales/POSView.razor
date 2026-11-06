@@ -71,7 +71,7 @@
                 <button class="icon-circle-btn @(_showNumPad ? "numpad-active" : "")" title="Toggle Number Pad" @onclick="ToggleNumPad">
                     <MudIcon Icon="@(_showNumPad ? Icons.Material.Filled.Keyboard : Icons.Material.Filled.KeyboardHide)" Size="Size.Small" />
                 </button>
-                <button class="icon-circle-btn @(_isFullScreen ? "fullscreen-active" : "")" title="@(_isFullScreen ? "Exit Full Screen (F11)" : "Fill Full Screen (F11)")" @onclick="ToggleFullScreen">
+                <button class="icon-circle-btn @(_isFullScreen ? "fullscreen-active" : "")" title="@(_isFullScreen ? "Exit Full Screen" : "Fill Full Screen")" @onclick="ToggleFullScreen">
                     <MudIcon Icon="@(_isFullScreen ? Icons.Material.Filled.FullscreenExit : Icons.Material.Filled.Fullscreen)" Size="Size.Small" />
                 </button>
                 <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
@@ -85,7 +85,7 @@
             <div class="pos-left-panel">
 
                 @* Grid and Category Tabs Split *@
-                <div class="pos-grid-section" style="@($"height: {100 - posSettings.ProductAreaHeight}%;")">
+                <div class="pos-grid-section" style="@($"flex: {100 - posSettings.ProductAreaHeight} 1 0px; min-height: 0;")">
 
                     @* Category Vertical Tabs *@
                     @if (posSettings.ShowCategoryPanel)
@@ -351,7 +351,7 @@
     </div>
 
     @* Bottom Products Card Grid *@
-    <div class="pos-products-section" style="@($"height: {posSettings.ProductAreaHeight}%; flex-grow: unset;")">
+    <div class="pos-products-section" style="@($"flex: {posSettings.ProductAreaHeight} 1 0px; min-height: 0;")">
         @{
             var filteredProducts = selectedCategory == null
                 ? products
@@ -812,8 +812,13 @@
     /* Premium Scoped Styles for POS View to match exact screenshot design */
 
     /* POS View Full-Height & Viewport Lock */
+    html:has(.pos-container),
     body:has(.pos-container) {
+        height: 100% !important;
+        max-height: 100% !important;
         overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .mud-tabs:has(.pos-container) .mud-tabs-panels,
@@ -833,8 +838,8 @@
     .pos-container {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - var(--mud-appbar-height, 48px) - 48px);
-        max-height: calc(100vh - var(--mud-appbar-height, 48px) - 48px);
+        height: 100% !important;
+        max-height: 100% !important;
         width: 100%;
         margin: 0 !important;
         padding: 0 !important;
@@ -1630,18 +1635,18 @@ font-size: 1.3rem;
 color: #15803d;
 }
 
-/* Payment Buttons */
+/* Payment Buttons (Firmly docked at bottom) */
 .pos-payment-actions {
 display: grid;
 grid-template-columns: 1fr 1fr;
 gap: 8px;
 flex-shrink: 0;
 margin-top: auto;
-padding: 6px 0 2px 0;
-position: sticky;
-bottom: 0;
+padding: 8px 0 2px 0;
 background-color: #ffffff;
+border-top: 1px solid #e2e8f0;
 z-index: 10;
+box-sizing: border-box;
 }
 .pay-btn {
 height: 50px;

@@ -1,4 +1,4 @@
-﻿using ZakiSAASERP.Shared.SubWindows;
+using ZakiSAASERP.Shared.SubWindows;
 using ZakiSAASERP.Models.Settings;
 using ZakiSAASERP.Models.Others;
 using Microsoft.AspNetCore.Components.Web;
@@ -291,7 +291,7 @@ public partial class POSView : ITabAware, IDisposable
                     await OpenPaymentDialog();
                     break;
                 case "F11":
-                    await ToggleFullScreen();
+                    await OpenPaymentDialog();
                     break;
                 case "F12":
                     await SaveInvoiceClick("Bank");
