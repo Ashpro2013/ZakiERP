@@ -1,4 +1,4 @@
-﻿@page "/pos"
+@page "/pos"
 @using ZakiSAASERP.Models.Enums
 @using ZakiSAASERP.Models.ViewModel
 @using ZakiSAASERP.Models.Transactions.Sales
@@ -20,7 +20,7 @@
 @inject ShiftService ShiftService
 <PageTitle>Zaki ERP | POS View</PageTitle>
 
-<MudPaper  Class="pa-2 ma-2" Elevation="3">
+<div class="pos-container @(_isFullScreen ? "pos-fullscreen-mode" : "")">
     @* --- DESKTOP POS LAYOUT --- *@
     <div class="pos-desktop-layout">
         @* --- HEADER BAR --- *@
@@ -70,6 +70,9 @@
                 </button>
                 <button class="icon-circle-btn @(_showNumPad ? "numpad-active" : "")" title="Toggle Number Pad" @onclick="ToggleNumPad">
                     <MudIcon Icon="@(_showNumPad ? Icons.Material.Filled.Keyboard : Icons.Material.Filled.KeyboardHide)" Size="Size.Small" />
+                </button>
+                <button class="icon-circle-btn @(_isFullScreen ? "fullscreen-active" : "")" title="@(_isFullScreen ? "Exit Full Screen (F11)" : "Fill Full Screen (F11)")" @onclick="ToggleFullScreen">
+                    <MudIcon Icon="@(_isFullScreen ? Icons.Material.Filled.FullscreenExit : Icons.Material.Filled.Fullscreen)" Size="Size.Small" />
                 </button>
                 <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
             </div>
@@ -803,7 +806,7 @@
             </div>
         }
     </div>
-</MudPaper>
+</div>
 
 <style>
     /* Premium Scoped Styles for POS View to match exact screenshot design */
@@ -833,11 +836,34 @@
         height: calc(100vh - var(--mud-appbar-height, 48px) - 48px);
         max-height: calc(100vh - var(--mud-appbar-height, 48px) - 48px);
         width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
         background-color: #f8fafc;
         font-family: 'Outfit', 'Inter', sans-serif;
         color: #0f172a;
         overflow: hidden;
         box-sizing: border-box;
+    }
+
+    .pos-container.pos-fullscreen-mode {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        z-index: 2000 !important;
+        background-color: #f8fafc !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .icon-circle-btn.fullscreen-active {
+        background-color: #1e3a8a !important;
+        color: #ffffff !important;
     }
 
 /* Header styling */

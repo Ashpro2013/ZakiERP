@@ -38,6 +38,7 @@ public partial class POSView : ITabAware, IDisposable
     private bool _isShortScreen = false;
     private Microsoft.JSInterop.DotNetObjectReference<POSView>? _dotNetRef;
     private bool _isActionInProgress = false;
+    private bool _isFullScreen = false;
 
     private string _currentDateTimeString = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
     private Timer? _clockTimer;
@@ -61,6 +62,7 @@ public partial class POSView : ITabAware, IDisposable
             {
                 posSettings = PosSettingsService.CurrentSettings ?? new();
                 PosSettingsService.OnSettingsChanged += HandleSettingsChanged;
+                if (posSettings.FillFullScreen) _isFullScreen = true;
             }
             else
             {
@@ -98,6 +100,7 @@ public partial class POSView : ITabAware, IDisposable
     private void HandleSettingsChanged()
     {
         posSettings = PosSettingsService.CurrentSettings;
+        _isFullScreen = posSettings.FillFullScreen;
         if (!posSettings.ShowCategoryPanel)
         {
             selectedCategory = null;
@@ -214,6 +217,24 @@ public partial class POSView : ITabAware, IDisposable
         _ = FocusBarcodeInputAsync();
     }
 
+    private async Task ToggleFullScreen()
+    {
+        _isFullScreen = !_isFullScreen;
+        try
+        {
+            if (_isFullScreen)
+            {
+                await js.InvokeVoidAsync("openFullscreen");
+            }
+            else
+            {
+                await js.InvokeVoidAsync("closeFullscreen");
+            }
+        }
+        catch { }
+        await InvokeAsync(StateHasChanged);
+    }
+
     [Microsoft.JSInterop.JSInvokable]
     public void OnWindowResize(int height)
     {
@@ -270,7 +291,7 @@ public partial class POSView : ITabAware, IDisposable
                     await OpenPaymentDialog();
                     break;
                 case "F11":
-                    await OpenPaymentDialog();
+                    await ToggleFullScreen();
                     break;
                 case "F12":
                     await SaveInvoiceClick("Bank");

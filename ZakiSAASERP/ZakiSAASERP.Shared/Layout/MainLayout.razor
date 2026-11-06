@@ -288,10 +288,19 @@
                 body:has(.pos-container) {
                     overflow: hidden !important;
                 }
+                .mud-main-content:has(.pos-container) {
+                    padding-bottom: 0 !important;
+                    overflow: hidden !important;
+                }
+                .mud-tabs:has(.pos-container) {
+                    overflow: hidden !important;
+                }
+                .mud-tabs:has(.pos-container) .mud-tabs-panels,
                 .mud-tabs-panels:has(.pos-container) {
                     padding: 0 !important;
                     overflow: hidden !important;
                 }
+                .mud-tabs:has(.pos-container) .mud-tabpanel,
                 .mud-tabpanel:has(.pos-container) {
                     padding: 0 !important;
                     overflow: hidden !important;

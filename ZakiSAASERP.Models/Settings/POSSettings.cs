@@ -50,6 +50,9 @@ public class POSSettings
     // Number Pad Sizing & Responsive
     public int NumPadButtonHeight { get; set; } = 42; // px (range: 28 - 65)
     public int NumPadFontSize { get; set; } = 15; // px (range: 11 - 22)
+
+    // Full Screen Mode
+    public bool FillFullScreen { get; set; } = false;
     #endregion
 
     #region Grid Inline Field Editing

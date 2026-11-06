@@ -427,6 +427,23 @@
                             </div>
                         </MudItem>
 
+                        @* Full Screen / Viewport Mode *@
+                        <MudItem xs="12">
+                            <div class="settings-group-card">
+                                <div class="d-flex align-center gap-2 mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Fullscreen" Color="Color.Primary" Size="Size.Small" />
+                                    <MudText Typo="Typo.subtitle2" Style="font-weight: 700;">Full Screen Mode</MudText>
+                                </div>
+                                <div class="column-card @(Model.FillFullScreen ? "card-active" : "")">
+                                    <MudSwitch @bind-Value="Model.FillFullScreen"
+                                               Color="Color.Primary"
+                                               Label="Fill Full Screen on Open (Kiosk Mode)"
+                                               T="bool" />
+                                    <span class="card-caption">Automatically expand POS to full screen (hiding top app bar and tabs for maximum screen real estate)</span>
+                                </div>
+                            </div>
+                        </MudItem>
+
                         @* Live Interactive Preview Box *@
                         <MudItem xs="12">
                             <div class="preview-box">
