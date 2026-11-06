@@ -20,7 +20,7 @@
 @inject ShiftService ShiftService
 <PageTitle>Zaki ERP | POS View</PageTitle>
 
-<div class="pos-container">
+<MudPaper  Class="pa-2 ma-2" Elevation="3">
     @* --- DESKTOP POS LAYOUT --- *@
     <div class="pos-desktop-layout">
         @* --- HEADER BAR --- *@
@@ -50,11 +50,6 @@
                 @bind-Value="_barcodeSearchQuery"
                 @onclick='() => SetActiveField("BarcodeSearch")'
                 OnKeyDown="OnBarcodeSearchKeyDown" />
-
-                <button class="header-btn look-up-btn" @onclick="SearchProductLookUp">
-                    <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="mr-1" />
-                    Look Up
-                </button>
             </div>
 
             <div class="pos-header-actions">
@@ -339,9 +334,6 @@
             <button class="grid-act-btn delete" title="Delete Item" @onclick="DeleteSelectedLine">
                 <MudIcon Icon="@Icons.Material.Filled.Delete" />
             </button>
-            <button class="grid-act-btn return" title="Return Line" @onclick="ReturnSelectedLine">
-                <MudIcon Icon="@Icons.Material.Filled.Undo" />
-            </button>
             <button class="grid-act-btn calc" title="Calculator" @onclick="OpenCalculatorDialog">
                 <MudIcon Icon="@Icons.Material.Filled.Calculate" />
             </button>
@@ -479,11 +471,10 @@
                 <span class="btn-kbd">F3</span>
                 <span>Retrieve</span>
             </button>
-            <button class="act-btn" @onclick="ReturnBillClick" title="Return Bill (F4)">
+            <button class="act-btn" @onclick="SearchProductLookUp" title="Look Up (F4)">
                 <span class="btn-kbd">F4</span>
-                <span>Return</span>
+                <span>Look Up</span>
             </button>
-
             <button class="act-btn" @onclick="OpenDiscountDialog" title="Discount (F5)">
                 <span class="btn-kbd">F5</span>
                 <span>Discount</span>
@@ -559,15 +550,7 @@
 
     </div>
 
-    @* --- FOOTER INFORMATIONAL BAR --- *@
-    <div class="pos-footer">
-        <div class="footer-info-item">Party Account : <span class="foot-highlight">@salesInvoice.CustomerName</span></div>
-        <div class="footer-info-item">Sales Account : <span class="foot-highlight">SALES ACCOUNT</span></div>
-        <div class="footer-info-item">Invoice No : <span class="foot-highlight">@salesInvoice.SalesInvoiceNo</span></div>
-        <div class="footer-info-item">Shift No : <span class="foot-highlight">1</span></div>
-        <div class="footer-spacer"></div>
-        <div class="footer-time">@_currentDateTimeString</div>
-    </div>
+    
     </div>
 
     @* --- MOBILE RESPONSIVE POS LAYOUT --- *@
@@ -820,7 +803,7 @@
             </div>
         }
     </div>
-</div>
+</MudPaper>
 
 <style>
     /* Premium Scoped Styles for POS View to match exact screenshot design */
@@ -1738,6 +1721,8 @@ color: #ffffff !important;
         height: 100%;
         max-height: 100%;
         width: 100%;
+        margin: 0;
+            padding: 0;
     }
     .pos-mobile-layout {
         display: none !important;

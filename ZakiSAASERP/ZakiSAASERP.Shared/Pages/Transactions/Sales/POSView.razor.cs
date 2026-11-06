@@ -251,9 +251,6 @@ public partial class POSView : ITabAware, IDisposable
                 case "F3":
                     RetrieveBillClick();
                     break;
-                case "F4":
-                    ReturnBillClick();
-                    break;
                 case "F5":
                     await OpenDiscountDialog();
                     break;
@@ -925,18 +922,6 @@ public partial class POSView : ITabAware, IDisposable
             await FocusBarcodeInputAsync();
         }
     }
-
-    private async void ReturnSelectedLine()
-    {
-        if (_selectedRow != null)
-        {
-            _selectedRow.Quantity = -Math.Abs(_selectedRow.Quantity);
-            _selectedRow = TransactionHelper.GetTransactionAfterEdit(_selectedRow, posSettings.ShowIncRate);
-            await TotalFindMethod();
-            await FocusBarcodeInputAsync();
-        }
-    }
-
     private async Task TotalFindMethod()
     {
         foreach (var item in entTransactions)
@@ -1355,19 +1340,6 @@ public partial class POSView : ITabAware, IDisposable
             salesInvoice.CustomerName = selectedCustomer.Name ?? "";
             snackbar.Add($"Customer Selected: {selectedCustomer.Name}", Severity.Info);
         }
-        await FocusBarcodeInputAsync();
-    }
-
-    private async void ReturnBillClick()
-    {
-        salesInvoice.Remarks = "RETURN BILL";
-        foreach (var item in entTransactions)
-        {
-            item.Quantity = -Math.Abs(item.Quantity);
-            TransactionHelper.GetTransactionAfterEdit(item, posSettings.ShowIncRate);
-        }
-        await TotalFindMethod();
-        snackbar.Add("Bill set to Return/Refund mode", Severity.Warning);
         await FocusBarcodeInputAsync();
     }
 

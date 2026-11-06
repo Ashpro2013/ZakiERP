@@ -265,7 +265,7 @@
             </MudDrawer>
             <MudMainContent>
                 @* @Body *@
-                <MudDynamicTabs AddTabIcon="false"  KeepPanelsAlive="true" @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex" CloseTab="@CloseTabCallback" CloseIconToolTip="Close tab. All data will be lost" PanelClass="px-4 py-6" Elevation="4" Rounded ApplyEffectsToContainer>
+                    <MudDynamicTabs AddTabIcon="false" Position="@Position"  KeepPanelsAlive="true" @ref="@DynamicTabs" @bind-ActivePanelIndex="@UserIndex" CloseTab="@CloseTabCallback" CloseIconToolTip="Close tab. All data will be lost" PanelClass="px-0 py-0" Elevation="0" Rounded ApplyEffectsToContainer>
                     <ChildContent>
                         <MudTabPanel ID="0" Text=@Localizer("Dashboard") ShowCloseIcon="false">
                             <ZakiSAASERP.Shared.Pages.Home />

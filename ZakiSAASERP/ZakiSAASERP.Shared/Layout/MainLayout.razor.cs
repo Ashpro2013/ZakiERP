@@ -7,6 +7,7 @@ public sealed partial class MainLayout
     public MudDynamicTabs? DynamicTabs;
     public List<TabView> UserTabs = new();
     private bool _drawerOpen = false;
+    private Position Position = Position.Top;
     private bool _showPermanentSettings = false;
     string sActivationMessage = string.Empty;
     private DotNetObjectReference<MainLayout>? _objRef;
@@ -100,6 +101,7 @@ public sealed partial class MainLayout
             {
                 var succ = await iJsRuntime!.InvokeAsync<bool>("openFullscreen");
             }
+            Position = AppData.IsWindows ? Position.Bottom : Position.Top;
             TabService.OnCloseTab += RemoveTab;
             TabService.OnOpenTab += AddTabFromService;
             AppBarState.OnChange += OnAppBarStateChanged;
