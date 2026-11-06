@@ -84,9 +84,6 @@ public partial class POSViewModel : ObservableObject
     private bool showNumPad = true;
 
     [ObservableProperty]
-    private bool isReturnMode;
-
-    [ObservableProperty]
     private bool isBusy;
 
     [ObservableProperty]
@@ -369,14 +366,7 @@ public partial class POSViewModel : ObservableObject
         var existing = CartItems.FirstOrDefault(x => x.FK_ItemId == multiUnit.FK_ItemId && x.FK_UnitId == multiUnit.FK_UnitId);
         if (existing != null)
         {
-            if (IsReturnMode)
-            {
-                existing.Quantity -= 1;
-            }
-            else
-            {
-                existing.Quantity += 1;
-            }
+            existing.Quantity += 1;
 
             TransactionHelper.GetTransactionAfterEdit(existing, true);
             SelectedCartItem = existing;
@@ -387,7 +377,7 @@ public partial class POSViewModel : ObservableObject
             decimal vat = await _posDataService.GetVatPercentageAsync(multiUnit.FK_ItemId);
             if (vat <= 0) vat = 15m;
 
-            decimal qty = IsReturnMode ? -1 : 1;
+            decimal qty = 1;
             decimal exRate = multiUnit.Rate ?? 0;
             decimal inRate = multiUnit.IncRate ?? 0;
 
@@ -441,7 +431,7 @@ public partial class POSViewModel : ObservableObject
     {
         if (SelectedCartItem != null)
         {
-            if (SelectedCartItem.Quantity > 1 || IsReturnMode)
+            if (SelectedCartItem.Quantity > 1)
             {
                 SelectedCartItem.Quantity -= 1;
                 TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
@@ -468,17 +458,6 @@ public partial class POSViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    public void ReturnSelectedLine()
-    {
-        if (SelectedCartItem != null)
-        {
-            SelectedCartItem.Quantity = -Math.Abs(SelectedCartItem.Quantity);
-            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
-            RecalculateTotals();
-            FocusBarcodeHandler?.Invoke();
-        }
-    }
 
     public void RecalculateTotals()
     {
@@ -504,7 +483,7 @@ public partial class POSViewModel : ObservableObject
 
         TaxAmount = CartItems.Sum(x => x.TaxAmount);
         GrandTotal = CartItems.Sum(x => x.LineTotal) - DiscountAmount;
-        if (GrandTotal < 0 && !IsReturnMode)
+        if (GrandTotal < 0 )
         {
             GrandTotal = 0;
         }
@@ -616,7 +595,6 @@ public partial class POSViewModel : ObservableObject
         DiscountPercentage = 0;
         Tendered = null;
         Changes = null;
-        IsReturnMode = false;
         BarcodeSearchQuery = "";
         NumPadBuffer = "";
         ActiveInputField = "BarcodeSearch";
@@ -742,33 +720,6 @@ public partial class POSViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    public void ToggleReturnMode()
-    {
-        IsReturnMode = !IsReturnMode;
-        if (IsReturnMode)
-        {
-            foreach (var item in CartItems)
-            {
-                item.Quantity = -Math.Abs(item.Quantity);
-                TransactionHelper.GetTransactionAfterEdit(item, true);
-            }
-            StatusMessage = "Return / Refund Mode Active";
-            ShowNotificationHandler?.Invoke("Info", "Bill set to Return/Refund mode");
-        }
-        else
-        {
-            foreach (var item in CartItems)
-            {
-                item.Quantity = Math.Abs(item.Quantity);
-                TransactionHelper.GetTransactionAfterEdit(item, true);
-            }
-            StatusMessage = "Standard Sales Mode";
-        }
-
-        RecalculateTotals();
-        FocusBarcodeHandler?.Invoke();
-    }
 
     [RelayCommand]
     public async Task OpenDiscountDialogAsync()
@@ -944,7 +895,7 @@ public partial class POSViewModel : ObservableObject
                 GrandTotal = GrandTotal,
                 Tendered = tenderVal,
                 Changes = changeVal,
-                Remarks = IsReturnMode ? "RETURN BILL" : ""
+                Remarks = ""
             };
 
             var company = AppData.CompanyDetails ?? new CompanyDetails
@@ -964,7 +915,7 @@ public partial class POSViewModel : ObservableObject
                 if (PermanentSettingsData.EnableShiftClosing)
                 {
                     var user = !string.IsNullOrWhiteSpace(AppData.UserName) ? AppData.UserName : "Cashier";
-                    await _shiftService.RecordSaleAsync(salesHdr.GrandTotal, paymentType, IsReturnMode, "Terminal 1", user);
+                    await _shiftService.RecordSaleAsync(salesHdr.GrandTotal, paymentType, false, "Terminal 1", user);
                 }
 
                 // Auto print receipt if enabled

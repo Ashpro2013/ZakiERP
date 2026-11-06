@@ -297,10 +297,6 @@
                              Background="#FFFFFF"
                              KeyDown="TxtBarcode_KeyDown"
                              GotFocus="TxtBarcode_GotFocus" />
-                    <Button Grid.Column="1" Content="🔍 Look Up" Margin="6,0,0,0" Padding="12,6"
-                            Background="#F1F5F9" Foreground="#334155" BorderBrush="#CBD5E1" BorderThickness="1"
-                            FontWeight="SemiBold" Cursor="Hand"
-                            Command="{Binding LookUpProductCommand}" />
                 </Grid>
 
                 <!-- Spacer -->
@@ -586,7 +582,6 @@
                             <Button Content="➕" Style="{StaticResource GridSideBtnStyle}" ToolTip="Increment Quantity" Command="{Binding IncrementQtyCommand}" />
                             <Button Content="➖" Style="{StaticResource GridSideBtnStyle}" ToolTip="Decrement Quantity" Command="{Binding DecrementQtyCommand}" />
                             <Button Content="🗑" Style="{StaticResource GridSideBtnStyle}" ToolTip="Delete Item" Command="{Binding DeleteSelectedLineCommand}" />
-                            <Button Content="↺" Style="{StaticResource GridSideBtnStyle}" ToolTip="Return Item" Command="{Binding ReturnSelectedLineCommand}" />
                             <Button Content="💵" Style="{StaticResource GridSideBtnStyle}" ToolTip="Open Cash Drawer" Command="{Binding OpenCashDrawerCommand}" />
                         </StackPanel>
                     </Grid>
@@ -796,12 +791,12 @@
                                 <TextBlock Text="Retrieve" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
-                        <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource PosActBtnStyle}" Command="{Binding ToggleReturnModeCommand}">
+                                <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource PosActBtnStyle}" Command="{Binding LookUpProductCommand}">
                             <StackPanel Orientation="Horizontal">
                                 <Border Background="#1E293B" CornerRadius="3" Padding="4,1" Margin="0,0,6,0">
                                     <TextBlock Text="F4" Foreground="#38BDF8" FontWeight="Bold" FontSize="10" />
                                 </Border>
-                                <TextBlock Text="Return" VerticalAlignment="Center" />
+                                <TextBlock Text="Look Up" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
 

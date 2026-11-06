@@ -790,6 +790,24 @@ public partial class POSView : ITabAware, IDisposable
         _ = FocusBarcodeInputAsync();
     }
 
+    private async Task ToggleFullScreen()
+    {
+        _isFullScreen = !_isFullScreen;
+        try
+        {
+            if (_isFullScreen)
+            {
+                await js.InvokeVoidAsync("openFullscreen");
+            }
+            else
+            {
+                await js.InvokeVoidAsync("closeFullscreen");
+            }
+        }
+        catch { }
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void OnProductPageChanged(int newPage)
     {
         _productPage = newPage;

@@ -106,7 +106,7 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
             case Key.F4:
-                ViewModel.ToggleReturnModeCommand.Execute(null);
+                ViewModel.LookUpProductCommand.Execute(null);
                 e.Handled = true;
                 break;
             case Key.F5:
