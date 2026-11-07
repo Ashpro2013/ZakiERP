@@ -30,9 +30,15 @@ public class TransactionHelper
         transaction.LineTotal = transaction.TaxableAmnt + transaction.TaxAmount;
         return transaction;
     }
-    public static async Task<(decimal?, decimal?)> AdditionalDiscountMethod(List<TransactionDtls> entTransactions, int iType, decimal? AdditionalDiscPertge, decimal? AdditionalDiscAmnt, decimal GrandTotal,string strCurrencyFormat = "F2")
+    public static async Task<(decimal?, decimal?)> AdditionalDiscountMethod(List<TransactionDtls> entTransactions, int iType, decimal? AdditionalDiscPertge, decimal? AdditionalDiscAmnt,string strCurrencyFormat = "F2", bool blTakeIncRate = false)
     {
         if (!entTransactions.Any()) { return (null, null); }
+        foreach (var item in entTransactions)
+        {
+            item.DiscountPerc = 0;
+            GetTransactionAfterEdit(item, blTakeIncRate);
+        }
+        var GrandTotal = entTransactions.Sum(x => x.LineTotal);
         if (iType == 2)
         {
             AdditionalDiscPertge = (GrandTotal == 0) ? 0 : (100 * (AdditionalDiscAmnt ?? 0)) / GrandTotal;
@@ -55,7 +61,7 @@ public class TransactionHelper
             else
             {
                 item.DiscountPerc = 0;
-                TransactionHelper.GetTransactionAfterEdit(item);
+                GetTransactionAfterEdit(item, blTakeIncRate);
             }
         }
 

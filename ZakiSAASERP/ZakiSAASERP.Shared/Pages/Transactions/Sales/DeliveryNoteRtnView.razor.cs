@@ -335,7 +335,7 @@ public partial class DeliveryNoteRtnView : ITabAware
     {
         if (dnRturn.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, dnRturn.AdditionalDiscPertge, dnRturn.AdditionalDiscAmnt, dnRturn.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, dnRturn.AdditionalDiscPertge, dnRturn.AdditionalDiscAmnt);
             dnRturn.AdditionalDiscPertge = result.Item1 ?? 0;
             dnRturn.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

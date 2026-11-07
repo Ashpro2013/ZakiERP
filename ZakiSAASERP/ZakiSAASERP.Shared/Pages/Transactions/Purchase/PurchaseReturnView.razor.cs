@@ -485,7 +485,7 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
     {
         if (hdr.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, hdr.AdditionalDiscPertge, hdr.AdditionalDiscAmnt, hdr.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, hdr.AdditionalDiscPertge, hdr.AdditionalDiscAmnt);
             hdr.AdditionalDiscPertge = result.Item1 ?? 0;
             hdr.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

@@ -310,7 +310,7 @@ public partial class SalesInvoiceRtnView : ITabAware
     {
         if (salesInvoiceRtn.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesInvoiceRtn.AdditionalDiscPertge, salesInvoiceRtn.AdditionalDiscAmnt, salesInvoiceRtn.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesInvoiceRtn.AdditionalDiscPertge, salesInvoiceRtn.AdditionalDiscAmnt);
             salesInvoiceRtn.AdditionalDiscPertge = result.Item1 ?? 0;
             salesInvoiceRtn.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

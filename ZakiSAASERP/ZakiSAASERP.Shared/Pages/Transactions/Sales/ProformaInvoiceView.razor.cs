@@ -543,7 +543,7 @@ public partial class ProformaInvoiceView : ITabAware
 
         if (proformaInvoice.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, inputType, proformaInvoice.AdditionalDiscPertge, proformaInvoice.AdditionalDiscAmnt, proformaInvoice.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, inputType, proformaInvoice.AdditionalDiscPertge, proformaInvoice.AdditionalDiscAmnt);
             proformaInvoice.AdditionalDiscPertge = result.Item1 ?? 0;
             proformaInvoice.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

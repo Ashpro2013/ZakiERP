@@ -298,7 +298,7 @@ public partial class SalesQuotationView : ITabAware
     {
         if (salesQuotation.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesQuotation.AdditionalDiscPertge, salesQuotation.AdditionalDiscAmnt, salesQuotation.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesQuotation.AdditionalDiscPertge, salesQuotation.AdditionalDiscAmnt);
             salesQuotation.AdditionalDiscPertge = result.Item1 ?? 0;
             salesQuotation.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

@@ -287,7 +287,7 @@ public partial class SalesOrderView : ITabAware
     {
         if (salesOrder.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesOrder.AdditionalDiscPertge, salesOrder.AdditionalDiscAmnt, salesOrder.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesOrder.AdditionalDiscPertge, salesOrder.AdditionalDiscAmnt);
             salesOrder.AdditionalDiscPertge = result.Item1 ?? 0;
             salesOrder.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

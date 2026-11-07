@@ -428,7 +428,7 @@ public partial class SalesInvoiceView : ITabAware
     {
         if (salesInvoice.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesInvoice.AdditionalDiscPertge, salesInvoice.AdditionalDiscAmnt, salesInvoice.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesInvoice.AdditionalDiscPertge, salesInvoice.AdditionalDiscAmnt,strCurencyFormat);
             salesInvoice.AdditionalDiscPertge = result.Item1 ?? 0;
             salesInvoice.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();

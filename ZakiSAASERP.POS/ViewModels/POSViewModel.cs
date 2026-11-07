@@ -1,4 +1,4 @@
-﻿using ZakiSAASERP.Interface.Transaction.Sales;
+using ZakiSAASERP.Interface.Transaction.Sales;
 using ZakiSAASERP.Models.Company;
 using ZakiSAASERP.Models.DTO;
 using ZakiSAASERP.Models.Masters;
@@ -105,6 +105,10 @@ public partial class POSViewModel : ObservableObject
     private CategoryMaster? selectedCategory;
 
     private List<ExMasters> _allProducts = [];
+
+    private TransactionHdr? _lastSavedHdr;
+    private List<TransactionDtls>? _lastSavedItems;
+    private Party? _lastSavedParty;
 
     [ObservableProperty]
     private ObservableCollection<ExMasters> displayedProducts = [];
@@ -768,6 +772,52 @@ public partial class POSViewModel : ObservableObject
     {
         if (!CartItems.Any())
         {
+            if (_lastSavedHdr != null && _lastSavedItems != null && _lastSavedItems.Any())
+            {
+                // Reprint last saved receipt if current cart is empty
+                await PrintReceiptInternalAsync(_lastSavedHdr, _lastSavedItems, _lastSavedParty ?? new Party { CustomerId = _lastSavedHdr.PartyId, Name = _lastSavedHdr.CustomerName ?? "Cash Customer" });
+                return;
+            }
+
+            ShowNotificationHandler?.Invoke("Warning", "No items to print");
+            return;
+        }
+
+        var qr = GenerateInvoiceQRCode(GrandTotal, TaxAmount, InvoiceNo, SalesDate);
+        var hdr = new TransactionHdr
+        {
+            HdrNo = InvoiceNo,
+            HdrDate = SalesDate,
+            InvoiceDate = SalesDate.ToString("dd-MM-yyyy"),
+            TotalQuantity = TotalQty,
+            GrossAmount = GrossAmount,
+            LineDsicount = DiscountAmount,
+            TaxableAmount = GrossAmount - DiscountAmount,
+            TaxTotal = TaxAmount,
+            NetAmount = GrandTotal,
+            GrandTotal = GrandTotal,
+            Tendered = Tendered ?? GrandTotal,
+            Changes = Changes ?? 0m,
+            BillType = "Cash",
+            PartyId = CustomerId,
+            CustomerName = CustomerName,
+            QRCode = qr,
+            InvoiceQRCode = qr
+        };
+
+        var party = new Party
+        {
+            CustomerId = CustomerId,
+            Name = CustomerName
+        };
+
+        await PrintReceiptInternalAsync(hdr, CartItems.ToList(), party);
+    }
+
+    private async Task PrintReceiptInternalAsync(TransactionHdr hdr, List<TransactionDtls> items, Party party)
+    {
+        if (items == null || !items.Any())
+        {
             ShowNotificationHandler?.Invoke("Warning", "No items to print");
             return;
         }
@@ -781,35 +831,13 @@ public partial class POSViewModel : ObservableObject
                 return;
             }
 
-            var hdr = new TransactionHdr
-            {
-                HdrNo = InvoiceNo,
-                HdrDate = SalesDate,
-                InvoiceDate = SalesDate.ToString("dd-MM-yyyy"),
-                TotalQuantity = TotalQty,
-                GrossAmount = GrossAmount,
-                LineDsicount = DiscountAmount,
-                TaxTotal = TaxAmount,
-                NetAmount = GrandTotal,
-                GrandTotal = GrandTotal,
-                Tendered = Tendered ?? GrandTotal,
-                Changes = Changes ?? 0m,
-                QRCode = GenerateInvoiceQRCode()
-            };
-
-            var party = new Party
-            {
-                CustomerId = CustomerId,
-                Name = CustomerName
-            };
-
             var company = AppData.CompanyDetails ?? new CompanyDetails
             {
                 Name = "ZAKI ERP STORE",
                 VatNo = "300000000000003"
             };
 
-            var printDto = new PrintParameterDTO(design.hdr, design.dtls, hdr, CartItems.ToList(), party, company, null);
+            var printDto = new PrintParameterDTO(design.hdr, design.dtls, hdr, items, party, company, null);
             _printHelper.PrintInvoice(printDto);
             ShowNotificationHandler?.Invoke("Success", "Receipt sent to printer");
         }
@@ -904,7 +932,42 @@ public partial class POSViewModel : ObservableObject
                 VatNo = "300000000000003"
             };
 
-            var dto = new SalesInvoiceDTO(salesHdr, CartItems.ToList(), company, PermanentSettingsData.ZatcaPhase, true, PermanentSettingsData.UploadSimplifiedXMLRealtime);
+            // Snapshot the invoice items and details before any async save / clear
+            var savedItems = CartItems.ToList();
+            var savedParty = new Party
+            {
+                CustomerId = salesHdr.FK_CustomerId,
+                Name = salesHdr.CustomerName
+            };
+
+            var qr = GenerateInvoiceQRCode(salesHdr.GrandTotal, salesHdr.TaxTotal, salesHdr.SalesInvoiceNo, salesHdr.SalesInvoiceDate);
+            var savedHdr = new TransactionHdr
+            {
+                HdrNo = salesHdr.SalesInvoiceNo,
+                HdrDate = salesHdr.SalesInvoiceDate ?? DateTime.Today,
+                InvoiceDate = (salesHdr.SalesInvoiceDate ?? DateTime.Today).ToString("dd-MM-yyyy"),
+                TotalQuantity = savedItems.Sum(x => x.Quantity),
+                GrossAmount = salesHdr.GrossAmount,
+                LineDsicount = salesHdr.LineDsicount,
+                TaxableAmount = salesHdr.TaxableAmount,
+                TaxTotal = salesHdr.TaxTotal,
+                NetAmount = salesHdr.NetAmount,
+                GrandTotal = salesHdr.GrandTotal,
+                Tendered = salesHdr.Tendered ?? salesHdr.GrandTotal,
+                Changes = salesHdr.Changes ?? 0m,
+                BillType = salesHdr.BillType,
+                PartyId = salesHdr.FK_CustomerId,
+                CustomerName = salesHdr.CustomerName,
+                QRCode = qr,
+                InvoiceQRCode = qr
+            };
+
+            // Keep reference for reprinting
+            _lastSavedHdr = savedHdr;
+            _lastSavedItems = savedItems;
+            _lastSavedParty = savedParty;
+
+            var dto = new SalesInvoiceDTO(salesHdr, savedItems, company, PermanentSettingsData.ZatcaPhase, true, PermanentSettingsData.UploadSimplifiedXMLRealtime);
             var result = await _posDataService.SaveInvoiceAsync(dto);
 
             if (result.IsSuccess)
@@ -918,16 +981,16 @@ public partial class POSViewModel : ObservableObject
                     await _shiftService.RecordSaleAsync(salesHdr.GrandTotal, paymentType, false, "Terminal 1", user);
                 }
 
-                // Auto print receipt if enabled
+                // Auto print receipt if enabled - await receipt generation BEFORE resetting bill
                 if (Settings.AutoPrintBill)
                 {
-                    _ = PrintBillAsync();
+                    await PrintReceiptInternalAsync(savedHdr, savedItems, savedParty);
                 }
 
                 // Refresh ZATCA Pending Count
                 _ = RefreshZatcaPendingAsync();
 
-                // Start next bill
+                // Start next bill only after printing completes
                 await NewBillAsync();
             }
             else
@@ -964,15 +1027,17 @@ public partial class POSViewModel : ObservableObject
         }
     }
 
-    private string GenerateInvoiceQRCode()
+    private string GenerateInvoiceQRCode() => GenerateInvoiceQRCode(GrandTotal, TaxAmount, InvoiceNo, SalesDate);
+
+    private string GenerateInvoiceQRCode(decimal grandTotal, decimal taxAmount, string? invoiceNo = null, DateTime? salesDate = null)
     {
         try
         {
             string seller = AppData.CompanyDetails?.Name ?? "ZAKI ERP";
             string vatNo = AppData.CompanyDetails?.VatNo ?? "300000000000003";
-            string time = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            string total = GrandTotal.ToString("F2", CultureInfo.InvariantCulture);
-            string tax = TaxAmount.ToString("F2", CultureInfo.InvariantCulture);
+            string time = (salesDate ?? DateTime.Now).ToString("yyyy-MM-ddTHH:mm:ssZ");
+            string total = grandTotal.ToString("F2", CultureInfo.InvariantCulture);
+            string tax = taxAmount.ToString("F2", CultureInfo.InvariantCulture);
 
             byte[] bSeller = Encoding.UTF8.GetBytes(seller);
             byte[] bVat = Encoding.UTF8.GetBytes(vatNo);
@@ -998,7 +1063,7 @@ public partial class POSViewModel : ObservableObject
         }
         catch
         {
-            return $"{InvoiceNo}|{GrandTotal:F2}|{DateTime.Now:yyyy-MM-dd HH:mm}";
+            return $"{invoiceNo ?? InvoiceNo}|{grandTotal:F2}|{(salesDate ?? DateTime.Now):yyyy-MM-dd HH:mm}";
         }
     }
 

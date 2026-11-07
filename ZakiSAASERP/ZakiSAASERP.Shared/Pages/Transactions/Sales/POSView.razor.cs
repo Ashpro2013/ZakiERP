@@ -272,6 +272,9 @@ public partial class POSView : ITabAware, IDisposable
                 case "F3":
                     RetrieveBillClick();
                     break;
+                case "F4":
+                    await SearchProductLookUp();
+                    break;
                 case "F5":
                     await OpenDiscountDialog();
                     break;
@@ -657,7 +660,7 @@ public partial class POSView : ITabAware, IDisposable
         salesInvoice.AdditionalDiscountType = 2;
         if (salesInvoice.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesInvoice.AdditionalDiscPertge, salesInvoice.AdditionalDiscAmnt, salesInvoice.GrandTotal);
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, salesInvoice.AdditionalDiscPertge, salesInvoice.AdditionalDiscAmnt,strCurencyFormat, posSettings.ShowIncRate);
             string percentageStr = result.Item1?.ToString(strCurencyFormat) ?? "0";
             string discamount = result.Item2?.ToString(strCurencyFormat) ?? "0";
             salesInvoice.AdditionalDiscPertge = percentageStr.ToDecimal();
@@ -790,23 +793,7 @@ public partial class POSView : ITabAware, IDisposable
         _ = FocusBarcodeInputAsync();
     }
 
-    private async Task ToggleFullScreen()
-    {
-        _isFullScreen = !_isFullScreen;
-        try
-        {
-            if (_isFullScreen)
-            {
-                await js.InvokeVoidAsync("openFullscreen");
-            }
-            else
-            {
-                await js.InvokeVoidAsync("closeFullscreen");
-            }
-        }
-        catch { }
-        await InvokeAsync(StateHasChanged);
-    }
+    
 
     private void OnProductPageChanged(int newPage)
     {

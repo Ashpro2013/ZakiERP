@@ -746,8 +746,7 @@ public partial class PurchaseView : ComponentBase, ITabAware
     {
         if (purchase.AdditionalDiscountType == 2)
         {
-            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, purchase.AdditionalDiscPertge, purchase.AdditionalDiscAmnt, purchase.GrandTotal);
-            purchase.AdditionalDiscPertge = result.Item1 ?? 0;
+            var result = await TransactionHelper.AdditionalDiscountMethod(entTransactions, iType, purchase.AdditionalDiscPertge, purchase.AdditionalDiscAmnt);
             purchase.AdditionalDiscAmnt = result.Item2 ?? 0;
             TotalFindMethod();
 
