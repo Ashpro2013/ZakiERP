@@ -151,32 +151,32 @@ public class ZatcaRepo : IZatcaRepo
 
                 case 6:
                     firstCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "PASS" &&
-                        x.VoucherType == "Standard Credit Invoice");
+                        x.DetailedStatus == "REPORTED" &&
+                        x.VoucherType == "Simplified Credit Note");
 
                     secondCount = await query.CountAsync(x =>
                         x.DetailedStatus == "WARNING" &&
-                        x.VoucherType == "Standard Credit Invoice");
+                        x.VoucherType == "Simplified Credit Note");
 
                     thirdCount = await query.CountAsync(x =>
                         x.ICVStatus == false &&
                         x.ReUploaded == false &&
-                        x.VoucherType == "Standard Credit Invoice");
+                        x.VoucherType == "Simplified Credit Note");
                     break;
 
                 case 7:
                     firstCount = await query.CountAsync(x =>
                         x.DetailedStatus == "PASS" &&
-                        x.VoucherType == "Simplified Credit Note");
+                        x.VoucherType == "Standard Credit Note");
 
                     secondCount = await query.CountAsync(x =>
                         x.DetailedStatus == "WARNING" &&
-                        x.VoucherType == "Simplified Credit Note");
+                        x.VoucherType == "Standard Credit Note");
 
                     thirdCount = await query.CountAsync(x =>
                         x.ICVStatus == false &&
                         x.ReUploaded == false &&
-                        x.VoucherType == "Simplified Credit Note");
+                        x.VoucherType == "Standard Credit Note");
                     break;
             }
             return new PendingIcvData(firstCount, secondCount, thirdCount);
@@ -344,7 +344,7 @@ public class ZatcaRepo : IZatcaRepo
                     result = query
                         .Where(x => x.ICVStatus == false &&
                                     x.ReUploaded == false &&
-                                    x.VoucherType == "Standard Credit Invoice")
+                                    x.VoucherType == "Standard Credit Note")
                         .Select(x => new ExInvoiceICV
                         {
                             InvoiceICVId = x.InvoiceICVId,
@@ -360,7 +360,7 @@ public class ZatcaRepo : IZatcaRepo
 
                 case 10:
                     result = query
-                        .Where(x => x.DetailedStatus == "PASS" &&
+                        .Where(x => x.DetailedStatus == "REPORTED" &&
                                     x.VoucherType == "Simplified Credit Note")
                         .Select(x => new ExInvoiceICV
                         {

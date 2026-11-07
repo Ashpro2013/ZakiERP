@@ -11,9 +11,6 @@ public partial class App : Application
     public App(IServiceProvider services)
     {
         InitializeComponent();
-
-        UserAppTheme = AppTheme.Dark;
-
         Services = services;
     }
 

@@ -409,9 +409,9 @@ public sealed partial class LoginView
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            sErrorMessage = "Invalid Credential";
+            sErrorMessage = ex.Message;
         }
     }
 
