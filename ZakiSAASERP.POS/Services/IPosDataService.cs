@@ -32,5 +32,6 @@ public interface IPosDataService
     Task<List<ItemDialogDTO>> SearchItemsAsync(string search, int branchId);
     Task<SalesInvoiceDTO?> GetInvoiceByIdAsync(int id);
     Task<SalesInvoiceDTO?> SearchInvoiceByNoAsync(int branchId, string invoiceNo);
+    Task<List<ExMasters>> SearchInvoicesAsync(string search, int branchId);
 }
 

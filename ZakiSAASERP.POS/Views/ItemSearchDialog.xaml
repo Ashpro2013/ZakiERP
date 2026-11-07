@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Product Look Up" Height="520" Width="760"
+        Title="Product Look Up" Height="540" Width="800"
         Icon="/Assets/appicon.ico"
         WindowStartupLocation="CenterOwner"
         Background="#F8FAFC"
@@ -33,29 +33,104 @@
             </Grid>
         </Border>
 
-        <!-- Products DataGrid -->
+        <!-- Products DataGrid & Overlays -->
         <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="2">
-            <DataGrid ItemsSource="{Binding Items}"
-                      SelectedItem="{Binding SelectedItem}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      SelectionMode="Single"
-                      HeadersVisibility="Column"
-                      GridLinesVisibility="Horizontal"
-                      HorizontalGridLinesBrush="#F1F5F9"
-                      Background="#FFFFFF"
-                      RowHeight="36"
-                      MouseDoubleClick="DataGrid_MouseDoubleClick">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="110" />
-                    <DataGridTextColumn Header="Code" Binding="{Binding ItemCode}" Width="80" />
-                    <DataGridTextColumn Header="Item Name" Binding="{Binding ItemName}" Width="2*" />
-                    <DataGridTextColumn Header="Arabic Name" Binding="{Binding ItemNameArabic}" Width="1.5*" />
-                    <DataGridTextColumn Header="Ex. Rate" Binding="{Binding SalesRate, StringFormat='{}{0:N2}'}" Width="85" />
-                    <DataGridTextColumn Header="Inc. Rate" Binding="{Binding InclusiveRate, StringFormat='{}{0:N2}'}" Width="85" />
-                    <DataGridTextColumn Header="Stock" Binding="{Binding CurrentStock, StringFormat='{}{0:G29}'}" Width="75" />
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid>
+                <DataGrid x:Name="GridItems"
+                          ItemsSource="{Binding Items}"
+                          SelectedItem="{Binding SelectedItem}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#F1F5F9"
+                          Background="#FFFFFF"
+                          Foreground="#1E293B"
+                          RowHeight="36"
+                          FontSize="13"
+                          EnableRowVirtualization="True"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          KeyDown="GridItems_KeyDown"
+                          MouseDoubleClick="DataGrid_MouseDoubleClick">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Foreground" Value="#1E293B" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#EFF6FF" />
+                                    <Setter Property="Foreground" Value="#1D4ED8" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F8FAFC" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#F1F5F9" />
+                            <Setter Property="Foreground" Value="#334155" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter Property="Height" Value="34" />
+                            <Setter Property="Padding" Value="8,0" />
+                            <Setter Property="BorderThickness" Value="0,0,0,1" />
+                            <Setter Property="BorderBrush" Value="#CBD5E1" />
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="120" />
+                        <DataGridTextColumn Header="Code" Binding="{Binding ItemCode}" Width="85" />
+                        <DataGridTextColumn Header="Item Name" Binding="{Binding ItemName}" Width="2*" />
+                        <DataGridTextColumn Header="Arabic Name" Binding="{Binding ItemNameArabic}" Width="1.5*" />
+                        <DataGridTextColumn Header="Ex. Rate" Binding="{Binding SalesRate, StringFormat='{}{0:N2}'}" Width="90" />
+                        <DataGridTextColumn Header="Inc. Rate" Binding="{Binding InclusiveRate, StringFormat='{}{0:N2}'}" Width="90">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                    <Setter Property="Foreground" Value="#1E3A8A" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Stock" Binding="{Binding CurrentStock, StringFormat='{}{0:G29}'}" Width="80" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Loading Overlay -->
+                <Grid Background="#B3FFFFFF"
+                      Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True" Width="140" Height="6" Margin="0,0,0,8" />
+                        <TextBlock Text="Loading products..." FontSize="13" Foreground="#475569" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- No Results / Error Overlay -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsBusy}" Value="False" />
+                                        <Condition Binding="{Binding Items.Count}" Value="0" />
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="📦" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,6" Opacity="0.5" />
+                    <TextBlock Text="No products found" FontSize="14" FontWeight="SemiBold" Foreground="#64748B" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding ErrorMessage}" FontSize="12" Foreground="#EF4444" HorizontalAlignment="Center" Margin="0,4,0,0"
+                               Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}" />
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Footer -->
@@ -66,8 +141,9 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="Cancel (Esc)" Style="{DynamicResource DialogCancelBtnStyle}" Command="{Binding CancelCommand}" />
+            <TextBlock Grid.Column="1" Text="{Binding Items.Count, StringFormat='{}{0} item(s) found'}"
+                       Foreground="#64748B" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center" />
             <Button Grid.Column="2" Content="Add to Bill (Enter)" Style="{DynamicResource DialogOkBtnStyle}" Command="{Binding SelectCommand}" />
         </Grid>
     </Grid>
 </Window>
-

@@ -212,6 +212,13 @@ public class PosDataService(
         return null;
     }
 
+    public async Task<List<ExMasters>> SearchInvoicesAsync(string search, int branchId)
+    {
+        var pagination = new PaginationModel(1, 100, "Description", "desc", search, BranchId: branchId);
+        var res = await invoiceRepo.GetAllWithPagination(pagination);
+        return res?.PTransactions ?? [];
+    }
+
     private static PrintDesignDTO CreateFallbackThermalDesign()
     {
         var hdr = new PrintDesignHdr

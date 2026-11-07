@@ -236,10 +236,18 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
         await using var db = _contextProvider.CreateDbContext();
         var query = db.SalesInvoiceHdrs.AsNoTracking().Include(x => x.Customer).Where(x => !x.IsDeleted).AsQueryable();
 
+        if (pagination.BranchId > 0)
+        {
+            query = query.Where(x => x.FK_BranchId == pagination.BranchId);
+        }
+
         if (!string.IsNullOrWhiteSpace(pagination.search))
         {
             var term = pagination.search.ToLower();
-            query = query.Where(x => x.SalesInvoiceNo.ToLower().Contains(term) || (x.RefNo ?? string.Empty).ToLower().Contains(term));
+            query = query.Where(x => x.SalesInvoiceNo.ToLower().Contains(term)
+                || (x.CustomerName ?? string.Empty).ToLower().Contains(term)
+                || (x.Customer != null && x.Customer.Name != null && x.Customer.Name.ToLower().Contains(term))
+                || (x.RefNo ?? string.Empty).ToLower().Contains(term));
         }
 
         if (!string.IsNullOrWhiteSpace(pagination.sortColumn))
@@ -248,7 +256,7 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
             query = pagination.sortColumn switch
             {
                 "Code" => desc ? query.OrderByDescending(x => x.SalesInvoiceNo) : query.OrderBy(x => x.SalesInvoiceNo),
-                "Name" => desc ? query.OrderByDescending(x => x.Customer!.Name) : query.OrderBy(x => x.Customer!.Name),
+                "Name" => desc ? query.OrderByDescending(x => x.CustomerName) : query.OrderBy(x => x.CustomerName),
                 "Description" => desc ? query.OrderByDescending(x => x.SalesInvoiceDate) : query.OrderBy(x => x.SalesInvoiceDate),
                 _ => desc ? query.OrderByDescending(x => x.SalesInvoiceId) : query.OrderBy(x => x.SalesInvoiceId)
             };
@@ -263,16 +271,16 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
             .Skip((pagination.page - 1) * pagination.pageSize)
             .Take(pagination.pageSize)
             .ToListAsync();
-        var finalList = list.Where(x => x.FK_BranchId == pagination.BranchId).Select(e => new ExMasters
+        var finalList = list.Select(e => new ExMasters
         {
             Id = e.SalesInvoiceId,
-            Name = e.CustomerName,
+            Name = !string.IsNullOrWhiteSpace(e.CustomerName) ? e.CustomerName : (e.Customer?.Name ?? "Cash Customer"),
             Code = e.SalesInvoiceNo,
             IsSelected = true,
             Amount = e.GrandTotal,
             ExtraField = e.RefNo,
-            ReferenceNo = e.BillType,
-            Description = e.SalesInvoiceDate.Value.ToString("dd-MM-yyyy")
+            ReferenceNo = e.BillType ?? "Cash",
+            Description = e.SalesInvoiceDate?.ToString("dd-MM-yyyy") ?? ""
         }).ToList();
         return new TransactionPDTO(finalList, count);
     }

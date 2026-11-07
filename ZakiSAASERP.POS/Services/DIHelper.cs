@@ -90,6 +90,7 @@ public static class DIHelper
         services.AddTransient<PaymentViewModel>();
         services.AddTransient<CustomerSearchViewModel>();
         services.AddTransient<HeldInvoicesViewModel>();
+        services.AddTransient<BillSearchViewModel>();
         services.AddTransient<ItemSearchViewModel>();
         services.AddTransient<DiscountViewModel>();
         services.AddTransient<POSSettingsViewModel>();
@@ -105,6 +106,7 @@ public static class DIHelper
         services.AddTransient<PaymentDialog>();
         services.AddTransient<CustomerSearchDialog>();
         services.AddTransient<HeldInvoicesDialog>();
+        services.AddTransient<BillSearchDialog>();
         services.AddTransient<ItemSearchDialog>();
         services.AddTransient<DiscountDialog>();
         services.AddTransient<POSSettingsDialog>();

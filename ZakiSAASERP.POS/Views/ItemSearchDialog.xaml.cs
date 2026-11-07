@@ -19,10 +19,10 @@ public partial class ItemSearchDialog : Window
             Close();
         };
 
-        Loaded += async (_, _) =>
+        Loaded += (_, _) =>
         {
             TxtSearch.Focus();
-            await _viewModel.SearchCommand.ExecuteAsync(null);
+            TxtSearch.SelectAll();
         };
 
         KeyDown += ItemSearchDialog_KeyDown;
@@ -35,7 +35,7 @@ public partial class ItemSearchDialog : Window
             _viewModel.CancelCommand.Execute(null);
             e.Handled = true;
         }
-        else if (e.Key == Key.Enter && _viewModel.SelectedItem != null)
+        else if (e.Key == Key.Enter && _viewModel.SelectedItem != null && !TxtSearch.IsFocused)
         {
             _viewModel.SelectCommand.Execute(null);
             e.Handled = true;
@@ -46,7 +46,29 @@ public partial class ItemSearchDialog : Window
     {
         if (e.Key == Key.Enter)
         {
-            await _viewModel.SearchCommand.ExecuteAsync(null);
+            await _viewModel.SearchAsync();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Down)
+        {
+            GridItems.Focus();
+            if (GridItems.SelectedIndex < 0 && GridItems.Items.Count > 0)
+            {
+                GridItems.SelectedIndex = 0;
+            }
+            e.Handled = true;
+        }
+        else
+        {
+             await _viewModel.SearchAsync();
+        }
+    }
+
+    private void GridItems_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && _viewModel.SelectedItem != null)
+        {
+            _viewModel.SelectCommand.Execute(null);
             e.Handled = true;
         }
     }
@@ -56,4 +78,3 @@ public partial class ItemSearchDialog : Window
         _viewModel.SelectCommand.Execute(null);
     }
 }
-

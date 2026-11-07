@@ -160,13 +160,16 @@ public partial class POSViewModel : ObservableObject
     public Func<decimal, Task<(bool success, string paymentType, decimal tendered, decimal change)>>? ShowPaymentDialogHandler;
     public Func<Task<CustomerMaster?>>? ShowCustomerSearchHandler;
     public Func<Task<int?>>? ShowHeldInvoicesHandler;
-    public Func<Task<ItemDialogDTO?>>? ShowItemSearchHandler;
+    public Func<Task<int?>>? ShowBillSearchHandler;
+    public Func<string?, Task<ItemDialogDTO?>>? ShowItemSearchHandler;
     public Func<decimal, decimal, Task<decimal?>>? ShowDiscountHandler;
     public Func<Task<bool>>? ShowSettingsDialogHandler;
     public Func<Task>? ShowZatcaPendingHandler;
     public Func<Task<bool>>? ShowShiftDialogHandler;
     public Action<string, string>? ShowNotificationHandler;
     public Action? FocusBarcodeHandler;
+    public Action<string>? FocusCartCellHandler;
+    public Action<string>? ActiveBufferUpdatedHandler;
 
     #endregion
 
@@ -372,7 +375,7 @@ public partial class POSViewModel : ObservableObject
         {
             existing.Quantity += 1;
 
-            TransactionHelper.GetTransactionAfterEdit(existing, true);
+            TransactionHelper.GetTransactionAfterEdit(existing, Settings.ShowIncRate);
             SelectedCartItem = existing;
         }
         else
@@ -387,11 +390,11 @@ public partial class POSViewModel : ObservableObject
 
             if (inRate == 0 && exRate > 0)
             {
-                inRate = Math.Round(exRate * (1 + (vat / 100m)), 2);
+                inRate = Math.Round(exRate * (1 + (vat / 100m)), 2, MidpointRounding.AwayFromZero);
             }
             else if (exRate == 0 && inRate > 0)
             {
-                exRate = Math.Round(inRate / (1 + (vat / 100m)), 4);
+                exRate = Math.Round(inRate / (1 + (vat / 100m)), 4, MidpointRounding.AwayFromZero);
             }
 
             var line = new TransactionDtls
@@ -410,7 +413,7 @@ public partial class POSViewModel : ObservableObject
                 TaxPerc = vat
             };
 
-            TransactionHelper.GetTransactionAfterEdit(line, true);
+            TransactionHelper.GetTransactionAfterEdit(line, Settings.ShowIncRate);
             CartItems.Add(line);
             SelectedCartItem = line;
         }
@@ -424,7 +427,7 @@ public partial class POSViewModel : ObservableObject
         if (SelectedCartItem != null)
         {
             SelectedCartItem.Quantity += 1;
-            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
+            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, Settings.ShowIncRate);
             RecalculateTotals();
             FocusBarcodeHandler?.Invoke();
         }
@@ -438,7 +441,7 @@ public partial class POSViewModel : ObservableObject
             if (SelectedCartItem.Quantity > 1)
             {
                 SelectedCartItem.Quantity -= 1;
-                TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
+                TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, Settings.ShowIncRate);
                 RecalculateTotals();
                 FocusBarcodeHandler?.Invoke();
             }
@@ -463,16 +466,99 @@ public partial class POSViewModel : ObservableObject
     }
 
 
+    public void UpdateInRate(TransactionDtls row)
+    {
+        if (row == null) return;
+        var taxRate = row.TaxPerc > 0 ? row.TaxPerc : 15m;
+        row.InRate = Math.Round(row.ExRate * (1 + (taxRate / 100m)), 2, MidpointRounding.AwayFromZero);
+    }
+
+    public void UpdateExRate(TransactionDtls row)
+    {
+        if (row == null) return;
+        var taxRate = row.TaxPerc > 0 ? row.TaxPerc : 15m;
+        row.ExRate = Math.Round(row.InRate / (1 + (taxRate / 100m)), 4, MidpointRounding.AwayFromZero);
+    }
+
+    public void OnRowFieldEdited(TransactionDtls row, string header)
+    {
+        if (row == null) return;
+
+        switch (header)
+        {
+            case "Ex. Rate":
+            case "Rate":
+                UpdateInRate(row);
+                TransactionHelper.GetTransactionAfterEdit(row, Settings.ShowIncRate);
+                if (ActiveInputField == "Rate")
+                {
+                    NumPadBuffer = row.ExRate.ToString("F2");
+                }
+                break;
+
+            case "Inc. Rate":
+            case "IncRate":
+                UpdateExRate(row);
+                TransactionHelper.GetTransactionAfterEdit(row, true);
+                if (ActiveInputField == "IncRate")
+                {
+                    NumPadBuffer = row.InRate.ToString("F2");
+                }
+                break;
+
+            case "Qty":
+                TransactionHelper.GetTransactionAfterEdit(row, Settings.ShowIncRate);
+                if (ActiveInputField == "Qty")
+                {
+                    NumPadBuffer = row.Quantity.ToString("G29");
+                }
+                break;
+
+            case "Disc (%)":
+                TransactionHelper.GetTransactionAfterEdit(row, Settings.ShowIncRate);
+                if (ActiveInputField == "Disc%")
+                {
+                    NumPadBuffer = row.DiscountPerc.ToString("F2");
+                }
+                break;
+
+            case "Disc":
+                if (row.GrossAmount > 0)
+                {
+                    row.DiscountPerc = Math.Round((row.DiscountAmnt / row.GrossAmount) * 100m, 4, MidpointRounding.AwayFromZero);
+                }
+                else
+                {
+                    row.DiscountPerc = 0;
+                }
+                TransactionHelper.GetTransactionAfterEdit(row, Settings.ShowIncRate, true);
+                if (ActiveInputField == "DiscAmt")
+                {
+                    NumPadBuffer = row.DiscountAmnt.ToString("F2");
+                }
+                break;
+
+            default:
+                TransactionHelper.GetTransactionAfterEdit(row, Settings.ShowIncRate);
+                break;
+        }
+
+        RecalculateTotals();
+    }
+
     public void RecalculateTotals()
     {
         foreach (var item in CartItems)
         {
             if (item.InRate == 0 && item.ExRate > 0)
             {
-                var tax = item.TaxPerc > 0 ? item.TaxPerc : 15m;
-                item.InRate = Math.Round(item.ExRate * (1 + (tax / 100m)), 2);
+                UpdateInRate(item);
             }
-            TransactionHelper.GetTransactionAfterEdit(item, true);
+            else if (item.ExRate == 0 && item.InRate > 0)
+            {
+                UpdateExRate(item);
+            }
+            TransactionHelper.GetTransactionAfterEdit(item, Settings.ShowIncRate);
         }
 
         TotalQty = CartItems.Sum(x => x.Quantity);
@@ -528,7 +614,7 @@ public partial class POSViewModel : ObservableObject
                 // Fallback to item search
                 if (ShowItemSearchHandler != null)
                 {
-                    var selected = await ShowItemSearchHandler.Invoke();
+                    var selected = await ShowItemSearchHandler.Invoke(barcode);
                     if (selected != null)
                     {
                         var simulated = new ItemMultiUnit
@@ -566,7 +652,7 @@ public partial class POSViewModel : ObservableObject
     {
         if (ShowItemSearchHandler != null)
         {
-            var selected = await ShowItemSearchHandler.Invoke();
+            var selected = await ShowItemSearchHandler.Invoke(null);
             if (selected != null)
             {
                 var simulated = new ItemMultiUnit
@@ -759,12 +845,75 @@ public partial class POSViewModel : ObservableObject
     [RelayCommand]
     public async Task SearchBillAsync()
     {
-        // Simple search bill lookup
-        if (ShowItemSearchHandler != null)
+        try
         {
-            // You can search existing invoice by invoice number prompt
+            if (ShowBillSearchHandler != null)
+            {
+                int? selectedInvoiceId = await ShowBillSearchHandler.Invoke();
+                if (selectedInvoiceId.HasValue && selectedInvoiceId.Value > 0)
+                {
+                    var invoiceDto = await _posDataService.GetInvoiceByIdAsync(selectedInvoiceId.Value);
+                    if (invoiceDto?.InvoiceHdr != null)
+                    {
+                        CartItems.Clear();
+                        if (invoiceDto.InvoiceDtls != null)
+                        {
+                            int sl = 1;
+                            foreach (var line in invoiceDto.InvoiceDtls)
+                            {
+                                line.SL = sl++;
+                                CartItems.Add(line);
+                            }
+                        }
+
+                        CustomerName = invoiceDto.InvoiceHdr.CustomerName ?? "Cash Customer";
+                        CustomerId = invoiceDto.InvoiceHdr.FK_CustomerId;
+                        DiscountAmount = invoiceDto.InvoiceHdr.LineDsicount;
+                        InvoiceNo = invoiceDto.InvoiceHdr.SalesInvoiceNo;
+
+                        // Save reference to re-print or inspect
+                        _lastSavedHdr = new TransactionHdr
+                        {
+                            HdrNo = invoiceDto.InvoiceHdr.SalesInvoiceNo,
+                            HdrDate = invoiceDto.InvoiceHdr.SalesInvoiceDate ?? DateTime.Today,
+                            InvoiceDate = (invoiceDto.InvoiceHdr.SalesInvoiceDate ?? DateTime.Today).ToString("dd-MM-yyyy"),
+                            TotalQuantity = CartItems.Sum(x => x.Quantity),
+                            PartyId = invoiceDto.InvoiceHdr.FK_CustomerId,
+                            CustomerName = invoiceDto.InvoiceHdr.CustomerName,
+                            GrossAmount = invoiceDto.InvoiceHdr.GrossAmount,
+                            LineDsicount = invoiceDto.InvoiceHdr.LineDsicount,
+                            TaxableAmount = invoiceDto.InvoiceHdr.TaxableAmount,
+                            TaxTotal = invoiceDto.InvoiceHdr.TaxTotal,
+                            NetAmount = invoiceDto.InvoiceHdr.NetAmount,
+                            GrandTotal = invoiceDto.InvoiceHdr.GrandTotal,
+                            Tendered = invoiceDto.InvoiceHdr.Tendered ?? invoiceDto.InvoiceHdr.GrandTotal,
+                            Changes = invoiceDto.InvoiceHdr.Changes ?? 0,
+                            QRCode = invoiceDto.InvoiceHdr.InvoiceQRCode,
+                            InvoiceQRCode = invoiceDto.InvoiceHdr.InvoiceQRCode,
+                            BillType = invoiceDto.InvoiceHdr.BillType ?? "Cash"
+                        };
+                        _lastSavedItems = CartItems.ToList();
+                        _lastSavedParty = new Party
+                        {
+                            CustomerId = invoiceDto.InvoiceHdr.FK_CustomerId,
+                            Name = invoiceDto.InvoiceHdr.CustomerName
+                        };
+
+                        RecalculateTotals();
+                        SelectedCartItem = CartItems.LastOrDefault();
+                        ShowNotificationHandler?.Invoke("Info", $"Loaded invoice {invoiceDto.InvoiceHdr.SalesInvoiceNo}");
+                    }
+                }
+            }
         }
-        FocusBarcodeHandler?.Invoke();
+        catch (Exception ex)
+        {
+            ShowNotificationHandler?.Invoke("Error", $"Failed to load bill: {ex.Message}");
+        }
+        finally
+        {
+            FocusBarcodeHandler?.Invoke();
+        }
     }
 
     [RelayCommand]
@@ -1133,6 +1282,7 @@ public partial class POSViewModel : ObservableObject
         {
             NumPadBuffer = "";
             UpdateActiveFieldFromBuffer();
+            ActiveBufferUpdatedHandler?.Invoke(NumPadBuffer);
             FocusBarcodeHandler?.Invoke();
             return;
         }
@@ -1150,24 +1300,35 @@ public partial class POSViewModel : ObservableObject
                 NumPadBuffer = NumPadBuffer[..^1];
             }
             UpdateActiveFieldFromBuffer();
+            ActiveBufferUpdatedHandler?.Invoke(NumPadBuffer);
             return;
         }
 
         if (key == "Qty")
         {
+            if (SelectedCartItem == null && CartItems.Any())
+            {
+                SelectedCartItem = CartItems.LastOrDefault();
+            }
             if (SelectedCartItem != null)
             {
                 SetActiveCell(SelectedCartItem, "Qty");
             }
+            FocusCartCellHandler?.Invoke("Qty");
             return;
         }
 
         if (key == "Rate")
         {
+            if (SelectedCartItem == null && CartItems.Any())
+            {
+                SelectedCartItem = CartItems.LastOrDefault();
+            }
             if (SelectedCartItem != null)
             {
                 SetActiveCell(SelectedCartItem, "Rate");
             }
+            FocusCartCellHandler?.Invoke("Rate");
             return;
         }
 
@@ -1183,6 +1344,7 @@ public partial class POSViewModel : ObservableObject
 
         NumPadBuffer += key;
         UpdateActiveFieldFromBuffer();
+        ActiveBufferUpdatedHandler?.Invoke(NumPadBuffer);
     }
 
     private void UpdateActiveFieldFromBuffer()
@@ -1196,29 +1358,27 @@ public partial class POSViewModel : ObservableObject
         else if (ActiveInputField == "Qty" && SelectedCartItem != null)
         {
             SelectedCartItem.Quantity = parsedVal;
-            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
+            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, Settings.ShowIncRate);
             RecalculateTotals();
         }
         else if (ActiveInputField == "Rate" && SelectedCartItem != null)
         {
             SelectedCartItem.ExRate = parsedVal;
-            var taxRate = SelectedCartItem.TaxPerc > 0 ? SelectedCartItem.TaxPerc : 15m;
-            SelectedCartItem.InRate = Math.Round(parsedVal * (1 + (taxRate / 100m)), 2);
-            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
+            UpdateInRate(SelectedCartItem);
+            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, Settings.ShowIncRate);
             RecalculateTotals();
         }
         else if (ActiveInputField == "IncRate" && SelectedCartItem != null)
         {
             SelectedCartItem.InRate = parsedVal;
-            var taxRate = SelectedCartItem.TaxPerc > 0 ? SelectedCartItem.TaxPerc : 15m;
-            SelectedCartItem.ExRate = Math.Round(parsedVal / (1 + (taxRate / 100m)), 4);
+            UpdateExRate(SelectedCartItem);
             TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
             RecalculateTotals();
         }
         else if (ActiveInputField == "Disc%" && SelectedCartItem != null)
         {
             SelectedCartItem.DiscountPerc = parsedVal;
-            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true);
+            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, Settings.ShowIncRate);
             RecalculateTotals();
         }
         else if (ActiveInputField == "DiscAmt" && SelectedCartItem != null)
@@ -1226,9 +1386,13 @@ public partial class POSViewModel : ObservableObject
             SelectedCartItem.DiscountAmnt = parsedVal;
             if (SelectedCartItem.GrossAmount > 0)
             {
-                SelectedCartItem.DiscountPerc = Math.Round((parsedVal / SelectedCartItem.GrossAmount) * 100m, 4);
+                SelectedCartItem.DiscountPerc = Math.Round((parsedVal / SelectedCartItem.GrossAmount) * 100m, 4, MidpointRounding.AwayFromZero);
             }
-            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, true, true);
+            else
+            {
+                SelectedCartItem.DiscountPerc = 0;
+            }
+            TransactionHelper.GetTransactionAfterEdit(SelectedCartItem, Settings.ShowIncRate, true);
             RecalculateTotals();
         }
         else if (ActiveInputField == "Discount")

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ZakiSAASERP.POS.Views.POSView"
+<UserControl x:Class="ZakiSAASERP.POS.Views.POSView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -517,7 +517,8 @@
                         </Border>
 
                         <!-- Transaction DataGrid -->
-                        <DataGrid Grid.Column="1"
+                        <DataGrid x:Name="GridCart"
+                                  Grid.Column="1"
                                   ItemsSource="{Binding CartItems}"
                                   SelectedItem="{Binding SelectedCartItem}"
                                   AutoGenerateColumns="False"
@@ -531,7 +532,9 @@
                                   Margin="6,0"
                                   BorderThickness="0"
                                   BeginningEdit="DataGrid_BeginningEdit"
-                                  CellEditEnding="DataGrid_CellEditEnding">
+                                  PreparingCellForEdit="DataGrid_PreparingCellForEdit"
+                                  CellEditEnding="DataGrid_CellEditEnding"
+                                  PreviewKeyDown="GridCart_PreviewKeyDown">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="#" Binding="{Binding SL}" Width="36" IsReadOnly="True" />
                                 <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="90" IsReadOnly="True"

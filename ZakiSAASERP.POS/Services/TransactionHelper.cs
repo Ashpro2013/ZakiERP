@@ -7,20 +7,20 @@ public static class TransactionHelper
 {
     public static TransactionDtls GetTransactionAfterEdit(TransactionDtls transaction, bool blTakeIncRate = false, bool isFromDiscAmnt = false)
     {
-        transaction.GrossAmount = transaction.Quantity * transaction.ExRate;
+        transaction.GrossAmount = Math.Round(transaction.Quantity * transaction.ExRate, 2, MidpointRounding.AwayFromZero);
         if (!isFromDiscAmnt)
         {
-            transaction.DiscountAmnt = (transaction.GrossAmount * transaction.DiscountPerc) / 100m;
+            transaction.DiscountAmnt = Math.Round((transaction.GrossAmount * transaction.DiscountPerc) / 100m, 2, MidpointRounding.AwayFromZero);
         }
         transaction.TaxableAmnt = transaction.GrossAmount - transaction.DiscountAmnt;
-        transaction.TaxAmount = (transaction.TaxableAmnt * transaction.TaxPerc) / 100m;
+        transaction.TaxAmount = Math.Round((transaction.TaxableAmnt * transaction.TaxPerc) / 100m, 2, MidpointRounding.AwayFromZero);
         if (!blTakeIncRate || transaction.DiscountAmnt > 0)
         {
             transaction.LineTotal = transaction.TaxableAmnt + transaction.TaxAmount;
         }
         else
         {
-            transaction.LineTotal = transaction.InRate * transaction.Quantity;
+            transaction.LineTotal = Math.Round(transaction.InRate * transaction.Quantity, 2, MidpointRounding.AwayFromZero);
         }
         return transaction;
     }
