@@ -6,9 +6,12 @@ public class ItemMaster
     [Key]
     public int ItemId { get; set; }
     [Required(ErrorMessage = "Item Code is required")]
+    [MaxLength(30)]
     public string? ItemCode { get; set; }
     [Required(ErrorMessage = "Item Name is required")]
+    [MaxLength(250)]
     public string? ItemName { get; set; }
+    [MaxLength(250)]
     public string? ItemNameArabic { get; set; }
     [Required(ErrorMessage = "Unit is required")]
     public int? FK_UnitId { get; set; }
@@ -31,6 +34,7 @@ public class ItemMaster
     public byte[]? ItemImage { get; set; }
     public string? ItemExpiry { get; set; }
     public string? ItemType { get; set; } = "Normal";
+    [MaxLength(20)]
     public string? Barcode { get; set; }
     public string? WeightPerCarton { get; set; }
     public decimal? LandingCost { get; set; }

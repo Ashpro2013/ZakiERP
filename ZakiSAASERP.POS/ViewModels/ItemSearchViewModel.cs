@@ -9,6 +9,9 @@ namespace ZakiSAASERP.POS.ViewModels;
 
 public partial class ItemSearchViewModel(IPosDataService posDataService) : ObservableObject
 {
+    private CancellationTokenSource? _debounceCts;
+    private string? _lastSearchedQuery = null;
+
     [ObservableProperty]
     private string searchQuery = "";
 
@@ -30,59 +33,89 @@ public partial class ItemSearchViewModel(IPosDataService posDataService) : Obser
     public async Task InitializeAsync(string? initialSearch = null)
     {
         SearchQuery = initialSearch ?? "";
-        await SearchAsync();
+        await ExecuteSearchAsync(SearchQuery);
     }
 
-
-
-[RelayCommand]
-public async Task SearchAsync()
-{
-    if (IsBusy) return;
-
-    IsBusy = true;
-    ErrorMessage = string.Empty;
-
-    try
+    partial void OnSearchQueryChanged(string value)
     {
-        var branchId = AppData.BranchId > 0
-            ? AppData.BranchId
-            : 1;
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
 
-        var newItems = Items
-            .Where(i =>
-                i.ItemName?.Contains(SearchQuery ?? "", StringComparison.OrdinalIgnoreCase) == true ||
-                i.ItemCode?.Contains(SearchQuery ?? "", StringComparison.OrdinalIgnoreCase) == true ||
-                i.Barcode?.Contains(SearchQuery ?? "", StringComparison.OrdinalIgnoreCase) == true)
-            .ToList();
-
-        if (newItems.Count == 0)
+        _ = Task.Run(async () =>
         {
-            var list = await posDataService.SearchItemsAsync(
-                SearchQuery, branchId);
+            try
+            {
+                await Task.Delay(250, token);
+                if (token.IsCancellationRequested) return;
 
-            newItems = list?.ToList() ?? [];
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    if (!token.IsCancellationRequested)
+                    {
+                        await ExecuteSearchAsync(value);
+                    }
+                });
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ItemSearchViewModel] Debounce search error: {ex}");
+            }
+        }, token);
+    }
+
+    [RelayCommand]
+    public async Task SearchAsync()
+    {
+        _debounceCts?.Cancel();
+        await ExecuteSearchAsync(SearchQuery);
+    }
+
+    public async Task HandleEnterInSearchAsync()
+    {
+        if (_lastSearchedQuery != SearchQuery)
+        {
+            _debounceCts?.Cancel();
+            await ExecuteSearchAsync(SearchQuery);
+            if (Items.Count == 1)
+            {
+                Select();
+            }
         }
-
-        Application.Current.Dispatcher.Invoke(() =>
+        else if (SelectedItem != null)
         {
-            Items = new ObservableCollection<ItemDialogDTO>(newItems);
-            SelectedItem = Items.FirstOrDefault();
-        });
+            Select();
+        }
     }
-    catch (Exception ex)
-    {
-        ErrorMessage = $"Failed to load products: {ex.Message}";
 
-        System.Diagnostics.Debug.WriteLine(
-            $"[ItemSearchViewModel] SearchAsync error: {ex}");
-    }
-    finally
+    private async Task ExecuteSearchAsync(string query)
     {
-        IsBusy = false;
+        IsBusy = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var branchId = AppData.BranchId > 0 ? AppData.BranchId : 1;
+            var list = await posDataService.SearchItemsAsync(query ?? "", branchId);
+            var resultList = list ?? [];
+
+            Items = new ObservableCollection<ItemDialogDTO>(resultList);
+            SelectedItem = Items.FirstOrDefault();
+            _lastSearchedQuery = query;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load products: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[ItemSearchViewModel] ExecuteSearchAsync error: {ex}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
-}
-[RelayCommand]
+
+    [RelayCommand]
     private void Select()
     {
         if (SelectedItem != null)

@@ -316,43 +316,67 @@ public class ItemMasterRepo(IDbContextProvider contextProvider, CodeSequenceServ
     public async Task<(List<ItemDialogDTO>, int)> GetItemsForDialogWithStock(PaginationModel pagination)
     {
         await using var db = contextProvider.CreateDbContext();
-        var query = from item in db.ItemMasters
-                    join stock in db.ItemStockBalances
-                        on new { ItemId = item.ItemId, BranchId = pagination.BranchId }
-                        equals new { ItemId = stock.FK_ItemId, BranchId = stock.FK_BranchId }
-                        into stockGroup
-                    from stock in stockGroup.DefaultIfEmpty()
-                    select new ItemDialogDTO
-                    {
-                        ItemId = item.ItemId,
-                        Barcode = item.Barcode,
-                        ItemCode = item.ItemCode,
-                        ItemName = item.ItemName,
-                        ItemNameArabic = item.ItemNameArabic,
-                        SalesRate = item.SalesRate,
-                        PurchaseRate = item.PurchaseRate ?? item.StandardCost,
-                        StockMode = item.StockMode,
-                        FK_UnitId = item.FK_UnitId,
-                        InclusiveRate = item.InclusiveRate,
-                        StandardCost = item.StandardCost,
-                        CurrentStock = stock != null ? stock.CurrentQty : 0
-                    };
+
+        var baseQuery = db.ItemMasters.AsNoTracking().Where(x => x.IsActive == null || x.IsActive == true);
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(pagination.search))
         {
-            query = query.Where(x => x.ItemName.Contains(pagination.search)
-                || x.ItemCode.Contains(pagination.search)
-                || x.Barcode.Contains(pagination.search));
+            var search = pagination.search.Trim();
+            baseQuery = baseQuery.Where(x => x.ItemName.Contains(search)
+                || (x.ItemCode != null && x.ItemCode.Contains(search))
+                || (x.Barcode != null && x.Barcode.Contains(search)));
         }
 
-        int count = await query.CountAsync();
-        query = query.OrderBy(x => x.ItemName);
+        int count = await baseQuery.CountAsync();
 
-        var items = await query
-           .Skip((pagination.page - 1) * pagination.pageSize)
-           .Take(pagination.pageSize)
-           .ToListAsync();
+        var pagedQuery = baseQuery.OrderBy(x => x.ItemName);
+
+        var pagedItems = await (pagination.page > 1
+            ? pagedQuery.Skip((pagination.page - 1) * pagination.pageSize).Take(pagination.pageSize)
+            : pagedQuery.Take(pagination.pageSize))
+            .Select(item => new
+            {
+                item.ItemId,
+                item.Barcode,
+                item.ItemCode,
+                item.ItemName,
+                item.ItemNameArabic,
+                item.SalesRate,
+                PurchaseRate = item.PurchaseRate ?? item.StandardCost,
+                item.StockMode,
+                item.FK_UnitId,
+                item.InclusiveRate,
+                item.StandardCost
+            })
+            .ToListAsync();
+
+        if (pagedItems.Count == 0)
+        {
+            return (new List<ItemDialogDTO>(), count);
+        }
+
+        var itemIds = pagedItems.Select(x => x.ItemId).ToList();
+        var stockBalances = await db.ItemStockBalances
+            .AsNoTracking()
+            .Where(s => s.FK_BranchId == pagination.BranchId && itemIds.Contains(s.FK_ItemId))
+            .ToDictionaryAsync(s => s.FK_ItemId, s => s.CurrentQty);
+
+        var items = pagedItems.Select(item => new ItemDialogDTO
+        {
+            ItemId = item.ItemId,
+            Barcode = item.Barcode,
+            ItemCode = item.ItemCode,
+            ItemName = item.ItemName,
+            ItemNameArabic = item.ItemNameArabic,
+            SalesRate = item.SalesRate,
+            PurchaseRate = item.PurchaseRate,
+            StockMode = item.StockMode,
+            FK_UnitId = item.FK_UnitId,
+            InclusiveRate = item.InclusiveRate,
+            StandardCost = item.StandardCost,
+            CurrentStock = stockBalances.TryGetValue(item.ItemId, out var stock) ? stock : 0
+        }).ToList();
 
         return (items, count);
     }

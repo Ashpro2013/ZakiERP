@@ -46,8 +46,8 @@ public partial class ItemSearchDialog : Window
     {
         if (e.Key == Key.Enter)
         {
-            await _viewModel.SearchAsync();
             e.Handled = true;
+            await _viewModel.HandleEnterInSearchAsync();
         }
         else if (e.Key == Key.Down)
         {
@@ -57,10 +57,6 @@ public partial class ItemSearchDialog : Window
                 GridItems.SelectedIndex = 0;
             }
             e.Handled = true;
-        }
-        else
-        {
-             await _viewModel.SearchAsync();
         }
     }
 
