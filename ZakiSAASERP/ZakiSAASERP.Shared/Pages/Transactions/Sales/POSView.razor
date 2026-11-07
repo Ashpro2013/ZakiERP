@@ -62,6 +62,12 @@
                 <button class="icon-circle-btn" title="Sales Report" @onclick="SalesReportClick">
                     <MudIcon Icon="@Icons.Material.Filled.Assessment" Size="Size.Small" />
                 </button>
+                @if (PermanentSettingsData.EnableShiftClosing)
+                {
+                    <button class="icon-circle-btn" title="Shift Closing &amp; Handover" @onclick="OpenShiftDialog">
+                        <MudIcon Icon="@Icons.Material.Filled.PunchClock" Size="Size.Small" Style="color: #f59e0b;" />
+                    </button>
+                }
                 <button class="icon-circle-btn" title="Settings" @onclick="OpenSettings">
                     <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" />
                 </button>

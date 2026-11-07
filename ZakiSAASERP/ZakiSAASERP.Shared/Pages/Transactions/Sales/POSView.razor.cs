@@ -1423,6 +1423,28 @@ public partial class POSView : ITabAware, IDisposable
         await FocusBarcodeInputAsync();
     }
 
+    private async Task OpenShiftDialog()
+    {
+        try
+        {
+            if (DialogService == null) return;
+
+            var options = new DialogOptions
+            {
+                CloseOnEscapeKey = true,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true
+            };
+
+            var dialog = await DialogService.ShowAsync<ShiftDialog>("Shift Reconciliation & Handover", options);
+            await dialog.Result;
+        }
+        catch (Exception ex)
+        {
+            snackbar.Add($"Shift dialog error: {ex.Message}", Severity.Error);
+        }
+    }
+
     private async Task OpenSettings()
     {
         var parameters = new DialogParameters

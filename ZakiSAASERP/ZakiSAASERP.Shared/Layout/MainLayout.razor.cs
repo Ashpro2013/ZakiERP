@@ -1,4 +1,5 @@
 using ZakiSAASERP.Models.User;
+using ZakiSAASERP.Shared.SubWindows;
 
 namespace ZakiSAASERP.Shared.Layout;
 
@@ -419,31 +420,15 @@ public sealed partial class MainLayout
         {
             if (DialogService == null) return;
 
-            bool? confirmed = await DialogService.ShowMessageBox(
-                Localizer("ShiftClosing"),
-                "Do you want to close the Shift",
-                yesText: Localizer("Yes"),
-                cancelText: Localizer("No"));
-
-            if (confirmed == true)
+            var options = new DialogOptions
             {
-                if (ShiftService == null)
-                {
-                    Snackbar.Add("Shift service is not available.", Severity.Warning);
-                    return;
-                }
-                var terminal = "Terminal 1";
-                var user = !string.IsNullOrWhiteSpace(AppData.UserName) ? AppData.UserName : "User";
+                CloseOnEscapeKey = true,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true
+            };
 
-                // Print shift details from local storage
-                var shiftDetails = await ShiftService.GetShiftDetailsAsync(terminal, user);
-                await ShiftService.PrintShiftDetailsAsync(shiftDetails, AppData.CompanyDetails);
-
-                // Make all values in the local storage as zero
-                await ShiftService.ResetShiftDetailsAsync(terminal, user);
-
-                Snackbar.Add(Localizer("ShiftClosedSuccessfully"), Severity.Success);
-            }
+            var dialog = await DialogService.ShowAsync<ShiftDialog>(Localizer("ShiftClosing"), options);
+            await dialog.Result;
         }
         catch (Exception ex)
         {

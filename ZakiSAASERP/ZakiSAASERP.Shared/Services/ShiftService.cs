@@ -310,7 +310,7 @@ public class ShiftService
         await SaveShiftDetailsAsync(shift);
     }
 
-    public async Task ResetShiftDetailsAsync(string defaultTerminal = "Terminal 1", string defaultUser = "User")
+    public async Task ResetShiftDetailsAsync(string defaultTerminal = "Terminal 1", string defaultUser = "User", decimal openingBalance = 0m)
     {
         // 1. Make all values in the local storage as zero
         string[] zeroKeys = new[]
@@ -323,15 +323,19 @@ public class ShiftService
             "Total Credit Sales", "TotalCreditSales", "CreditSales",
             "Total Payment", "TotalPayment",
             "Total Cash Receipt", "TotalCashReceipt",
-            "Total Card Receipt", "TotalCardReceipt",
-            "Opening Balance", "OpeningBalance",
-            "Closing Balance", "ClosingBalance"
+            "Total Card Receipt", "TotalCardReceipt"
         };
 
         foreach (var key in zeroKeys)
         {
             await _jsService.SetLocal("0", key);
         }
+
+        var sOpening = openingBalance.ToString("0.00", CultureInfo.InvariantCulture);
+        await _jsService.SetLocal(sOpening, "Opening Balance");
+        await _jsService.SetLocal(sOpening, "OpeningBalance");
+        await _jsService.SetLocal(sOpening, "Closing Balance");
+        await _jsService.SetLocal(sOpening, "ClosingBalance");
 
         var nowStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         await _jsService.SetLocal(nowStr, "Date from");
@@ -350,8 +354,8 @@ public class ShiftService
             TotalPayment = 0,
             TotalCashReceipt = 0,
             TotalCardReceipt = 0,
-            OpeningBalance = 0,
-            ClosingBalance = 0,
+            OpeningBalance = openingBalance,
+            ClosingBalance = openingBalance,
             Terminal = defaultTerminal,
             UserName = defaultUser,
             DateFrom = DateTime.Now,

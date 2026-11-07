@@ -1,0 +1,584 @@
+@namespace ZakiSAASERP.Shared.SubWindows
+@using MudBlazor
+@using ZakiSAASERP.Models.Settings
+@using ZakiSAASERP.Shared.Services
+@inject ShiftService ShiftService
+@inject ISnackbar Snackbar
+
+<MudDialog Class="shift-dialog-root" DefaultFocus="DefaultFocus.None">
+    <TitleContent>
+        <div class="d-flex align-center justify-space-between w-100 pa-1">
+            <div class="d-flex align-center gap-3">
+                <div class="shift-badge">
+                    <MudIcon Icon="@Icons.Material.Filled.PunchClock" Size="Size.Medium" Style="color: #16a34a;" />
+                </div>
+                <div>
+                    <MudText Typo="Typo.h6" Style="font-weight: 700; color: #0f172a; letter-spacing: -0.3px; line-height: 1.2;">
+                        Shift Reconciliation &amp; Handover
+                    </MudText>
+                    <div class="shift-meta-line mt-1">
+                        <span class="meta-label">Cashier: </span>
+                        <span class="meta-val highlight">@(string.IsNullOrWhiteSpace(_shift.UserName) ? "Cashier" : _shift.UserName)</span>
+                        <span class="meta-sep"> | </span>
+                        <span class="meta-label">Terminal: </span>
+                        <span class="meta-val highlight">@(string.IsNullOrWhiteSpace(_shift.Terminal) ? "Terminal 1" : _shift.Terminal)</span>
+                        <span class="meta-sep"> | </span>
+                        <span class="meta-label">Started: </span>
+                        <span class="meta-val">@(_shift.DateFrom?.ToString("dd-MM-yyyy hh:mm tt") ?? DateTime.Now.ToString("dd-MM-yyyy hh:mm tt"))</span>
+                    </div>
+                </div>
+            </div>
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="Cancel" Style="color: #64748b;" />
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+        <div class="shift-content-container">
+            @* SECTION 1: SHIFT TRANSACTION TOTALS (3 COLUMNS) *@
+            <div class="shift-section-title mb-2" style="font-size: 15px !important; font-weight: 700 !important; color: #0F172A !important; display: flex; align-items: center;">
+                <MudIcon Icon="@Icons.Material.Filled.Analytics" Size="Size.Small" Class="mr-2" Style="color: #2563eb;" />
+                Shift Transaction Totals
+            </div>
+            <div class="metrics-grid">
+                @* Opening Cash *@
+                <div class="metric-card">
+                    <div class="metric-label">Opening Cash</div>
+                    <div class="metric-value dark">@_shift.OpeningBalance.ToString("N2") SAR</div>
+                </div>
+
+                @* Cash Sales *@
+                <div class="metric-card">
+                    <div class="metric-label">Cash Sales</div>
+                    <div class="metric-value text-green">@_shift.TotalCashSales.ToString("N2") SAR</div>
+                </div>
+
+                @* Card / Bank Sales *@
+                <div class="metric-card">
+                    <div class="metric-label">Card / Bank Sales</div>
+                    <div class="metric-value text-blue">@_shift.TotalCardSales.ToString("N2") SAR</div>
+                </div>
+
+                @* Credit Sales *@
+                <div class="metric-card">
+                    <div class="metric-label">Credit Sales</div>
+                    <div class="metric-value text-purple">@_shift.TotalCreditSales.ToString("N2") SAR</div>
+                </div>
+
+                @* Sales Returns *@
+                <div class="metric-card">
+                    <div class="metric-label">Sales Returns</div>
+                    <div class="metric-value text-red">@_shift.TotalSalesReturn.ToString("N2") SAR</div>
+                </div>
+
+                @* Net Total Sales *@
+                <div class="metric-card">
+                    <div class="metric-label">Net Total Sales</div>
+                    <div class="metric-value text-bold-dark">@NetSales.ToString("N2") SAR</div>
+                </div>
+            </div>
+
+            @* SECTION 2: DRAWER RECONCILIATION *@
+            <div class="recon-card mt-3">
+                <div class="shift-section-title mb-3" style="font-size: 15px !important; font-weight: 700 !important; color: #0F172A !important; display: flex; align-items: center;">
+                    <MudIcon Icon="@Icons.Material.Filled.PointOfSale" Size="Size.Small" Class="mr-2" Style="color: #16a34a;" />
+                    Cash Drawer Reconciliation
+                </div>
+
+                <div class="recon-grid">
+                    @* Expected Cash in Drawer *@
+                    <div class="recon-box expected">
+                        <div class="recon-box-label">Expected Cash in Drawer:</div>
+                        <div class="recon-box-val">@ExpectedCash.ToString("N2") SAR</div>
+                        <div class="recon-box-sub">(Opening Cash + Cash Sales + Receipts - Payments)</div>
+                    </div>
+
+                    @* Counted Cash in Drawer *@
+                    <div class="recon-box counted">
+                        <div class="recon-box-label counted-label">Counted Cash in Drawer (SAR):</div>
+                        <input type="number" step="0.01" class="counted-input"
+                               @bind="_actualCash" @bind:event="oninput" />
+                    </div>
+                </div>
+
+                @* Variance Status Banner *@
+                <div class="variance-banner mt-3">
+                    <span class="variance-title">Drawer Discrepancy / Variance:</span>
+                    <span class="variance-val @VarianceClass">@DifferenceStatus</span>
+                </div>
+
+                @* Next Shift Opening Float *@
+                <div class="float-row mt-3">
+                    <div class="float-info">
+                        <div class="float-title">Next Shift Opening Float (SAR)</div>
+                        <div class="float-desc">Initial cash balance left in drawer for incoming cashier</div>
+                    </div>
+                    <div class="float-input-col">
+                        <input type="number" step="0.01" class="float-input"
+                               @bind="_newOpeningBalance" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <div class="d-flex justify-space-between align-center w-100 pa-2">
+            <button class="shift-btn shift-btn-secondary" @onclick="PrintReportAsync" disabled="@_isBusy">
+                <MudIcon Icon="@Icons.Material.Filled.Print" Size="Size.Small" Class="mr-1" />
+                Print Shift Report
+            </button>
+
+            <div class="d-flex gap-2">
+                <button class="shift-btn shift-btn-cancel" @onclick="Cancel" disabled="@_isBusy">
+                    Cancel
+                </button>
+                <button class="shift-btn shift-btn-primary" @onclick="CloseAndChangeShiftAsync" disabled="@_isBusy">
+                    <MudIcon Icon="@Icons.Material.Filled.Sync" Size="Size.Small" Class="mr-1" />
+                    Close &amp; Change Shift
+                </button>
+            </div>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .shift-dialog-root {
+        max-width: 760px !important;
+        width: 100% !important;
+        border-radius: 12px !important;
+        background: #F8FAFC !important;
+        font-family: 'Segoe UI', Inter, Outfit, sans-serif !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    .shift-dialog-root .mud-dialog-title {
+        background: #FFFFFF !important;
+        border-bottom: 1px solid #E2E8F0 !important;
+        border-radius: 12px 12px 0 0 !important;
+        padding: 16px 20px !important;
+    }
+
+    .shift-dialog-root .mud-dialog-content {
+        padding: 16px 20px !important;
+    }
+
+    .shift-dialog-root .mud-dialog-actions {
+        background: #FFFFFF !important;
+        border-top: 1px solid #E2E8F0 !important;
+        border-radius: 0 0 12px 12px !important;
+        padding: 12px 20px !important;
+    }
+
+    .shift-badge {
+        width: 44px;
+        height: 44px;
+        background: #F0FDF4;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .shift-meta-line {
+        font-size: 12px !important;
+        color: #64748B !important;
+    }
+
+    .meta-label {
+        color: #64748B !important;
+    }
+
+    .meta-val {
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+
+    .meta-val.highlight {
+        color: #1E3A8A !important;
+        font-weight: 700 !important;
+    }
+
+    .meta-sep {
+        color: #CBD5E1 !important;
+        margin: 0 4px !important;
+    }
+
+    .shift-section-title {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #0F172A !important;
+        letter-spacing: -0.2px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .section-title {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #0F172A !important;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    @@media (max-width: 600px) {
+        .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .metric-card {
+        background: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 8px !important;
+        padding: 12px 14px !important;
+    }
+
+    .metric-label {
+        font-size: 11px !important;
+        color: #64748B !important;
+        margin-bottom: 2px !important;
+        font-weight: 600 !important;
+    }
+
+    .metric-value {
+        font-size: 16px !important;
+        font-weight: 700 !important;
+    }
+
+    .metric-value.dark {
+        color: #0F172A !important;
+    }
+
+    .metric-value.text-green {
+        color: #16A34A !important;
+    }
+
+    .metric-value.text-blue {
+        color: #2563EB !important;
+    }
+
+    .metric-value.text-purple {
+        color: #7C3AED !important;
+    }
+
+    .metric-value.text-red {
+        color: #DC2626 !important;
+    }
+
+    .metric-value.text-bold-dark {
+        color: #0F172A !important;
+        font-weight: 800 !important;
+    }
+
+    .recon-card {
+        background: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 10px !important;
+        padding: 16px !important;
+    }
+
+    .recon-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    @@media (max-width: 600px) {
+        .recon-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .recon-box {
+        border-radius: 8px !important;
+        padding: 14px 12px !important;
+    }
+
+    .recon-box.expected {
+        background: #F1F5F9 !important;
+    }
+
+    .recon-box.counted {
+        background: #FEFCE8 !important;
+        border: 1px solid #FEF08A !important;
+    }
+
+    .recon-box-label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #475569 !important;
+    }
+
+    .counted-label {
+        color: #854D0E !important;
+        font-weight: 700 !important;
+    }
+
+    .recon-box-val {
+        font-size: 20px !important;
+        font-weight: 800 !important;
+        color: #0F172A !important;
+        margin: 4px 0 2px 0 !important;
+    }
+
+    .recon-box-sub {
+        font-size: 11px !important;
+        color: #64748B !important;
+    }
+
+    .counted-input {
+        width: 100% !important;
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        color: #0F172A !important;
+        background: #FFFFFF !important;
+        border: 1px solid #CA8A04 !important;
+        border-radius: 6px !important;
+        padding: 6px 10px !important;
+        margin-top: 4px !important;
+        outline: none !important;
+        box-sizing: border-box !important;
+    }
+
+    .counted-input:focus {
+        border-color: #EAB308 !important;
+        box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2) !important;
+    }
+
+    .variance-banner {
+        background: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 8px !important;
+        padding: 12px 14px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    .variance-title {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #334155 !important;
+    }
+
+    .variance-val {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+    }
+
+    .variance-balanced {
+        color: #16A34A !important;
+    }
+
+    .variance-overage {
+        color: #2563EB !important;
+    }
+
+    .variance-shortage {
+        color: #DC2626 !important;
+    }
+
+    .float-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 16px !important;
+    }
+
+    .float-title {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #0F172A !important;
+    }
+
+    .float-desc {
+        font-size: 11px !important;
+        color: #64748B !important;
+        margin-top: 2px !important;
+    }
+
+    .float-input {
+        width: 180px !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        padding: 8px 10px !important;
+        background: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 6px !important;
+        color: #0F172A !important;
+        outline: none !important;
+        box-sizing: border-box !important;
+    }
+
+    .float-input:focus {
+        border-color: #3B82F6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .shift-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+
+    .shift-btn-secondary {
+        background: #F1F5F9;
+        color: #334155;
+        border: 1px solid #CBD5E1;
+        padding: 8px 14px;
+        font-weight: 600;
+    }
+
+    .shift-btn-secondary:hover:not(:disabled) {
+        background: #E2E8F0;
+        color: #0F172A;
+    }
+
+    .shift-btn-cancel {
+        background: #F1F5F9;
+        color: #475569;
+        border: 1px solid #CBD5E1;
+        padding: 8px 18px;
+        font-weight: 600;
+    }
+
+    .shift-btn-cancel:hover:not(:disabled) {
+        background: #E2E8F0;
+        color: #1E293B;
+    }
+
+    .shift-btn-primary {
+        background: #16A34A;
+        color: #FFFFFF;
+        border: none;
+        padding: 9px 20px;
+        font-weight: 700;
+    }
+
+    .shift-btn-primary:hover:not(:disabled) {
+        background: #15803D;
+    }
+
+    .shift-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public string Terminal { get; set; } = "Terminal 1";
+    [Parameter] public string UserName { get; set; } = "";
+
+    private ShiftDetails _shift = new();
+    private decimal _actualCash;
+    private decimal _newOpeningBalance = 0m;
+    private bool _isBusy = false;
+
+    private decimal ExpectedCash => _shift.OpeningBalance + _shift.TotalCashSales + _shift.TotalCashReceipt - _shift.TotalPayment;
+    private decimal Difference => _actualCash - ExpectedCash;
+    private decimal NetSales => _shift.TotalSale - _shift.TotalSalesReturn;
+
+    private string DifferenceStatus
+    {
+        get
+        {
+            if (Difference == 0) return "Balanced";
+            if (Difference > 0) return $"Overage (+{Difference:N2} SAR)";
+            return $"Shortage ({Difference:N2} SAR)";
+        }
+    }
+
+    private string VarianceClass
+    {
+        get
+        {
+            if (Difference == 0) return "variance-balanced";
+            if (Difference > 0) return "variance-overage";
+            return "variance-shortage";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isBusy = true;
+        try
+        {
+            var user = !string.IsNullOrWhiteSpace(UserName)
+                ? UserName
+                : (!string.IsNullOrWhiteSpace(AppData.UserName) ? AppData.UserName : "User");
+
+            var term = !string.IsNullOrWhiteSpace(Terminal) ? Terminal : "Terminal 1";
+
+            _shift = await ShiftService.GetShiftDetailsAsync(term, user);
+            _actualCash = ExpectedCash; // Pre-populate with expected cash
+            _newOpeningBalance = 0m;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load shift details: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task PrintReportAsync()
+    {
+        try
+        {
+            await ShiftService.PrintShiftDetailsAsync(_shift, AppData.CompanyDetails);
+            Snackbar.Add("Shift report sent to printer.", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Printing failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task CloseAndChangeShiftAsync()
+    {
+        _isBusy = true;
+        try
+        {
+            var user = !string.IsNullOrWhiteSpace(UserName)
+                ? UserName
+                : (!string.IsNullOrWhiteSpace(AppData.UserName) ? AppData.UserName : "User");
+            var term = !string.IsNullOrWhiteSpace(Terminal) ? Terminal : "Terminal 1";
+
+            // Print report first
+            await ShiftService.PrintShiftDetailsAsync(_shift, AppData.CompanyDetails);
+
+            // Reset shift with new opening balance
+            await ShiftService.ResetShiftDetailsAsync(term, user, _newOpeningBalance);
+
+            Snackbar.Add("Shift closed and handover completed successfully.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Shift closing error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
+
