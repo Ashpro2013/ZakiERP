@@ -7,6 +7,7 @@ using ZakiSAASERP.POS.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 
 namespace ZakiSAASERP.POS.Views;
@@ -27,6 +28,7 @@ public partial class POSView : UserControl
         {
             Dispatcher.Invoke(() =>
             {
+                GridCart.CommitEdit(DataGridEditingUnit.Row, true);
                 TxtBarcode.Focus();
                 TxtBarcode.SelectAll();
             });
@@ -176,13 +178,19 @@ public partial class POSView : UserControl
 
     private async void POSNumPad_KeyClick(object sender, RoutedEventArgs e)
     {
-        if (e.OriginalSource is RoutedEventArgs routed && routed.Source is string key)
+        string? key = e.Source as string
+            ?? e.OriginalSource as string
+            ?? (e.OriginalSource as FrameworkElement)?.Tag as string
+            ?? (e.Source as FrameworkElement)?.Tag as string;
+
+        if (string.IsNullOrEmpty(key) && e.OriginalSource is RoutedEventArgs inner)
+        {
+            key = inner.Source as string ?? (inner.Source as FrameworkElement)?.Tag as string;
+        }
+
+        if (!string.IsNullOrEmpty(key))
         {
             await ViewModel.HandleNumPadKeyCommand.ExecuteAsync(key);
-        }
-        else if (e.Source is RoutedEventArgs re && re.Source is string k)
-        {
-            await ViewModel.HandleNumPadKeyCommand.ExecuteAsync(k);
         }
     }
 
@@ -315,13 +323,14 @@ public partial class POSView : UserControl
     {
         if (GridCart.Items.Count == 0) return;
 
-        if (GridCart.SelectedItem == null)
-        {
-            GridCart.SelectedIndex = GridCart.Items.Count - 1;
-        }
+        var selectedItem = GridCart.SelectedItem as TransactionDtls
+            ?? ViewModel.SelectedCartItem
+            ?? (GridCart.Items.Count > 0 ? GridCart.Items[GridCart.Items.Count - 1] as TransactionDtls : null);
 
-        var selectedItem = GridCart.SelectedItem ?? (GridCart.Items.Count > 0 ? GridCart.Items[GridCart.Items.Count - 1] : null);
         if (selectedItem == null) return;
+
+        GridCart.SelectedItem = selectedItem;
+        ViewModel.SelectedCartItem = selectedItem;
 
         DataGridColumn? targetCol = null;
         if (fieldName == "Qty")
@@ -330,10 +339,21 @@ public partial class POSView : UserControl
         }
         else if (fieldName == "Rate")
         {
-            targetCol = GridCart.Columns.FirstOrDefault(c => (c.Header?.ToString() == "Ex. Rate" || c.Header?.ToString() == "Rate") && c.Visibility == Visibility.Visible);
-            if (targetCol == null)
+            if (ViewModel.Settings.ShowIncRate && ViewModel.Settings.AllowEditIncRate && (!ViewModel.Settings.ShowExRate || !ViewModel.Settings.AllowEditExcRate))
             {
                 targetCol = GridCart.Columns.FirstOrDefault(c => c.Header?.ToString() == "Inc. Rate" && c.Visibility == Visibility.Visible);
+            }
+            if (targetCol == null)
+            {
+                targetCol = GridCart.Columns.FirstOrDefault(c => (c.Header?.ToString() == "Ex. Rate" || c.Header?.ToString() == "Rate") && c.Visibility == Visibility.Visible && !c.IsReadOnly);
+            }
+            if (targetCol == null)
+            {
+                targetCol = GridCart.Columns.FirstOrDefault(c => c.Header?.ToString() == "Inc. Rate" && c.Visibility == Visibility.Visible && !c.IsReadOnly);
+            }
+            if (targetCol == null)
+            {
+                targetCol = GridCart.Columns.FirstOrDefault(c => (c.Header?.ToString() == "Ex. Rate" || c.Header?.ToString() == "Rate" || c.Header?.ToString() == "Inc. Rate") && c.Visibility == Visibility.Visible);
             }
         }
 
@@ -342,11 +362,44 @@ public partial class POSView : UserControl
         GridCart.Focus();
         GridCart.CurrentCell = new DataGridCellInfo(selectedItem, targetCol);
         GridCart.ScrollIntoView(selectedItem, targetCol);
+        GridCart.UpdateLayout();
+
+        FocusAndEditCell(selectedItem, targetCol);
+    }
+
+    private void FocusAndEditCell(object item, DataGridColumn column)
+    {
+        var row = (DataGridRow)GridCart.ItemContainerGenerator.ContainerFromItem(item);
+        if (row == null)
+        {
+            GridCart.UpdateLayout();
+            GridCart.ScrollIntoView(item, column);
+            row = (DataGridRow)GridCart.ItemContainerGenerator.ContainerFromItem(item);
+        }
+
+        if (row != null)
+        {
+            var presenter = FindVisualChild<DataGridCellsPresenter>(row);
+            if (presenter != null)
+            {
+                int colIndex = GridCart.Columns.IndexOf(column);
+                if (colIndex >= 0)
+                {
+                    var cell = (DataGridCell)presenter.ItemContainerGenerator.ContainerFromIndex(colIndex);
+                    if (cell != null)
+                    {
+                        cell.Focus();
+                    }
+                }
+            }
+        }
+
         GridCart.BeginEdit();
 
         Dispatcher.BeginInvoke(new Action(() =>
         {
-            if (targetCol.GetCellContent(selectedItem) is FrameworkElement element)
+            GridCart.BeginEdit();
+            if (column.GetCellContent(item) is FrameworkElement element)
             {
                 var textBox = element as TextBox ?? FindVisualChild<TextBox>(element);
                 if (textBox != null)

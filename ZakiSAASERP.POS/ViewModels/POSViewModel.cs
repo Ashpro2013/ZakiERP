@@ -80,6 +80,8 @@ public partial class POSViewModel : ObservableObject
     [ObservableProperty]
     private string numPadBuffer = "";
 
+    private bool _replaceBufferOnInput = false;
+
     [ObservableProperty]
     private bool showNumPad = true;
 
@@ -1231,6 +1233,7 @@ public partial class POSViewModel : ObservableObject
     {
         ActiveInputField = fieldName;
         NumPadBuffer = "";
+        _replaceBufferOnInput = false;
 
         if (fieldName == "BarcodeSearch")
         {
@@ -1239,6 +1242,7 @@ public partial class POSViewModel : ObservableObject
         else if (fieldName == "Discount")
         {
             NumPadBuffer = DiscountAmount > 0 ? DiscountAmount.ToString("F2") : "";
+            _replaceBufferOnInput = true;
         }
     }
 
@@ -1247,6 +1251,7 @@ public partial class POSViewModel : ObservableObject
         SelectedCartItem = row;
         ActiveInputField = fieldName;
         NumPadBuffer = "";
+        _replaceBufferOnInput = true;
 
         if (fieldName == "Qty")
         {
@@ -1268,6 +1273,23 @@ public partial class POSViewModel : ObservableObject
         {
             NumPadBuffer = row.DiscountAmnt.ToString("F2");
         }
+    }
+
+    private string GetPreferredRateField()
+    {
+        if (Settings.ShowIncRate && Settings.AllowEditIncRate && (!Settings.ShowExRate || !Settings.AllowEditExcRate))
+        {
+            return "IncRate";
+        }
+        if (Settings.ShowExRate && Settings.AllowEditExcRate)
+        {
+            return "Rate";
+        }
+        if (Settings.ShowIncRate)
+        {
+            return "IncRate";
+        }
+        return "Rate";
     }
 
     [RelayCommand]
@@ -1293,17 +1315,6 @@ public partial class POSViewModel : ObservableObject
             return;
         }
 
-        if (key == "Backspace")
-        {
-            if (NumPadBuffer.Length > 0)
-            {
-                NumPadBuffer = NumPadBuffer[..^1];
-            }
-            UpdateActiveFieldFromBuffer();
-            ActiveBufferUpdatedHandler?.Invoke(NumPadBuffer);
-            return;
-        }
-
         if (key == "Qty")
         {
             if (SelectedCartItem == null && CartItems.Any())
@@ -1326,10 +1337,33 @@ public partial class POSViewModel : ObservableObject
             }
             if (SelectedCartItem != null)
             {
-                SetActiveCell(SelectedCartItem, "Rate");
+                string rateField = GetPreferredRateField();
+                SetActiveCell(SelectedCartItem, rateField);
             }
             FocusCartCellHandler?.Invoke("Rate");
             return;
+        }
+
+        if (key == "Backspace")
+        {
+            if (_replaceBufferOnInput)
+            {
+                NumPadBuffer = "";
+                _replaceBufferOnInput = false;
+            }
+            else if (NumPadBuffer.Length > 0)
+            {
+                NumPadBuffer = NumPadBuffer[..^1];
+            }
+            UpdateActiveFieldFromBuffer();
+            ActiveBufferUpdatedHandler?.Invoke(NumPadBuffer);
+            return;
+        }
+
+        if (_replaceBufferOnInput && key != "Enter" && key != "Clear" && key != "Qty" && key != "Rate")
+        {
+            NumPadBuffer = "";
+            _replaceBufferOnInput = false;
         }
 
         if (key == "." && NumPadBuffer.Contains('.'))
@@ -1404,6 +1438,7 @@ public partial class POSViewModel : ObservableObject
 
     private async Task CommitActiveField()
     {
+        _replaceBufferOnInput = false;
         if (ActiveInputField == "BarcodeSearch")
         {
             if (!string.IsNullOrEmpty(BarcodeSearchQuery))
