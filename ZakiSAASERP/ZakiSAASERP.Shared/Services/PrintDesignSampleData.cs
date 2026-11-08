@@ -14,7 +14,9 @@ public static class PrintDesignSampleData
     {
         try
         {
-            string fileName = isThermal ? "Sales_Invoice_Thermal.json" : "Sales_Invoice.json";
+            string fileName = isThermal
+                ? (voucherType.Contains("Return", StringComparison.OrdinalIgnoreCase) ? "Sales_Return_Thermal.json" : "Sales_Invoice_Thermal.json")
+                : (voucherType.Contains("Return", StringComparison.OrdinalIgnoreCase) ? "Sales_Return.json" : "Sales_Invoice.json");
             string[] possiblePaths =
             {
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "PrintDesign", fileName),
@@ -44,13 +46,14 @@ public static class PrintDesignSampleData
 
     private static PrintDesignDTO CreateFallbackDesignProgrammatic(string voucherType, bool isThermal)
     {
+        bool isReturn = voucherType.Contains("Return", StringComparison.OrdinalIgnoreCase);
         if (isThermal)
         {
             var thHdr = new PrintDesignHdr
             {
                 PrintDesignHdrId = 0,
-                DesignName = "POS Thermal Receipt",
-                VoucherType = "Sales_Invoice_Thermal",
+                DesignName = isReturn ? "Sales Return Thermal Receipt" : "POS Thermal Receipt",
+                VoucherType = isReturn ? "Sales_Return_Thermal" : "Sales_Invoice_Thermal",
                 FormType = "Invoice",
                 PrintType = "Thermal",
                 IsDefault = true,
@@ -62,7 +65,7 @@ public static class PrintDesignSampleData
 
             var thControls = new List<PrintDesignDtls>
             {
-                new() { ControlName = "LabelControl_1", ControlType = "LabelControl", FieldText = "Simplified Tax Invoice / فاتورة ضريبية مبسطة", PositionX = 0, PositionY = 10, Width = 290, Height = 20, FontSize = 11, IsBold = true, Alignment = "Center", Location = "Company_Section" },
+                new() { ControlName = "LabelControl_1", ControlType = "LabelControl", FieldText = isReturn ? "Sales Return / مرتجع مبيعات" : "Simplified Tax Invoice / فاتورة ضريبية مبسطة", PositionX = 0, PositionY = 10, Width = 290, Height = 20, FontSize = 11, IsBold = true, Alignment = "Center", Location = "Company_Section" },
                 new() { ControlName = "ValueControl_1", ControlType = "ValueControl", FieldText = "Name", PositionX = 0, PositionY = 35, Width = 290, Height = 20, FontSize = 13, IsBold = true, Alignment = "Center", Location = "Company_Section" },
                 new() { ControlName = "ValueControl_2", ControlType = "ValueControl", FieldText = "NameArabic", PositionX = 0, PositionY = 55, Width = 290, Height = 20, FontSize = 12, IsBold = true, Alignment = "Center", Location = "Company_Section" },
                 new() { ControlName = "ValueControl_3", ControlType = "ValueControl", FieldText = "StreetName", PositionX = 0, PositionY = 75, Width = 290, Height = 18, FontSize = 9, IsBold = false, Alignment = "Center", Location = "Company_Section" },

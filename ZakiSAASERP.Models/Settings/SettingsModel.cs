@@ -237,6 +237,7 @@ public class SettingsModel
     // Printer Settings (Windows Desktop)
     public string BarcodePrinterName { get; set; } = string.Empty;
     public string InvoicePrinterName { get; set; } = string.Empty;
+    public string SalesReturnPrintFormat { get; set; } = "A4";
 
     // Database Backup Settings
     public bool BackupWhenClosing { get; set; } = false;

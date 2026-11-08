@@ -306,7 +306,7 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
     private async Task OnChangeVoucherType(string voucherType)
     {
         hdr.VoucherType = voucherType;
-        if (voucherType == InvoiceTypes.Sales_Invoice_Thermal.ToString())
+        if (voucherType == InvoiceTypes.Sales_Invoice_Thermal.ToString() || voucherType == InvoiceTypes.Sales_Return_Thermal.ToString())
         {
             hdr.PrintType = "Thermal";
             hdr.PageWidth = 290;
@@ -314,7 +314,7 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
             hdr.SpaceBtwnLines = 5;
             hdr.LinesPerPage = 100;
         }
-        else if (voucherType == InvoiceTypes.Sales_Invoice.ToString())
+        else if (voucherType == InvoiceTypes.Sales_Invoice.ToString() || voucherType == InvoiceTypes.Sales_Return.ToString())
         {
             hdr.PrintType = "A4";
             hdr.PageWidth = 700;

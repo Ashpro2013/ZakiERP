@@ -170,6 +170,8 @@ public static class PermanentSettingsData
     // ============ Printer Settings ============
     public static string BarcodePrinterName { get; set; } = string.Empty;
     public static string InvoicePrinterName { get; set; } = string.Empty;
+    public static string SalesReturnPrintFormat { get; set; } = "A4"; // "A4" or "Thermal"
+    public static bool IsSalesReturnThermal => string.Equals(SalesReturnPrintFormat, "Thermal", StringComparison.OrdinalIgnoreCase);
 
     // ============ Default Behavior ============
     public static string DefaultFocusOn { get; set; } = "ItemCode";
@@ -456,9 +458,10 @@ public static class PermanentSettingsData
                 case "ZatcaPhase": ZatcaPhase = ToInt(s.SettingValue, 1); break;
                 case "ZatcaConnection": ZatcaConnection = s.SettingValue ?? "Simulation"; break;
 
-                // Printer Settings
+                // Printer & Print Format Settings
                 case "BarcodePrinterName": BarcodePrinterName = s.SettingValue ?? string.Empty; break;
                 case "InvoicePrinterName": InvoicePrinterName = s.SettingValue ?? string.Empty; break;
+                case "SalesReturnPrintFormat": SalesReturnPrintFormat = s.SettingValue ?? "A4"; break;
 
                 // Default Accounts Settings
                 case "DefaultBankAccount": DefaultBankAccountId = ToInt(s.SettingValue, 0); break;
@@ -653,6 +656,7 @@ public static class PermanentSettingsData
 
         BarcodePrinterName = string.Empty;
         InvoicePrinterName = string.Empty;
+        SalesReturnPrintFormat = "A4";
 
         DefaultBankAccountId = 0;
         DefaultCashAccountId = 0;

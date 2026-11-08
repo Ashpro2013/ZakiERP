@@ -691,13 +691,47 @@ public partial class SalesInvoiceRtnView : ITabAware
         {
             var transctions = entTransactions.Where(x => !string.IsNullOrEmpty(x.ItemName)).ToList();
             if (salesInvoiceRtn.SalesInvoiceRtnId == 0 || !entTransactions.Any()) { return; }
-            var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Sales_Return"));
-            if (pdto.hdr == null || !pdto.dtls.Any()) { return; }
+            bool isThermal = PermanentSettingsData.IsSalesReturnThermal;
+            var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, isThermal ? "Sales_Return_Thermal" : "Sales_Return", isThermal));
+            if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
+            {
+                pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Sales_Return", isThermal));
+            }
+            if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
+            {
+                if (isThermal)
+                {
+                    pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Sales_Invoice_Thermal", true));
+                }
+            }
+            if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
+            {
+                pdto = PrintDesignSampleData.GetFallbackDesign(isThermal ? "Sales_Return_Thermal" : "Sales_Return", isThermal);
+            }
+            if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
+            {
+                await Dialog.DialogMethod("No print design found");
+                return;
+            }
+
+            if (pdto.hdr != null)
+            {
+                pdto.hdr.PrintType = isThermal ? "Thermal" : "A4";
+            }
+
             var hdr = salesInvoiceRtn.CopyTo<TransactionHdr>();
             hdr.HdrNo = salesInvoiceRtn.SalesInvoiceRtnNo;
             hdr.InvoiceDate = (salesInvoiceRtn.SalesInvoiceRtnDate ?? DateTime.Now).ToString("dd-MM-yyyy");
+            hdr.QRCode = salesInvoiceRtn.InvoiceQRCode;
             PrintParameterDTO dto = new PrintParameterDTO(pdto.hdr, pdto.dtls, hdr, transctions, party, AppData.CompanyDetails!, null);
-            await CrudHelper.PrintInvoiceMethodLocal(Downloader, dto, Dialog, IsPreview);
+            if (!IsPreview && !AppData.IsMaui && AppData.IsWindows)
+            {
+                FormFactor.DirectPrinting(dto);
+            }
+            else
+            {
+                await CrudHelper.PrintInvoiceMethodLocal(Downloader, dto, Dialog, IsPreview);
+            }
         }
         catch (Exception ex)
         {

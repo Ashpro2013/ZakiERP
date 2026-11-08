@@ -1,4 +1,4 @@
-﻿namespace ZakiSAASERP.Shared.Pages.Settings;
+namespace ZakiSAASERP.Shared.Pages.Settings;
 
 using ZakiSAASERP.Models.Settings;
 public partial class PermanentSettingsView
@@ -381,9 +381,10 @@ public partial class PermanentSettingsView
             settings.DefaultCashAccountId = GetInt("DefaultCashAccount", 0);
             settings.DefaultBankAccountId = GetInt("DefaultBankAccount", 0);
 
-            // Printer Settings
+            // Printer & Print Format Settings
             settings.BarcodePrinterName = GetValue("BarcodePrinterName", string.Empty);
             settings.InvoicePrinterName = GetValue("InvoicePrinterName", string.Empty);
+            settings.SalesReturnPrintFormat = GetValue("SalesReturnPrintFormat", "A4");
 
             // Database Backup Settings
             settings.BackupWhenClosing = GetBool("BackupWhenClosing", false);
@@ -665,9 +666,10 @@ public partial class PermanentSettingsView
             SetValue("DefaultCashAccount", settings.DefaultCashAccountId > 0 ? settings.DefaultCashAccountId.ToString() : string.Empty);
             SetValue("DefaultBankAccount", settings.DefaultBankAccountId > 0 ? settings.DefaultBankAccountId.ToString() : string.Empty);
 
-            // Printer Settings
+            // Printer & Print Format Settings
             SetValue("BarcodePrinterName", settings.BarcodePrinterName ?? string.Empty);
             SetValue("InvoicePrinterName", settings.InvoicePrinterName ?? string.Empty);
+            SetValue("SalesReturnPrintFormat", settings.SalesReturnPrintFormat ?? "A4");
 
             // Database Backup Settings
             SetValue("BackupWhenClosing", settings.BackupWhenClosing ? "1" : "0");

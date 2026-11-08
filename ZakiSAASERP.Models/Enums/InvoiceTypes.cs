@@ -1,10 +1,11 @@
-﻿namespace ZakiSAASERP.Models.Enums;
+namespace ZakiSAASERP.Models.Enums;
 
 public enum InvoiceTypes
 {
     Sales_Invoice,
     Sales_Invoice_Thermal,
     Sales_Return,
+    Sales_Return_Thermal,
     Sales_Order,
     Sales_Quotation,
     Delivery_Note,

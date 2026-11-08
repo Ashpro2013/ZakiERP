@@ -1141,6 +1141,42 @@
                                 </MudGrid>
                             </MudPaper>
 
+                            <MudPaper Class="pa-3 mt-3" Outlined="true">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Print" Size="Size.Small" Color="Color.Info" Class="mr-1" />
+                                    <MudText Typo="Typo.subtitle1" Color="Color.Info">
+                                        @Localizer("Print Format Settings")
+                                    </MudText>
+                                </MudStack>
+                                <MudGrid Spacing="2">
+                                    <MudItem xs="12">
+                                        <MudSelect T="string" @bind-Value="settings.SalesReturnPrintFormat" @bind-Value:after="MarkDirty"
+                                                   Label="@Localizer("Sales Return Invoice Print Format")"
+                                                   Variant="Variant.Outlined"
+                                                   Margin="Margin.Dense"
+                                                   AnchorOrigin="Origin.BottomCenter">
+                                            <MudSelectItem Value="@("A4")">
+                                                <div class="d-flex align-center gap-2">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Small" Color="Color.Info" />
+                                                    <span>A4 (Standard Invoice)</span>
+                                                </div>
+                                            </MudSelectItem>
+                                            <MudSelectItem Value="@("Thermal")">
+                                                <div class="d-flex align-center gap-2">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Receipt" Size="Size.Small" Color="Color.Warning" />
+                                                    <span>Thermal (80mm Receipt)</span>
+                                                </div>
+                                            </MudSelectItem>
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudAlert Severity="Severity.Info" Dense="true">
+                                            Choose whether Sales Return invoices print as standard A4 pages or compact 80mm thermal receipts.
+                                        </MudAlert>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudPaper>
+
                             @if (AppData.IsWindows)
                             {
                                 <MudPaper Class="pa-3 mt-3" Outlined="true">
@@ -1322,6 +1358,39 @@
                             </MudTabPanel>
 
                             <MudTabPanel Text="Sales Return" Icon="@Icons.Material.Filled.AssignmentReturn">
+                                <MudPaper Class="pa-4 mb-3" Outlined="true" Style="border-radius: 8px; background: #ffffff;">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.Print" Size="Size.Small" Color="Color.Primary" Class="mr-1" />
+                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 700; color: #0f172a;">
+                                            @Localizer("Print Format Settings")
+                                        </MudText>
+                                    </MudStack>
+                                    <MudText Typo="Typo.caption" Style="color: #64748b;" Class="d-block mb-3">
+                                        Select default print output format for Sales Return Invoice (A4 standard invoice or Thermal 80mm receipt).
+                                    </MudText>
+                                    <MudGrid Spacing="2">
+                                        <MudItem xs="12" sm="6" md="4">
+                                            <MudSelect T="string" @bind-Value="settings.SalesReturnPrintFormat" @bind-Value:after="MarkDirty"
+                                                       Label="@Localizer("Sales Return Invoice Print Format")"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense"
+                                                       AnchorOrigin="Origin.BottomCenter">
+                                                <MudSelectItem Value="@("A4")">
+                                                    <div class="d-flex align-center gap-2">
+                                                        <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Small" Color="Color.Info" />
+                                                        <span>A4 (Standard Invoice)</span>
+                                                    </div>
+                                                </MudSelectItem>
+                                                <MudSelectItem Value="@("Thermal")">
+                                                    <div class="d-flex align-center gap-2">
+                                                        <MudIcon Icon="@Icons.Material.Filled.Receipt" Size="Size.Small" Color="Color.Warning" />
+                                                        <span>Thermal (80mm Receipt)</span>
+                                                    </div>
+                                                </MudSelectItem>
+                                            </MudSelect>
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
                                 <TransactionGridSettingsEditor Model="@settings.SalesReturnSettings"
                                                                TransactionTitle="Sales Return"
                                                                ShowApplyToAll="true"

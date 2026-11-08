@@ -64,7 +64,7 @@ public class PrintDesignRepo(IDbContextProvider contextProvider, IServerRepo ser
         else
         {
             string ty = req.isThermal ? "Thermal" : "A4";
-            hdr = await db.PrintDesignHdrs.FirstOrDefaultAsync(x => x.VoucherType == req.VoucherType && x.IsDefault == true && x.PrintType == ty);
+            hdr = await db.PrintDesignHdrs.FirstOrDefaultAsync(x => (x.VoucherType == req.VoucherType || (req.isThermal && x.VoucherType == $"{req.VoucherType}_Thermal")) && x.IsDefault == true && x.PrintType == ty);
         }
         if (hdr != null)
         {
@@ -72,7 +72,16 @@ public class PrintDesignRepo(IDbContextProvider contextProvider, IServerRepo ser
         }
         else
         {
-            var pdFromFile = await serverRepo.GetPDesignFromFileAsync(req.VoucherType);
+            var fileName = req.isThermal && !req.VoucherType.EndsWith("_Thermal") ? $"{req.VoucherType}_Thermal" : req.VoucherType;
+            var pdFromFile = await serverRepo.GetPDesignFromFileAsync(fileName);
+            if (pdFromFile == null && req.isThermal)
+            {
+                pdFromFile = await serverRepo.GetPDesignFromFileAsync(req.VoucherType);
+                if (pdFromFile == null)
+                {
+                    pdFromFile = await serverRepo.GetPDesignFromFileAsync("Sales_Invoice_Thermal");
+                }
+            }
             if (pdFromFile != null)
             {
                 var data = await CreateAsync(pdFromFile);
