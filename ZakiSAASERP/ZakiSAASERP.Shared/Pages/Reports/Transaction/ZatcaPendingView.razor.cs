@@ -21,7 +21,7 @@ public partial class ZatcaPendingView
     public bool ShowSelected { get; set; } = false;
     public bool ShowingFailed { get; set; } = false;
     public int iTypeId { get; set; } = 0;
-    public List<ExInvoiceICV> IcvList { get; set; }
+    public List<ExInvoiceICV>? IcvList { get; set; }
     private ExInvoiceICV? selectedIcv = null;
     private MudDataGrid<ExInvoiceICV>? grid = new();
     public bool IsInvoice { get; set; } = true;
@@ -83,10 +83,6 @@ public partial class ZatcaPendingView
             state.SortDefinitions?.FirstOrDefault()?.Descending == true ? "desc" : "asc", null, AppData.BranchId);
         var pdto = new ICVReqDTO(dtmFrom, dtmTo, AppData.BranchId, iTypeId);
         var dto = new IcvPendReqDTO(pagination, pdto);
-        if (PermanentSettingsData.ZatcaPhase == 2)
-        {
-            appBar.SetCount(await api.GetFailedCount());
-        }
         var result = await api.GetPendingICVList(dto);
         return new GridData<ExInvoiceICV>
         {
@@ -131,57 +127,84 @@ public partial class ZatcaPendingView
     }
     async Task UploadAll()
     {
-        IcvReuploadAll dto = new IcvReuploadAll(IcvList, AppData.CompanyDetails!);
-        foreach (var item in IcvList)
+        try
         {
-            if (item == null)
+            IcvReuploadAll dto = new IcvReuploadAll(IcvList!, AppData.CompanyDetails!);
+            foreach (var item in IcvList!)
+            {
+                if (item == null)
+                {
+                    await Dialog.DialogMethod("Please select an invoice to upload.");
+                    return;
+                }
+                if (item.DetailedStatus == "Success" || item.DetailedStatus == "REPORTED")
+                {
+                    await Dialog.DialogMethod("This invoice has already been successfully uploaded.");
+                    return;
+                }
+                if (item.Message!.Contains("401"))
+                {
+                    await Dialog.DialogMethod("The selected invoice has an invalid CSR. Please generate a new CSR before re-uploading.");
+                    return;
+                }
+            }
+            await api.ZatcaReUploadAll(dto);
+            await Dialog.DialogMethod("Successfully Uploaded");
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+        finally
+        {
+            await SecondClick(IsSimplified ? 2 : 1);
+            appBar.SetCount(await api.GetFailedCount());
+            await grid!.ReloadServerData();
+        }
+    }
+    async Task UploadSelected()
+    {
+        try
+        {
+            if (selectedIcv == null)
             {
                 await Dialog.DialogMethod("Please select an invoice to upload.");
                 return;
             }
-            if (item.DetailedStatus == "Success" || item.DetailedStatus == "REPORTED")
+            if (selectedIcv.DetailedStatus == "Success" || selectedIcv.DetailedStatus == "REPORTED")
             {
                 await Dialog.DialogMethod("This invoice has already been successfully uploaded.");
                 return;
             }
-            if (item.Message.Contains("401"))
+            if (selectedIcv.Message!.Contains("401"))
             {
                 await Dialog.DialogMethod("The selected invoice has an invalid CSR. Please generate a new CSR before re-uploading.");
                 return;
             }
+            IcvReupload dto = new IcvReupload(selectedIcv, AppData.CompanyDetails!);
+            var data = await api.ZatcaReUploadSelected(dto);
+            if (!data.IsSuccess)
+            {
+                await Dialog.DialogMethod(data.Message!);
+            }
+            else
+            {
+                selectedIcv = null;
+                ShowSelected = false;
+               
+                await Dialog.DialogMethod("Successfully Uploaded");
+            }
         }
-        await api.ZatcaReUploadAll(dto);
-        await Dialog.DialogMethod("Successfully Uploaded");
-    }
-    async Task UploadSelected()
-    {
-        if(selectedIcv == null)
+        catch (Exception)
         {
-            await Dialog.DialogMethod("Please select an invoice to upload.");
-            return;
+            throw;
         }
-        if(selectedIcv.DetailedStatus == "Success" || selectedIcv.DetailedStatus == "REPORTED")
+        finally
         {
-            await Dialog.DialogMethod("This invoice has already been successfully uploaded.");
-            return;
-        }
-        if(selectedIcv.Message.Contains("401"))
-        {
-            await Dialog.DialogMethod("The selected invoice has an invalid CSR. Please generate a new CSR before re-uploading.");
-            return;
-        }
-        IcvReupload dto = new IcvReupload(selectedIcv, AppData.CompanyDetails!);
-        var data = await api.ZatcaReUploadSelected(dto);
-        if (!data.IsSuccess)
-        {
-          await  Dialog.DialogMethod(data.Message);
-        }
-        else
-        {
-            selectedIcv = null;
-            ShowSelected = false;
+            await SecondClick(IsSimplified ? 2 : 1);
+            appBar.SetCount(await api.GetFailedCount());
             await grid!.ReloadServerData();
-            await Dialog.DialogMethod("Successfully Uploaded");
         }
     }
 }

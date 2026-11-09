@@ -1212,15 +1212,8 @@ public class ViewServiceMSSql(
     public async Task<int> GetFailedCount() => await zatcaRepo.GetFailedCount();
     public async Task<PendingIcvData> GetPendingICVData(ICVReqDTO entry) => await zatcaRepo.GetPendingIcvDataAsync(entry);
     public async Task<IcvPendingPDTO> GetPendingICVList(IcvPendReqDTO entry) => await zatcaRepo.GetPendingIcvListAsync(entry);
-    public async Task ZatcaReUploadAll(IcvReuploadAll dto)
-    {
-       
-        await zatcaRepo.ReUploadAll(dto.icvs,  dto.Company);
-    }
-    public async Task<OutputResponse> ZatcaReUploadSelected(IcvReupload dto)
-    {
-        return await zatcaRepo.ReUploadSelected(dto.icv,  dto.Company);
-    }
+    public async Task ZatcaReUploadAll(IcvReuploadAll dto)=> await zatcaRepo.ReUploadAll(dto.icvs, dto.Company);
+    public async Task<OutputResponse> ZatcaReUploadSelected(IcvReupload dto)=> await zatcaRepo.ReUploadSelected(dto.icv, dto.Company);
     public async Task<CSRResponse> GenerateCSR(CSRRequest request) => await zatcaRepo.GenerateCSR(request);
     public async Task<CSRResponse> GetCsr(int id) => await zatcaRepo.GetCSR(id);
     public async Task<OutputResponse> AddNewCSR(CSRResponse request) => await zatcaRepo.AddNewCSR(request);
