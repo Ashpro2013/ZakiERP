@@ -255,18 +255,32 @@ public partial class ItemMasterView : ITabAware
                 }
             }
 
-            if (item.MultiUnits == null || !item.MultiUnits.Any())
+            if (string.IsNullOrWhiteSpace(item.Barcode))
             {
-                item.MultiUnits = new List<ItemMultiUnit>();
-
-                if (string.IsNullOrWhiteSpace(item.Barcode))
+                if (PermanentSettingsData.AutoBarcodeGeneration)
                 {
                     item.Barcode = item.ItemCode;
                 }
                 else
                 {
-                    item.Barcode = item.Barcode.Trim();
+                    item.Barcode = null;
                 }
+            }
+            else
+            {
+                item.Barcode = item.Barcode.Trim();
+            }
+
+            if (PermanentSettingsData.RequireBarcode && string.IsNullOrWhiteSpace(item.Barcode))
+            {
+                Snackbar.Add(Localizer("BarcodeIsRequired"), Severity.Warning);
+                RestoreNavProps(tempUnit, tempCategory, tempSubCategory, tempBrand, tempMultiUnitUnits);
+                return;
+            }
+
+            if (item.MultiUnits == null || !item.MultiUnits.Any())
+            {
+                item.MultiUnits = new List<ItemMultiUnit>();
 
                 if (item.FK_UnitId.HasValue)
                 {
@@ -287,7 +301,6 @@ public partial class ItemMasterView : ITabAware
 
                     item.MultiUnits.Add(defaultUnit);
                 }
-
                 else
                 {
                     Snackbar.Add(Localizer("SelectUnitFirst"), Severity.Warning);
@@ -1018,6 +1031,10 @@ public partial class ItemMasterView : ITabAware
                 if (!string.IsNullOrEmpty(code))
                 {
                     item.ItemCode = code;
+                    if (PermanentSettingsData.AutoBarcodeGeneration && string.IsNullOrWhiteSpace(item.Barcode))
+                    {
+                        item.Barcode = code;
+                    }
                     StateHasChanged();
                 }
             }
@@ -1025,6 +1042,28 @@ public partial class ItemMasterView : ITabAware
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading auto item code: {ex.Message}");
+        }
+    }
+
+    private void OnItemCodeBlur()
+    {
+        if (PermanentSettingsData.AutoBarcodeGeneration && string.IsNullOrWhiteSpace(item.Barcode) && !string.IsNullOrWhiteSpace(item.ItemCode))
+        {
+            item.Barcode = item.ItemCode;
+            StateHasChanged();
+        }
+    }
+
+    private void GenerateBarcodeFromCode()
+    {
+        if (!string.IsNullOrWhiteSpace(item.ItemCode))
+        {
+            item.Barcode = item.ItemCode.Trim();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add(Localizer("EnterCodeFirst"), Severity.Info);
         }
     }
 

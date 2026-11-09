@@ -76,6 +76,12 @@
                                                 </MudAlert>
                                             </MudItem>
                                         }
+
+                                        <MudItem xs="8">
+                                            <MudText>@Localizer("AutoBarcodeGeneration")</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer("AutoBarcodeGenerationDesc")</MudText>
+                                        </MudItem>
+                                        <MudItem xs="4"><MudSwitch @bind-Value="settings.AutoBarcodeGeneration" @bind-Value:after="MarkDirty" Color="Color.Primary" /></MudItem>
                                     </MudGrid>
                                 </MudPaper>
 
@@ -1061,6 +1067,12 @@
 
                                     <MudItem xs="8"><MudText>@Localizer("RequireBarcode")</MudText></MudItem>
                                     <MudItem xs="4"><MudSwitch T="bool" @bind-Value="settings.RequireBarcode" @bind-Value:after="MarkDirty" Color="Color.Primary" /></MudItem>
+
+                                    <MudItem xs="8">
+                                        <MudText>@Localizer("AutoBarcodeGeneration")</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer("AutoBarcodeGenerationDesc")</MudText>
+                                    </MudItem>
+                                    <MudItem xs="4"><MudSwitch T="bool" @bind-Value="settings.AutoBarcodeGeneration" @bind-Value:after="MarkDirty" Color="Color.Primary" /></MudItem>
 
                                     <MudItem xs="8"><MudText>@Localizer("ShowCostInSales")</MudText></MudItem>
                                     <MudItem xs="4"><MudSwitch T="bool" @bind-Value="settings.ShowCostInSales" @bind-Value:after="MarkDirty" Color="Color.Info" /></MudItem>

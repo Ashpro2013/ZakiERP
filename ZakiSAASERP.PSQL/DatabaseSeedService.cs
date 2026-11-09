@@ -448,6 +448,7 @@ VALUES
     ('AllowNegativeStock','0'),
     ('ShowCostInSales','0'),
     ('RequireBarcode','0'),
+    ('AutoBarcodeGeneration','1'),
     ('SalesInvoice_EnableUpdate','0'),
     ('SalesInvoice_EnableCancel','0'),
     ('SalesReturn_EnableUpdate','0'),

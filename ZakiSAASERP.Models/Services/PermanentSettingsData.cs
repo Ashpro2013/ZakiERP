@@ -179,6 +179,7 @@ public static class PermanentSettingsData
     public static bool AllowNegativeStock { get; set; } = false;
     public static bool ShowCostInSales { get; set; } = false;
     public static bool RequireBarcode { get; set; } = false;
+    public static bool AutoBarcodeGeneration { get; set; } = true;
     public static bool BlockInvoiceOnCreditDaysExceeded { get; set; } = false;
     public static bool EnableShiftClosing { get; set; } = false;
     public static int ItemSearchMode { get; set; } = 1;
@@ -420,6 +421,7 @@ public static class PermanentSettingsData
                 case "AllowNegativeStock": AllowNegativeStock = IsTrue(s.SettingValue); break;
                 case "ShowCostInSales": ShowCostInSales = IsTrue(s.SettingValue); break;
                 case "RequireBarcode": RequireBarcode = IsTrue(s.SettingValue); break;
+                case "AutoBarcodeGeneration": AutoBarcodeGeneration = string.IsNullOrWhiteSpace(s.SettingValue) || IsTrue(s.SettingValue); break;
                 case "BlockInvoiceOnCreditDaysExceeded": BlockInvoiceOnCreditDaysExceeded = IsTrue(s.SettingValue); break;
                 case "BlockInvoiceOnCreditLimitExceeded": BlockInvoiceOnCreditLimitExceeded = IsTrue(s.SettingValue); break;
                 case "EnableShiftClosing": EnableShiftClosing = IsTrue(s.SettingValue); break;
@@ -620,6 +622,7 @@ public static class PermanentSettingsData
         AllowNegativeStock = false;
         ShowCostInSales = false;
         RequireBarcode = false;
+        AutoBarcodeGeneration = true;
         BlockInvoiceOnCreditDaysExceeded = false;
         BlockInvoiceOnCreditLimitExceeded = false;
         EnableShiftClosing = false;

@@ -128,6 +128,7 @@ public class SettingsModel
     public bool AllowNegativeStock { get; set; }
     public bool ShowCostInSales { get; set; }
     public bool RequireBarcode { get; set; }
+    public bool AutoBarcodeGeneration { get; set; } = true;
     public bool BlockInvoiceOnCreditDaysExceeded { get; set; }
     public bool BlockInvoiceOnCreditLimitExceeded { get; set; }
     public bool EnableShiftClosing { get; set; } = false;

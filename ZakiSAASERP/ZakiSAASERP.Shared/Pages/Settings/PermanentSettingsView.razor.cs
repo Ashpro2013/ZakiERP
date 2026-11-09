@@ -371,6 +371,7 @@ public partial class PermanentSettingsView
             settings.ShowCostInSales = GetBool("ShowCostInSales", false);
             settings.EnableShiftClosing = GetBool("EnableShiftClosing", false);
             settings.RequireBarcode = GetBool("RequireBarcode", false);
+            settings.AutoBarcodeGeneration = GetBool("AutoBarcodeGeneration", true);
             settings.BlockInvoiceOnCreditDaysExceeded = GetBool("BlockInvoiceOnCreditDaysExceeded", false);
             settings.BlockInvoiceOnCreditLimitExceeded = GetBool("BlockInvoiceOnCreditLimitExceeded", false);
             settings.ItemSearchMode = GetInt("ItemSearchMode", 1);
@@ -656,6 +657,7 @@ public partial class PermanentSettingsView
             SetValue("ShowCostInSales", settings.ShowCostInSales ? "1" : "0");
             SetValue("EnableShiftClosing", settings.EnableShiftClosing ? "1" : "0");
             SetValue("RequireBarcode", settings.RequireBarcode ? "1" : "0");
+            SetValue("AutoBarcodeGeneration", settings.AutoBarcodeGeneration ? "1" : "0");
             SetValue("BlockInvoiceOnCreditDaysExceeded", settings.BlockInvoiceOnCreditDaysExceeded ? "1" : "0");
             SetValue("BlockInvoiceOnCreditLimitExceeded", settings.BlockInvoiceOnCreditLimitExceeded ? "1" : "0");
             SetValue("ItemSearchMode", settings.ItemSearchMode.ToString());

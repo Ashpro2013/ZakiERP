@@ -26,7 +26,7 @@
             <MudGrid Class="mb-1" Spacing="1">
                 <!-- Header: Code, Name, Arabic Name, Barcode -->
                 <MudItem xs="12" sm="2">
-                    <MudTextField @bind-Value="item.ItemCode" AutoFocus="true" Label="@Localizer("Code")" Variant="Variant.Outlined" Margin="Margin.Dense"
+                    <MudTextField @bind-Value="item.ItemCode" @bind-Value:after="OnItemCodeBlur" AutoFocus="true" Label="@Localizer("Code")" Variant="Variant.Outlined" Margin="Margin.Dense"
                         id="txtCode" @onkeydown="@(e => HandleMainFormKeyDown(e, "code"))"
                         ReadOnly="@((IsAutoCode && item.ItemId == 0) || item.ItemId > 0)"
                         Disabled="@(item.ItemId > 0)"
@@ -47,7 +47,11 @@
                 </MudItem>
                 <MudItem xs="12" sm="2">
                     <MudTextField @bind-Value="item.Barcode" Immediate="true" Label="@Localizer("Barcode")" Variant="Variant.Outlined" Margin="Margin.Dense" 
-                    id="txtBarcode" @onkeydown="@(e => HandleMainFormKeyDown(e, "barcode"))"/>
+                    id="txtBarcode" @onkeydown="@(e => HandleMainFormKeyDown(e, "barcode"))"
+                    Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.AutoFixHigh"
+                    AdornmentColor="Color.Primary"
+                    AdornmentAriaLabel="@Localizer("GenerateBarcode")"
+                    OnAdornmentClick="GenerateBarcodeFromCode" />
                 </MudItem>
 
                 <MudItem xs="12" Class="py-0">

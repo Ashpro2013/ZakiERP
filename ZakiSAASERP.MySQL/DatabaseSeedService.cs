@@ -458,6 +458,7 @@ FROM (
     UNION ALL SELECT 'AllowNegativeStock','0'
     UNION ALL SELECT 'ShowCostInSales','0'
     UNION ALL SELECT 'RequireBarcode','0'
+    UNION ALL SELECT 'AutoBarcodeGeneration','1'
     UNION ALL SELECT 'SalesInvoice_EnableUpdate','0'
     UNION ALL SELECT 'SalesInvoice_EnableCancel','0'
     UNION ALL SELECT 'SalesReturn_EnableUpdate','0'

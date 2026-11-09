@@ -1215,6 +1215,13 @@ public static class ArabicLocalization
             "DoYouWantToCloseShift" => AppData.IsArabic ? "هل تريد إغلاق الوردية؟" : "Do you want to close the Shift?",
             "ShiftClosedSuccessfully" => AppData.IsArabic ? "تم إغلاق الوردية وطباعة التقرير بنجاح" : "Shift closed and printed successfully",
 
+            // Barcode Settings
+            "AutoBarcodeGeneration" => AppData.IsArabic ? "توليد الباركود تلقائياً عند إنشاء الصنف" : "Auto Generate Barcode on Item Creation",
+            "AutoBarcodeGenerationDesc" => AppData.IsArabic ? "توليد الباركود تلقائياً من كود الصنف إذا تُرك فارغاً" : "Automatically assign Barcode from Item Code if left empty during item creation",
+            "GenerateBarcode" => AppData.IsArabic ? "توليد الباركود" : "Generate Barcode",
+            "BarcodeIsRequired" => AppData.IsArabic ? "الباركود مطلوب" : "Barcode is required",
+            "EnterCodeFirst" => AppData.IsArabic ? "الرجاء إدخال كود الصنف أولاً" : "Please enter Item Code first",
+
             _ => tableName // Fallback to technical name
         };
     }
