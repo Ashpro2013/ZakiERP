@@ -338,6 +338,7 @@ public class ViewService(IApiAccessor service) : IViewService
     #region Item
     public async Task<List<ItemMaster>> GetAllItems() => await service.Api.GetAllItems();
     public async Task<ItemMaster> GetItemById(int id) => await service.Api.GetItemById(id);
+    public async Task<ItemMaster?> GetItemByBarcode(string barcode) => await service.Api.GetItemByBarcode(barcode);
     public async Task<OutputResponse> CreateItem(ItemMaster item) => await service.Api.CreateItem(item);
     public async Task<OutputResponse> UpdateItem(ItemMaster item) => await service.Api.UpdateItem(item);
     public async Task<OutputResponse> DeleteItem(int id) => await service.Api.DeleteItem(id);

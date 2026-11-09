@@ -14,4 +14,5 @@ public interface IItemMasterRepo : ICommonInterface<ItemMaster>
     Task<ZeroTaxReason> GetZeroTaxReason(int id);
     Task<ItemStockInfoDTO> GetItemStockInfoAsync(int itemId);
     Task<List<BarcodeData>> GetBarcodeItemsAsync(int? categoryId = null);
+    Task<ItemMaster?> GetByBarcodeAsync(string barcode);
 }

@@ -439,6 +439,7 @@ public class ViewServiceMSSql(
     #region Item
     public async Task<List<ItemMaster>> GetAllItems() => await itemRepo.GetAllAsync();
     public async Task<ItemMaster> GetItemById(int id) => await itemRepo.GetAsync(id);
+    public async Task<ItemMaster?> GetItemByBarcode(string barcode) => await itemRepo.GetByBarcodeAsync(barcode);
     public async Task<OutputResponse> CreateItem(ItemMaster item) => await itemRepo.CreateAsync(item);
     public async Task<OutputResponse> UpdateItem(ItemMaster item) => await itemRepo.UpdateAsync(item);
     public async Task<OutputResponse> DeleteItem(int id) => await itemRepo.DeleteAsync(id);

@@ -130,6 +130,49 @@ public class ItemMasterRepo(IDbContextProvider contextProvider, CodeSequenceServ
             .FirstOrDefaultAsync(x => x.ItemId == id);
         return item!;
     }
+
+    public async Task<ItemMaster?> GetByBarcodeAsync(string barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode)) return null;
+        var trimmed = barcode.Trim();
+        await using var db = contextProvider.CreateDbContext();
+
+        // 1. Check direct Barcode on ItemMasters
+        var item = await db.ItemMasters
+            .Include(x => x.MultiUnits).ThenInclude(m => m.Unit)
+            .Include(x => x.Unit)
+            .Include(x => x.Category)
+            .Include(x => x.SubCategory)
+            .Include(x => x.Brand)
+            .Include(x => x.Vat)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Barcode == trimmed);
+
+        if (item != null) return item;
+
+        // 2. Check Barcode on ItemMultiUnits
+        var multiUnit = await db.ItemMultiUnits
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Barcode == trimmed);
+
+        if (multiUnit != null && multiUnit.FK_ItemId > 0)
+        {
+            return await GetAsync(multiUnit.FK_ItemId);
+        }
+
+        // 3. Fallback: Check ItemCode
+        item = await db.ItemMasters
+            .Include(x => x.MultiUnits).ThenInclude(m => m.Unit)
+            .Include(x => x.Unit)
+            .Include(x => x.Category)
+            .Include(x => x.SubCategory)
+            .Include(x => x.Brand)
+            .Include(x => x.Vat)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.ItemCode == trimmed);
+
+        return item;
+    }
     public async Task<OutputResponse> UpdateAsync(ItemMaster entity)
     {
         try

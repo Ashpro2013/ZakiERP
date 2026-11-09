@@ -41,17 +41,20 @@
                         <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="ToArabic" Elevation="0" Class="ml-1" />
                     </MudStack>
                 </MudItem>
-                <MudItem xs="12" sm="4">
+                <MudItem xs="12" sm="3">
                     <MudTextField @bind-Value="item.ItemNameArabic" Label="@Localizer("ArabicName")" Variant="Variant.Outlined" Margin="Margin.Dense"
                     id="txtArabicName" @onkeydown="@(e => HandleMainFormKeyDown(e, "arabic"))" />
                 </MudItem>
-                <MudItem xs="12" sm="2">
-                    <MudTextField @bind-Value="item.Barcode" Immediate="true" Label="@Localizer("Barcode")" Variant="Variant.Outlined" Margin="Margin.Dense" 
-                    id="txtBarcode" @onkeydown="@(e => HandleMainFormKeyDown(e, "barcode"))"
-                    Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.AutoFixHigh"
-                    AdornmentColor="Color.Primary"
-                    AdornmentAriaLabel="@Localizer("GenerateBarcode")"
-                    OnAdornmentClick="GenerateBarcodeFromCode" />
+                <MudItem xs="12" sm="3">
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                        <MudTextField @bind-Value="item.Barcode" Immediate="true" Label="@Localizer("Barcode")" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                            id="txtBarcode" @onkeydown="@(e => HandleMainFormKeyDown(e, "barcode"))"
+                            Clearable="true" OnClearButtonClick="ClearBarcode" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Search" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" 
+                            OnClick="SearchByBarcode" Title="@Localizer("SearchBarcode")" />
+                        <MudIconButton Icon="@Icons.Material.Filled.AutoFixHigh" Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small" 
+                            OnClick="GenerateBarcodeFromCode" Title="@Localizer("GenerateBarcode")" />
+                    </MudStack>
                 </MudItem>
 
                 <MudItem xs="12" Class="py-0">

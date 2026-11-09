@@ -1221,6 +1221,11 @@ public static class ArabicLocalization
             "GenerateBarcode" => AppData.IsArabic ? "توليد الباركود" : "Generate Barcode",
             "BarcodeIsRequired" => AppData.IsArabic ? "الباركود مطلوب" : "Barcode is required",
             "EnterCodeFirst" => AppData.IsArabic ? "الرجاء إدخال كود الصنف أولاً" : "Please enter Item Code first",
+            "ClearBarcode" => AppData.IsArabic ? "مسح الباركود" : "Clear Barcode",
+            "SearchBarcode" => AppData.IsArabic ? "بحث بالباركود" : "Search Barcode",
+            "EnterBarcodeFirst" => AppData.IsArabic ? "الرجاء إدخال الباركود أولاً" : "Please enter a barcode first",
+            "ItemNotFound" => AppData.IsArabic ? "لم يتم العثور على الصنف" : "Item not found",
+            "ItemLoadedSuccessfully" => AppData.IsArabic ? "تم تحميل بيانات الصنف بنجاح" : "Item loaded successfully",
 
             _ => tableName // Fallback to technical name
         };

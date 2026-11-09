@@ -271,6 +271,7 @@ public interface IViewService
     #region Item
     Task<List<ItemMaster>> GetAllItems();
     Task<ItemMaster> GetItemById(int id);
+    Task<ItemMaster?> GetItemByBarcode(string barcode);
     Task<OutputResponse> CreateItem(ItemMaster item);
     Task<OutputResponse> UpdateItem(ItemMaster item);
     Task<OutputResponse> DeleteItem(int id);

@@ -205,6 +205,7 @@ public static class Endpoints
         group.MapGet("/multiunit", async (int itemId, int unitId, string? barcode, IItemMasterRepo repo) => await repo.GetItemMultiUnit(itemId, unitId, barcode));
         group.MapGet("/", async (IItemMasterRepo repo) => await repo.GetAllAsync());
         group.MapGet("/{id:int}", async (int id, IItemMasterRepo repo) => await repo.GetAsync(id));
+        group.MapGet("/bybarcode/{barcode}", async (string barcode, IItemMasterRepo repo) => await repo.GetByBarcodeAsync(barcode));
         group.MapPost("/", async (ItemMaster item, IItemMasterRepo repo) => await repo.CreateAsync(item));
         group.MapPut("/", async (ItemMaster item, IItemMasterRepo repo) => await repo.UpdateAsync(item));
         group.MapDelete("/{id:int}", async (int id, IItemMasterRepo repo) => await repo.DeleteAsync(id));

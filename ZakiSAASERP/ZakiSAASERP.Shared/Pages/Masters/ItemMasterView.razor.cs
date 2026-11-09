@@ -608,81 +608,90 @@ public partial class ItemMasterView : ITabAware
         try
         {
             var fullData = await api.GetItemById(args.Item.ItemId);
-            item = fullData;
-
-            if (item.MultiUnits == null) item.MultiUnits = new List<ItemMultiUnit>();
-
-            if (item.SalesRate.HasValue) item.SalesRate = Math.Round(item.SalesRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-            if (item.InclusiveRate.HasValue) item.InclusiveRate = Math.Round(item.InclusiveRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-            if (item.PurchaseRate.HasValue) item.PurchaseRate = Math.Round(item.PurchaseRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-            if (item.WholeSaleRate.HasValue) item.WholeSaleRate = Math.Round(item.WholeSaleRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-            if (item.MinSaleRate.HasValue) item.MinSaleRate = Math.Round(item.MinSaleRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-            if (item.StandardCost.HasValue) item.StandardCost = Math.Round(item.StandardCost.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-            if (item.LandingCost.HasValue) item.LandingCost = Math.Round(item.LandingCost.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-
-            foreach (var mu in item.MultiUnits)
-            {
-                if (mu.Rate.HasValue) mu.Rate = Math.Round(mu.Rate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-                if (mu.IncRate.HasValue) mu.IncRate = Math.Round(mu.IncRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-                if (mu.Cost.HasValue) mu.Cost = Math.Round(mu.Cost.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
-                if (mu.QTYPerUnit.HasValue) mu.QTYPerUnit = Math.Round(mu.QTYPerUnit.Value, PermanentSettingsData.QuantityDecimalPlaces, MidpointRounding.AwayFromZero);
-            }
-
-            // Set Names from Navigation Properties
-            unitName = item.Unit?.Name;
-            if (unitName == null && item.FK_UnitId.HasValue)
-            {
-                var matchedUnit = unitList.FirstOrDefault(x => x.UnitId == item.FK_UnitId);
-                unitName = matchedUnit?.Name;
-                item.Unit = matchedUnit;
-            }
-
-            brandName = item.Brand?.Name;
-            if (brandName == null && item.FK_BrandId.HasValue)
-            {
-                var matchedBrand = brandList.FirstOrDefault(x => x.BrandId == item.FK_BrandId);
-                brandName = matchedBrand?.Name;
-                item.Brand = matchedBrand;
-            }
-
-            categoryName = item.Category?.Name;
-            if (categoryName == null && item.FK_CategoryId.HasValue)
-            {
-                var matchedCategory = categoryList.FirstOrDefault(x => x.CategoryId == item.FK_CategoryId);
-                categoryName = matchedCategory?.Name;
-                item.Category = matchedCategory;
-            }
-
-            subCategoryName = item.SubCategory?.Name;
-            if (subCategoryName == null && item.FK_SubCategoryId.HasValue)
-            {
-                var matchedSub = subCategoryList.FirstOrDefault(x => x.SubCategoryId == item.FK_SubCategoryId);
-                subCategoryName = matchedSub?.Name;
-                item.SubCategory = matchedSub;
-            }
-
-            lastEditedRate = "exclusive";
-            SetVat(item.FK_VatId, recalculate: false); // Set percentage without overwriting loaded inclusive rate
-            OnVatCategoryChanged(item.VatCategory ?? "S");
-
-            itemImagePreview = fullData.ItemImage is not null
-                ? "data:image/png;base64," + Convert.ToBase64String(fullData.ItemImage)
-                : null;
-
-            // Load stock info
-            try
-            {
-                var stockInfo = await api.GetItemStockInfo(item.ItemId);
-                openingStock = stockInfo.OpeningStock;
-                currentStock = stockInfo.CurrentStock;
-                storeWiseStock = stockInfo.StoreWiseStock ?? new();
-            }
-            catch { openingStock = 0; currentStock = 0; storeWiseStock = new(); }
+            await PopulateItemAsync(fullData);
         }
         catch (Exception ex)
         {
             Snackbar.Add(ex.Message, Severity.Error);
         }
+    }
+
+    private async Task PopulateItemAsync(ItemMaster fullData)
+    {
+        if (fullData == null) return;
+        item = fullData;
+
+        if (item.MultiUnits == null) item.MultiUnits = new List<ItemMultiUnit>();
+
+        if (item.SalesRate.HasValue) item.SalesRate = Math.Round(item.SalesRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+        if (item.InclusiveRate.HasValue) item.InclusiveRate = Math.Round(item.InclusiveRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+        if (item.PurchaseRate.HasValue) item.PurchaseRate = Math.Round(item.PurchaseRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+        if (item.WholeSaleRate.HasValue) item.WholeSaleRate = Math.Round(item.WholeSaleRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+        if (item.MinSaleRate.HasValue) item.MinSaleRate = Math.Round(item.MinSaleRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+        if (item.StandardCost.HasValue) item.StandardCost = Math.Round(item.StandardCost.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+        if (item.LandingCost.HasValue) item.LandingCost = Math.Round(item.LandingCost.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+
+        foreach (var mu in item.MultiUnits)
+        {
+            if (mu.Rate.HasValue) mu.Rate = Math.Round(mu.Rate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+            if (mu.IncRate.HasValue) mu.IncRate = Math.Round(mu.IncRate.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+            if (mu.Cost.HasValue) mu.Cost = Math.Round(mu.Cost.Value, PermanentSettingsData.CurrencyDecimalPlaces, MidpointRounding.AwayFromZero);
+            if (mu.QTYPerUnit.HasValue) mu.QTYPerUnit = Math.Round(mu.QTYPerUnit.Value, PermanentSettingsData.QuantityDecimalPlaces, MidpointRounding.AwayFromZero);
+        }
+
+        // Set Names from Navigation Properties
+        unitName = item.Unit?.Name;
+        if (unitName == null && item.FK_UnitId.HasValue)
+        {
+            var matchedUnit = unitList.FirstOrDefault(x => x.UnitId == item.FK_UnitId);
+            unitName = matchedUnit?.Name;
+            item.Unit = matchedUnit;
+        }
+
+        brandName = item.Brand?.Name;
+        if (brandName == null && item.FK_BrandId.HasValue)
+        {
+            var matchedBrand = brandList.FirstOrDefault(x => x.BrandId == item.FK_BrandId);
+            brandName = matchedBrand?.Name;
+            item.Brand = matchedBrand;
+        }
+
+        categoryName = item.Category?.Name;
+        if (categoryName == null && item.FK_CategoryId.HasValue)
+        {
+            var matchedCategory = categoryList.FirstOrDefault(x => x.CategoryId == item.FK_CategoryId);
+            categoryName = matchedCategory?.Name;
+            item.Category = matchedCategory;
+        }
+
+        subCategoryName = item.SubCategory?.Name;
+        if (subCategoryName == null && item.FK_SubCategoryId.HasValue)
+        {
+            var matchedSub = subCategoryList.FirstOrDefault(x => x.SubCategoryId == item.FK_SubCategoryId);
+            subCategoryName = matchedSub?.Name;
+            item.SubCategory = matchedSub;
+        }
+
+        lastEditedRate = "exclusive";
+        SetVat(item.FK_VatId, recalculate: false); // Set percentage without overwriting loaded inclusive rate
+        OnVatCategoryChanged(item.VatCategory ?? "S");
+
+        itemImagePreview = fullData.ItemImage is not null
+            ? "data:image/png;base64," + Convert.ToBase64String(fullData.ItemImage)
+            : null;
+
+        // Load stock info
+        try
+        {
+            var stockInfo = await api.GetItemStockInfo(item.ItemId);
+            openingStock = stockInfo.OpeningStock;
+            currentStock = stockInfo.CurrentStock;
+            storeWiseStock = stockInfo.StoreWiseStock ?? new();
+        }
+        catch { openingStock = 0; currentStock = 0; storeWiseStock = new(); }
+
+        activeTabIndex = 0;
+        StateHasChanged();
     }
 
     private async Task UploadItemImage(IBrowserFile file)
@@ -1051,6 +1060,40 @@ public partial class ItemMasterView : ITabAware
         {
             item.Barcode = item.ItemCode;
             StateHasChanged();
+        }
+    }
+
+    private void ClearBarcode()
+    {
+        item.Barcode = string.Empty;
+        StateHasChanged();
+    }
+
+    private async Task SearchByBarcode()
+    {
+        if (string.IsNullOrWhiteSpace(item.Barcode))
+        {
+            Snackbar.Add(Localizer("EnterBarcodeFirst"), Severity.Info);
+            return;
+        }
+
+        try
+        {
+            var barcodeToSearch = item.Barcode.Trim();
+            var found = await api.GetItemByBarcode(barcodeToSearch);
+            if (found != null && found.ItemId > 0)
+            {
+                await PopulateItemAsync(found);
+                Snackbar.Add(Localizer("ItemLoadedSuccessfully"), Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add(Localizer("ItemNotFound"), Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
         }
     }
 

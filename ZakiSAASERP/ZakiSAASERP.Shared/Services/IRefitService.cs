@@ -501,6 +501,8 @@ public interface IRefitService
     Task<List<ItemMaster>> GetAllItems();
     [Get("/api/item/{id}")]
     Task<ItemMaster> GetItemById(int id);
+    [Get("/api/item/bybarcode/{barcode}")]
+    Task<ItemMaster?> GetItemByBarcode(string barcode);
     [Get("/api/item/pagination")]
     Task<ItemMasterPDTO> GetItemPDetails([AliasAs("pmodel")] PaginationModel pmodel);
     [Post("/api/item")]

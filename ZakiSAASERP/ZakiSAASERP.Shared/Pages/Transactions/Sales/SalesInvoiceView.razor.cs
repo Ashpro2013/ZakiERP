@@ -838,7 +838,7 @@ public partial class SalesInvoiceView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(Localizer(result.Message));
+               await Dialog.DialogMethod(Localizer(result.Message));
             }
         }
     }
@@ -912,7 +912,7 @@ public partial class SalesInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+           await Dialog.DialogMethod(ex.Message);
         }
     }
     private string GetBillTypeArabic(string billType)
