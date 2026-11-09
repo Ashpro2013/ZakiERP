@@ -3,6 +3,7 @@ using ZakiSAASERP.Models.Others;
 using ZakiSAASERP.Models.Transactions.Sales;
 using ZakiSAASERP.Models.ViewModel;
 using AshproStringExtension;
+using System.Linq.Expressions;
 
 namespace ZakiSAASERP.Repo.Transaction.Sales;
 
@@ -56,375 +57,328 @@ public class ZatcaRepo : IZatcaRepo
     public async Task<int> GetFailedCount()
     {
         await using var db = _contextProvider.CreateDbContext();
-        return await db.InvoiceICVs.CountAsync(x => x.ICVStatus == false && x.ReUploaded == false);
+        return await db.InvoiceICVs
+     .Where(x => x.ICVStatus == false && x.ReUploaded == false)
+     .Select(x => new
+     {
+         x.VoucherId,
+         x.VoucherType
+     })
+     .Distinct()
+     .CountAsync();
     }
-    public async Task<PendingIcvData> GetPendingIcvDataAsync(ICVReqDTO request)
+
+public async Task<PendingIcvData> GetPendingIcvDataAsync(ICVReqDTO request)
+{
+    await using var db = _contextProvider.CreateDbContext();
+
+    // Inner method: Count distinct Invoice Numbers
+    async Task<int> GetDistinctInvoiceCountAsync(
+        IQueryable<InvoiceICV> source,
+        Expression<Func<InvoiceICV, bool>> predicate)
     {
-        try
-        {
-            await using var db = _contextProvider.CreateDbContext();
-            int firstCount = 0;
-            int secondCount = 0;
-            int thirdCount = 0;
-
-            // base query
-            var query = db.InvoiceICVs.Where(x => x.InvICVDate >= request.FrmDate && x.InvICVDate <= request.ToDate).AsQueryable();
-            if (request.BranchId != 0)
-                query = query.Where(x => x.FK_BranchId == request.BranchId);
-
-            switch (request.Type)
+        return await source
+            .Where(predicate)
+            .Select(x => new
             {
-                case 1:
-                    firstCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        (x.VoucherType == "Standard Invoice" || x.VoucherType == "Simplified Invoice"));
-
-                    secondCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        (x.VoucherType == "Standard Credit Note" || x.VoucherType == "Simplified Credit Note"));
-
-                    thirdCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        (x.VoucherType == "Standard Debit Note" || x.VoucherType == "Simplified Debit Note"));
-                    break;
-
-                case 2:
-                    firstCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Standard Invoice");
-
-                    secondCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Simplified Invoice");
-
-                    thirdCount = 0;
-                    break;
-
-                case 3:
-                    firstCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Standard Credit Invoice");
-
-                    secondCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Simplified Credit Note");
-
-                    thirdCount = 0;
-                    break;
-
-                case 4:
-                    firstCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "PASS" &&
-                        x.VoucherType == "Standard Invoice");
-
-                    secondCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "WARNING" &&
-                        x.VoucherType == "Standard Invoice");
-
-                    thirdCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Standard Invoice");
-                    break;
-
-                case 5:
-                    firstCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "REPORTED" &&
-                        x.VoucherType == "Simplified Invoice");
-
-                    secondCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "WARNING" &&
-                        x.VoucherType == "Simplified Invoice");
-
-                    thirdCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Simplified Invoice");
-                    break;
-
-                case 6:
-                    firstCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "REPORTED" &&
-                        x.VoucherType == "Simplified Credit Note");
-
-                    secondCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "WARNING" &&
-                        x.VoucherType == "Simplified Credit Note");
-
-                    thirdCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Simplified Credit Note");
-                    break;
-
-                case 7:
-                    firstCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "PASS" &&
-                        x.VoucherType == "Standard Credit Note");
-
-                    secondCount = await query.CountAsync(x =>
-                        x.DetailedStatus == "WARNING" &&
-                        x.VoucherType == "Standard Credit Note");
-
-                    thirdCount = await query.CountAsync(x =>
-                        x.ICVStatus == false &&
-                        x.ReUploaded == false &&
-                        x.VoucherType == "Standard Credit Note");
-                    break;
-            }
-            return new PendingIcvData(firstCount, secondCount, thirdCount);
-        }
-        catch (Exception)
-        {
-
-            throw;
-        }
+                x.VoucherId,
+                x.VoucherType
+            })
+            .Distinct()
+            .CountAsync();
     }
+
+    int firstCount = 0;
+    int secondCount = 0;
+    int thirdCount = 0;
+
+    // Base query
+    var query = db.InvoiceICVs
+        .AsNoTracking()
+        .Where(x =>
+            x.InvICVDate >= request.FrmDate &&
+            x.InvICVDate <= request.ToDate);
+
+    // Branch filter
+    if (request.BranchId != 0)
+    {
+        query = query.Where(x => x.FK_BranchId == request.BranchId);
+    }
+
+    switch (request.Type)
+    {
+        case 1:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                (x.VoucherType == "Standard Invoice" ||
+                 x.VoucherType == "Simplified Invoice"));
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                (x.VoucherType == "Standard Credit Note" ||
+                 x.VoucherType == "Simplified Credit Note"));
+
+            thirdCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                (x.VoucherType == "Standard Debit Note" ||
+                 x.VoucherType == "Simplified Debit Note"));
+
+            break;
+
+        case 2:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Standard Invoice");
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Simplified Invoice");
+
+            break;
+
+        case 3:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Standard Credit Invoice");
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Simplified Credit Note");
+
+            break;
+
+        case 4:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "PASS" &&
+                x.VoucherType == "Standard Invoice");
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "WARNING" &&
+                x.VoucherType == "Standard Invoice");
+
+            thirdCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Standard Invoice");
+
+            break;
+
+        case 5:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "REPORTED" &&
+                x.VoucherType == "Simplified Invoice");
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "WARNING" &&
+                x.VoucherType == "Simplified Invoice");
+
+            thirdCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Simplified Invoice");
+
+            break;
+
+        case 6:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "REPORTED" &&
+                x.VoucherType == "Simplified Credit Note");
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "WARNING" &&
+                x.VoucherType == "Simplified Credit Note");
+
+            thirdCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Simplified Credit Note");
+
+            break;
+
+        case 7:
+
+            firstCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "PASS" &&
+                x.VoucherType == "Standard Credit Note");
+
+            secondCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.DetailedStatus == "WARNING" &&
+                x.VoucherType == "Standard Credit Note");
+
+            thirdCount = await GetDistinctInvoiceCountAsync(query, x =>
+                x.ICVStatus == false &&
+                x.ReUploaded == false &&
+                x.VoucherType == "Standard Credit Note");
+
+            break;
+    }
+
+    return new PendingIcvData(firstCount, secondCount, thirdCount);
+}
+
     public async Task<IcvPendingPDTO> GetPendingIcvListAsync(IcvPendReqDTO req)
     {
-        try
+        await using var db = _contextProvider.CreateDbContext();
+
+        // Base query
+        var query = db.InvoiceICVs
+            .AsNoTracking()
+            .Where(x =>
+                x.InvICVDate >= req.reqParameter.FrmDate &&
+                x.InvICVDate <= req.reqParameter.ToDate);
+
+        // Branch filter
+        if (req.PaginationDTO.BranchId != 0)
         {
-            await using var db = _contextProvider.CreateDbContext();
-            var query = db.InvoiceICVs.Where(x => x.InvICVDate >= req.reqParameter.FrmDate && x.InvICVDate <= req.reqParameter.ToDate).AsQueryable();
-
-            if (req.PaginationDTO.BranchId != 0)
-                query = query.Where(x => x.FK_BranchId == req.PaginationDTO.BranchId);
-
-
-            IQueryable<ExInvoiceICV> result = Enumerable.Empty<ExInvoiceICV>().AsQueryable();
-
-            switch (req.reqParameter.Type)
-            {
-                case 1:
-                    result = query
-                        .Where(x => x.DetailedStatus == "PASS" &&
-                                    x.VoucherType == "Standard Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage
-                        });
-                    break;
-
-                case 2:
-                    result = query
-                        .Where(x => x.DetailedStatus == "WARNING" &&
-                                    x.VoucherType == "Standard Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? (x.ICVInfoMessages)
-                        });
-                    break;
-
-                case 3:
-                    result = query
-                        .Where(x => x.ICVStatus == false &&
-                                    x.ReUploaded == false &&
-                                    x.VoucherType == "Standard Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 4:
-                    result = query
-                        .Where(x => x.DetailedStatus == "REPORTED" &&
-                                    x.VoucherType == "Simplified Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 5:
-                    result = query
-                        .Where(x => x.DetailedStatus == "WARNING" &&
-                                    x.VoucherType == "Simplified Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 6:
-                    result = query
-                        .Where(x => x.ICVStatus == false &&
-                                    x.ReUploaded == false &&
-                                    x.VoucherType == "Simplified Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 7:
-                    result = query
-                        .Where(x => x.DetailedStatus == "PASS" &&
-                                    x.VoucherType == "Standard Credit Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 8:
-                    result = query
-                        .Where(x => x.DetailedStatus == "WARNING" &&
-                                    x.VoucherType == "Standard Credit Invoice")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 9:
-                    result = query
-                        .Where(x => x.ICVStatus == false &&
-                                    x.ReUploaded == false &&
-                                    x.VoucherType == "Standard Credit Note")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 10:
-                    result = query
-                        .Where(x => x.DetailedStatus == "REPORTED" &&
-                                    x.VoucherType == "Simplified Credit Note")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 11:
-                    result = query
-                        .Where(x => x.DetailedStatus == "WARNING" &&
-                                    x.VoucherType == "Simplified Credit Note")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-
-                case 12:
-                    result = query
-                        .Where(x => x.ICVStatus == false &&
-                                    x.ReUploaded == false &&
-                                    x.VoucherType == "Simplified Credit Note")
-                        .Select(x => new ExInvoiceICV
-                        {
-                            InvoiceICVId = x.InvoiceICVId,
-                            InvICVNo = x.InvICVNo,
-                            VoucherId = x.VoucherId,
-                            VoucherNo = x.VoucherNo ?? "",
-                            VoucherType = x.VoucherType,
-                            InvICVDate = x.InvICVDate,
-                            DetailedStatus = x.DetailedStatus,
-                            Message = x.ICVMessage ?? x.ICVInfoMessages
-                        });
-                    break;
-            }
-            if (!string.IsNullOrWhiteSpace(req.PaginationDTO.search))
-            {
-                var term = req.PaginationDTO.search.ToLower();
-                result = result.Where(x => x.InvICVNo == term.ToInt32() || (x.VoucherNo != null && x.VoucherNo.ToLower().Contains(term)));
-            }
-            int count = result.Count();
-            var list = result.Skip((req.PaginationDTO.page - 1) * req.PaginationDTO.pageSize).Take(req.PaginationDTO.pageSize).ToList();
-            return new IcvPendingPDTO(list, count);
+            query = query.Where(x =>
+                x.FK_BranchId == req.PaginationDTO.BranchId);
         }
-        catch (Exception)
+
+        // Filter by request type
+        IQueryable<InvoiceICV> filteredQuery =
+            query.Where(x => false);
+
+        switch (req.reqParameter.Type)
         {
+            case 1:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "PASS" &&
+                    x.VoucherType == "Standard Invoice");
+                break;
 
-            throw;
+            case 2:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "WARNING" &&
+                    x.VoucherType == "Standard Invoice");
+                break;
+
+            case 3:
+                filteredQuery = query.Where(x =>
+                    x.ICVStatus == false &&
+                    x.ReUploaded == false &&
+                    x.VoucherType == "Standard Invoice");
+                break;
+
+            case 4:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "REPORTED" &&
+                    x.VoucherType == "Simplified Invoice");
+                break;
+
+            case 5:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "WARNING" &&
+                    x.VoucherType == "Simplified Invoice");
+                break;
+
+            case 6:
+                filteredQuery = query.Where(x =>
+                    x.ICVStatus == false &&
+                    x.ReUploaded == false &&
+                    x.VoucherType == "Simplified Invoice");
+                break;
+
+            case 7:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "PASS" &&
+                    x.VoucherType == "Standard Credit Invoice");
+                break;
+
+            case 8:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "WARNING" &&
+                    x.VoucherType == "Standard Credit Invoice");
+                break;
+
+            case 9:
+                filteredQuery = query.Where(x =>
+                    x.ICVStatus == false &&
+                    x.ReUploaded == false &&
+                    x.VoucherType == "Standard Credit Note");
+                break;
+
+            case 10:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "REPORTED" &&
+                    x.VoucherType == "Simplified Credit Note");
+                break;
+
+            case 11:
+                filteredQuery = query.Where(x =>
+                    x.DetailedStatus == "WARNING" &&
+                    x.VoucherType == "Simplified Credit Note");
+                break;
+
+            case 12:
+                filteredQuery = query.Where(x =>
+                    x.ICVStatus == false &&
+                    x.ReUploaded == false &&
+                    x.VoucherType == "Simplified Credit Note");
+                break;
         }
+
+        // Search filter
+        if (!string.IsNullOrWhiteSpace(req.PaginationDTO.search))
+        {
+            var term = req.PaginationDTO.search.ToLower();
+            var invoiceNo = term.ToInt32();
+
+            filteredQuery = filteredQuery.Where(x =>
+                x.InvICVNo == invoiceNo ||
+                (x.VoucherNo != null &&
+                 x.VoucherNo.ToLower().Contains(term)));
+        }
+
+        // Distinct by VoucherId using NOT EXISTS
+        // Retain the record with the highest InvoiceICVId
+        var candidates = filteredQuery;
+
+        var distinctQuery = candidates.Where(x =>
+            !candidates.Any(y =>
+                y.VoucherId == x.VoucherId &&
+                y.InvoiceICVId > x.InvoiceICVId));
+
+        // Total distinct count
+        int count = await distinctQuery.CountAsync();
+
+        // Project and paginate
+        var list = await distinctQuery
+            .OrderByDescending(x => x.InvoiceICVId)
+            .Skip((req.PaginationDTO.page - 1) *
+                  req.PaginationDTO.pageSize)
+            .Take(req.PaginationDTO.pageSize)
+            .Select(x => new ExInvoiceICV
+            {
+                InvoiceICVId = x.InvoiceICVId,
+                InvICVNo = x.InvICVNo,
+                VoucherId = x.VoucherId,
+                VoucherNo = x.VoucherNo ?? "",
+                VoucherType = x.VoucherType,
+                InvICVDate = x.InvICVDate,
+                DetailedStatus = x.DetailedStatus,
+
+                Message = req.reqParameter.Type == 1
+                    ? x.ICVMessage
+                    : (x.ICVMessage ?? x.ICVInfoMessages)
+            })
+            .ToListAsync();
+
+        return new IcvPendingPDTO(list, count);
     }
+
     public async Task ReUploadAll(List<ExInvoiceICV> entInvoices,  CompanyDetails company = null)
     {
         foreach (var item in entInvoices)

@@ -1059,7 +1059,11 @@ public partial class POSView : ITabAware, IDisposable
             snackbar.Add("No items added to the bill", Severity.Warning);
             return;
         }
-
+        if(PermanentSettingsData.ZatcaPhase == 2 && salesInvoice.SalesInvoiceId>0)
+        {
+            snackbar.Add("You cannot edit or delete this transaction as it has been e-Invoiced.", Severity.Warning);
+            return;
+        }
         _isSaving = true;
         StateHasChanged();
 
