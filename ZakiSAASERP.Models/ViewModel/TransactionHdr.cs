@@ -44,6 +44,7 @@ public class TransactionHdr
     public string? CustomerName { get; set; }
     public string? SalesMan { get; set; }
     public string? BillType { get; set; }
+    public string? BillTypeArabic { get; set; }
     public decimal? Tendered { get; set; }
     public decimal? Changes { get; set; }
     public string? Extra1 { get; set; }

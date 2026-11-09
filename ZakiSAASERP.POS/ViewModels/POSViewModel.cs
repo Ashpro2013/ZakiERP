@@ -892,7 +892,8 @@ public partial class POSViewModel : ObservableObject
                             Changes = invoiceDto.InvoiceHdr.Changes ?? 0,
                             QRCode = invoiceDto.InvoiceHdr.InvoiceQRCode,
                             InvoiceQRCode = invoiceDto.InvoiceHdr.InvoiceQRCode,
-                            BillType = invoiceDto.InvoiceHdr.BillType ?? "Cash"
+                            BillType = invoiceDto.InvoiceHdr.BillType ?? "Cash",
+                            BillTypeArabic = GetBillTypeArabic(invoiceDto.InvoiceHdr.BillType ?? "Cash")
                         };
                         _lastSavedItems = CartItems.ToList();
                         _lastSavedParty = new Party
@@ -917,7 +918,16 @@ public partial class POSViewModel : ObservableObject
             FocusBarcodeHandler?.Invoke();
         }
     }
-
+    private string GetBillTypeArabic(string billType)
+    {
+        return billType switch
+        {
+            "Cash" => "نقدي",
+            "Bank" => "بطاقة",
+            "Credit" => "آجل",
+            _ => billType
+        };
+    }
     [RelayCommand]
     public async Task PrintBillAsync()
     {
@@ -950,6 +960,7 @@ public partial class POSViewModel : ObservableObject
             Tendered = Tendered ?? GrandTotal,
             Changes = Changes ?? 0m,
             BillType = "Cash",
+            BillTypeArabic = GetBillTypeArabic("Cash"),
             PartyId = CustomerId,
             CustomerName = CustomerName,
             QRCode = qr,
@@ -1107,6 +1118,7 @@ public partial class POSViewModel : ObservableObject
                 Tendered = salesHdr.Tendered ?? salesHdr.GrandTotal,
                 Changes = salesHdr.Changes ?? 0m,
                 BillType = salesHdr.BillType,
+                BillTypeArabic = GetBillTypeArabic(salesHdr.BillType ?? "Cash"),
                 PartyId = salesHdr.FK_CustomerId,
                 CustomerName = salesHdr.CustomerName,
                 QRCode = qr,

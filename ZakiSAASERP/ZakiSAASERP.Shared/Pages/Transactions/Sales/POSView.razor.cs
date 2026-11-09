@@ -1565,6 +1565,7 @@ public partial class POSView : ITabAware, IDisposable
             hdr.Tendered = tendered ?? salesInvoice.Tendered ?? salesInvoice.GrandTotal;
             hdr.Changes = changes ?? salesInvoice.Changes ?? 0m;
             hdr.BillType = salesInvoice.BillType; 
+            hdr.BillTypeArabic = GetBillTypeArabic(salesInvoice.BillType ?? "Cash");
             party = new Party
             {
                 Name = salesInvoice.CustomerName,
@@ -1597,7 +1598,16 @@ public partial class POSView : ITabAware, IDisposable
             await FocusBarcodeInputAsync();
         }
     }
-
+    private string GetBillTypeArabic(string billType)
+    {
+        return billType switch
+        {
+            "Cash" => "نقدي",
+            "Bank" => "بطاقة",
+            "Credit" => "آجل",
+            _ => billType
+        };
+    }
     private async Task PdfBillClick()
     {
         try

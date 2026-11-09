@@ -895,6 +895,7 @@ public partial class SalesInvoiceView : ITabAware
             hdr.InvoiceDate = (salesInvoice.SalesInvoiceDate ?? DateTime.Now).ToString("dd-MM-yyyy");
             hdr.QRCode = salesInvoice.InvoiceQRCode;
             hdr.BillType = salesInvoice.BillType;
+            hdr.BillTypeArabic = GetBillTypeArabic(salesInvoice.BillType ?? "Cash");
             PrintParameterDTO dto = new PrintParameterDTO(pdto.hdr, pdto.dtls, hdr, transctions, party, AppData.CompanyDetails!, null);
             if (!IsPdf && !IsPreview && !AppData.IsMaui)
             {
@@ -913,6 +914,16 @@ public partial class SalesInvoiceView : ITabAware
         {
             Dialog.DialogMethod(ex.Message);
         }
+    }
+    private string GetBillTypeArabic(string billType)
+    {
+        return billType switch
+        {
+            "Cash" => "نقدي",
+            "Bank" => "بطاقة",
+            "Credit" => "آجل",
+            _ => billType
+        };
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);
     async Task PrintMethod() => await PrintHelperMethod();
