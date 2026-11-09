@@ -814,6 +814,7 @@ WHERE NOT EXISTS (
         UNION ALL SELECT 'Date Wise Profit Report','Date Wise Profit Report','تقرير الأرباح حسب التاريخ',@RptSalesId,'ZakiSAASERP.Shared.Pages.Reports.Sales.DateWiseProfitReportView','DateWiseProfitReportView',9,1,0,0,0,0
         UNION ALL SELECT 'Proforma Invoice Report','Proforma Invoice Report','تقرير الفاتورة المبدئية',@RptSalesId,'ZakiSAASERP.Shared.Pages.Reports.Sales.ProformaInvoiceReportView','ProformaInvoiceReportView',10,1,0,0,0,0
         UNION ALL SELECT 'Vat Report','Vat Report','تقرير ضريبة القيمة المضافة',@RptSalesId,'ZakiSAASERP.Shared.Pages.Reports.Sales.VatReportView','VatReportView',11,1,0,0,0,0
+        UNION ALL SELECT 'Shift Closing Report','Shift Closing Report','تقرير إغلاق الوردية',@RptSalesId,'ZakiSAASERP.Shared.Pages.Reports.Sales.ShiftClosingReportView','ShiftClosingReportView',14,1,0,0,0,0
     ) AS t(Name, MenuCaption, ArabicCaption, ParentId, AssemblyName, ClassName, Position, Active, IsFavorite, IsFavorite2, FilterOneOrder, FilterTwoOrder)
     WHERE NOT EXISTS (
         SELECT 1 FROM MenuDetails m WHERE m.Name = t.Name AND m.ParentId <=> t.ParentId

@@ -3,6 +3,7 @@
 @using ZakiSAASERP.Models.Settings
 @using ZakiSAASERP.Shared.Services
 @inject ShiftService ShiftService
+@inject IViewService api
 @inject ISnackbar Snackbar
 
 <MudDialog Class="shift-dialog-root" DefaultFocus="DefaultFocus.None">
@@ -115,6 +116,19 @@
                     <div class="float-input-col">
                         <input type="number" step="0.01" class="float-input"
                                @bind="_newOpeningBalance" />
+                    </div>
+                </div>
+
+                @* Remarks / Notes *@
+                <div class="float-row mt-3">
+                    <div class="float-info">
+                        <div class="float-title">Remarks / Notes</div>
+                        <div class="float-desc">Optional handover notes or comments</div>
+                    </div>
+                    <div class="float-input-col" style="flex: 1; max-width: 320px;">
+                        <input type="text" class="float-input" style="width: 100% !important; font-weight: normal; font-size: 13px;"
+                               placeholder="e.g. Handed over to Shift 2"
+                               @bind="_remarks" />
                     </div>
                 </div>
             </div>
@@ -483,6 +497,7 @@
     private ShiftDetails _shift = new();
     private decimal _actualCash;
     private decimal _newOpeningBalance = 0m;
+    private string _remarks = "";
     private bool _isBusy = false;
 
     private decimal ExpectedCash => _shift.OpeningBalance + _shift.TotalCashSales + _shift.TotalCashReceipt - _shift.TotalPayment;
@@ -559,6 +574,47 @@
 
             // Print report first
             await ShiftService.PrintShiftDetailsAsync(_shift, AppData.CompanyDetails);
+
+            // Save shift closing record to database
+            try
+            {
+                var closingRecord = new ShiftClosingRecord
+                {
+                    ShiftCode = "SC-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"),
+                    UserName = user,
+                    Terminal = term,
+                    FK_BranchId = AppData.BranchId > 0 ? AppData.BranchId : null,
+                    DateFrom = _shift.DateFrom ?? DateTime.Now,
+                    DateTo = DateTime.Now,
+                    OpeningBalance = _shift.OpeningBalance,
+                    TotalSale = _shift.TotalSale,
+                    TotalSalesReturn = _shift.TotalSalesReturn,
+                    NetSales = NetSales,
+                    TotalCashSales = _shift.TotalCashSales,
+                    TotalCardSales = _shift.TotalCardSales,
+                    TotalCreditSales = _shift.TotalCreditSales,
+                    TotalPayment = _shift.TotalPayment,
+                    TotalCashReceipt = _shift.TotalCashReceipt,
+                    TotalCardReceipt = _shift.TotalCardReceipt,
+                    ExpectedCash = ExpectedCash,
+                    ActualCash = _actualCash,
+                    Difference = Difference,
+                    NewOpeningBalance = _newOpeningBalance,
+                    Status = Difference == 0 ? "Balanced" : Difference > 0 ? "Overage" : "Shortage",
+                    Remarks = _remarks,
+                    CreatedAt = DateTime.Now
+                };
+
+                var saveRes = await api.SaveShiftClosingAsync(closingRecord);
+                if (saveRes != null && !saveRes.IsSuccess)
+                {
+                    Console.WriteLine($"[ShiftDialog] SaveShiftClosingAsync: {saveRes.Message}");
+                }
+            }
+            catch (Exception dbEx)
+            {
+                Console.WriteLine($"[ShiftDialog] Error saving shift closing details: {dbEx.Message}");
+            }
 
             // Reset shift with new opening balance
             await ShiftService.ResetShiftDetailsAsync(term, user, _newOpeningBalance);

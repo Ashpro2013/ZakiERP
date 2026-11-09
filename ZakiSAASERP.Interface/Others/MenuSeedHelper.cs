@@ -111,6 +111,7 @@ public static class MenuSeedHelper
 
         // Report Sub-items
         ("PendingZatca", "Zatca Report", "تقرير الزكاة والضريبة (زاتكا)", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Transaction.ZatcaPendingView", "ZatcaPendingView", 1),
+        ("ShiftClosingReport", "Shift Closing Report", "تقرير إغلاق الوردية", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.ShiftClosingReportView", "ShiftClosingReportView", 14),
         ("EnquiryRegistrationReport", "Enquiry Registration Report", "تقرير تسجيل الاستفسارات", "Rpt_Enquiry", "ZakiSAASERP.Shared.Pages.Reports.Sales.EnquiryRegistrationReportView", "EnquiryRegistrationReportView", 1),
 
         // ================= SETTINGS =================

@@ -518,7 +518,8 @@ public class DatabaseSeedService(IDbContextProvider contextProvider) : IDatabase
         ('Delivery Note Register', 'Delivery Note Register', 'سجل إشعارات التسليم', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Sales'), 'ZakiSAASERP.Shared.Pages.Reports.Sales.DeliveryNoteRegisterView', 'DeliveryNoteRegisterView', 8, 1, 0, 0, 0, 0),
         ('Date Wise Profit Report', 'Date Wise Profit Report', 'تقرير الأرباح حسب التاريخ', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Sales'), 'ZakiSAASERP.Shared.Pages.Reports.Sales.DateWiseProfitReportView', 'DateWiseProfitReportView', 9, 1, 0, 0, 0, 0),
         ('Proforma Invoice Report', 'Proforma Invoice Report', 'تقرير الفاتورة المبدئية', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Sales'), 'ZakiSAASERP.Shared.Pages.Reports.Sales.ProformaInvoiceReportView', 'ProformaInvoiceReportView', 10, 1, 0, 0, 0, 0),
-        ('Vat Report', 'Vat Report', 'تقرير ضريبة القيمة المضافة', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Sales'), 'ZakiSAASERP.Shared.Pages.Reports.Sales.VatReportView', 'VatReportView', 11, 1, 0, 0, 0, 0);
+        ('Vat Report', 'Vat Report', 'تقرير ضريبة القيمة المضافة', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Sales'), 'ZakiSAASERP.Shared.Pages.Reports.Sales.VatReportView', 'VatReportView', 11, 1, 0, 0, 0, 0),
+        ('Shift Closing Report', 'Shift Closing Report', 'تقرير إغلاق الوردية', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Sales'), 'ZakiSAASERP.Shared.Pages.Reports.Sales.ShiftClosingReportView', 'ShiftClosingReportView', 14, 1, 0, 0, 0, 0);
 
         INSERT INTO MenuDetails (Name, MenuCaption, ArabicCaption, ParentId, AssemblyName, ClassName, Position, Active, IsFavorite, IsFavorite2, FilterOneOrder, FilterTwoOrder) VALUES 
         ('Sales Monitor Report', 'Sales Monitor Report', 'تقرير مراقبة المبيعات', (SELECT Id FROM MenuDetails WHERE Name='Rpt_Monitor'), 'ZakiSAASERP.Shared.Pages.Reports.Transactions.SalesMonitorReport', 'SalesMonitorReport', 1, 1, 0, 0, 0, 0),

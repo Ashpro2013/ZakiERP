@@ -12,6 +12,7 @@ using ZakiSAASERP.Repo.CodeGenerationServices;
 using ZakiSAASERP.Repo.Masters;
 using ZakiSAASERP.Repo.Others;
 using ZakiSAASERP.Repo.Services;
+using ZakiSAASERP.Repo.Settings;
 using ZakiSAASERP.Repo.Transaction.Inventory;
 using ZakiSAASERP.Repo.Transaction.Sales;
 using ZakiSAASERP.ZatcaEngine.Abstractions;
@@ -47,6 +48,7 @@ public static class DIHelper
         services.AddScoped<ICustomerMasterRepo, CustomerMasterRepo>();
         services.AddScoped<IItemMasterRepo, ItemMasterRepo>();
         services.AddScoped<ICompanyDetailsRepo, CompanyDetailsRepo>();
+        services.AddScoped<IShiftClosingRepo, ShiftClosingRepo>();
         services.AddScoped<ICommonImageRepo, CommonImageRepo>();
         services.AddScoped<IUserRepo, UserRepo>();
         services.AddScoped<ILoginRepo, LoginRepo>();

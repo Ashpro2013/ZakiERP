@@ -1,6 +1,8 @@
 using ZakiSAASERP.Interface.Masters;
 using ZakiSAASERP.Interface.Reports;
 using ZakiSAASERP.Interface.Services;
+using ZakiSAASERP.Interface.Settings;
+using ZakiSAASERP.Models.Settings;
 using ZakiSAASERP.Interface.Transaction.Accounts;
 using ZakiSAASERP.Interface.Transaction.Inventory;
 using ZakiSAASERP.Interface.Transaction.Purchase;
@@ -127,6 +129,7 @@ public static class Endpoints
         app.MapGroup("/api/salesreport").MapSalesReportEndpoints().RequireAuthorization();
         app.MapGroup("/api/inventoryreport").MapInventoryReportEndpoints().RequireAuthorization();
         app.MapGroup("/api/transactionreport").MapTransactionReportEndpoints().RequireAuthorization();
+        app.MapGroup("/api/shift").MapShiftEndpoints().RequireAuthorization();
         #endregion
 
         return app;
@@ -2442,5 +2445,27 @@ public static class Endpoints
     }
     #endregion
 
-}
 
+    #region Shift Closing
+    private static RouteGroupBuilder MapShiftEndpoints(this RouteGroupBuilder group)
+    {
+        group.MapPost("/close", async (ShiftClosingRecord record, IShiftClosingRepo repo) =>
+        {
+            return await repo.SaveShiftClosingAsync(record);
+        });
+
+        group.MapPost("/report", async (ShiftClosingReportRequest req, IShiftClosingRepo repo) =>
+        {
+            return await repo.GetShiftClosingReportAsync(req);
+        });
+
+        group.MapGet("/{id:int}", async (int id, IShiftClosingRepo repo) =>
+        {
+            var record = await repo.GetShiftClosingByIdAsync(id);
+            return record is not null ? Results.Ok(record) : Results.NotFound();
+        });
+
+        return group;
+    }
+    #endregion
+}

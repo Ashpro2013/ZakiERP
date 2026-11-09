@@ -1,0 +1,247 @@
+@page "/shiftclosingreport"
+@using ZakiSAASERP.Models.Settings
+@using ZakiSAASERP.Shared.Pages.Component
+@using ZakiSAASERP.Shared.SubWindows
+@inject IViewService api
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject TabService tabService
+@inject ISnackbar Snackbar
+@inject ShiftService ShiftService
+
+<PageTitle>@AppData.OEMAgency | @Localizer("Shift Closing Report")</PageTitle>
+
+<MudCard Elevation="3" Class="ma-2">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudStack Row="true" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@Icons.Material.Filled.PunchClock" Color="Color.Primary" Size="Size.Medium" />
+                <MudText Typo="Typo.h6" Style="font-weight: 700;">@Localizer("Shift Closing Report")</MudText>
+                <MudSpacer />
+                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
+            </MudStack>
+        </CardHeaderContent>
+    </MudCardHeader>
+
+    <MudCardContent>
+        <MudGrid>
+            @* Date Range *@
+            <MudItem xs="12" sm="3">
+                <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight: 600;">@Localizer("FromDate")</MudText>
+                <MudDatePicker @bind-Date="FromDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight: 600;">@Localizer("ToDate")</MudText>
+                <MudDatePicker @bind-Date="ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+
+            @* Branch *@
+            <MudItem xs="12" sm="2">
+                <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight: 600;">@Localizer("Branch")</MudText>
+                <MudSelect T="int" @bind-Value="BranchId" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="0">@Localizer("All Branches")</MudSelectItem>
+                    @foreach (var branch in branchList)
+                    {
+                        <MudSelectItem Value="@branch.Id">@branch.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            @* Terminal *@
+            <MudItem xs="12" sm="2">
+                <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight: 600;">@Localizer("Terminal")</MudText>
+                <MudTextField @bind-Value="Terminal" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Placeholder="@Localizer("All Terminals")" Clearable="true" />
+            </MudItem>
+
+            @* Cashier *@
+            <MudItem xs="12" sm="2">
+                <MudText Typo="Typo.body2" Class="mb-1" Style="font-weight: 600;">@Localizer("Cashier")</MudText>
+                <MudTextField @bind-Value="UserName" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Placeholder="@Localizer("All Cashiers")" Clearable="true" />
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudGrid Class="ma-2" Spacing="1">
+            <MudItem xs="12" sm="4" md="2">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Search"
+                           Color="Color.Primary"
+                           OnClick="LoadDataAsync"
+                           Disabled="@IsLoading">
+                    @Localizer("Search / Preview")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="2">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Print"
+                           Color="Color.Secondary"
+                           OnClick="PrintReportAsync"
+                           Disabled="@(IsLoading || result == null || !result.Reports.Any())">
+                    @Localizer("Print Report")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="2">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.TableView"
+                           Color="Color.Tertiary"
+                           OnClick="ExcelExportAsync"
+                           Disabled="@(IsLoading || result == null || !result.Reports.Any())">
+                    @Localizer("Excel")
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12" sm="4" md="2">
+                <MudButton FullWidth Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.ClearAll"
+                           Color="Color.Warning"
+                           OnClick="ClearMethod">
+                    @Localizer("Clear")
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudCardActions>
+</MudCard>
+
+@if (IsLoading)
+{
+    <div class="d-flex justify-center align-center pa-6">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+    </div>
+}
+else if (IsLoaded && result is not null)
+{
+    @* Summary Cards *@
+    <MudGrid Class="ma-2" Spacing="2">
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3" Style="border-left: 4px solid #2563EB;">
+                <MudText Typo="Typo.caption" Style="color: #64748B; font-weight: 600;">TOTAL SHIFTS CLOSED</MudText>
+                <MudText Typo="Typo.h5" Style="font-weight: 700; color: #0F172A;">@result.TotalShifts</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3" Style="border-left: 4px solid #16A34A;">
+                <MudText Typo="Typo.caption" Style="color: #64748B; font-weight: 600;">TOTAL NET SALES</MudText>
+                <MudText Typo="Typo.h5" Style="font-weight: 700; color: #16A34A;">@result.TotalNetSales.ToString("N2") SAR</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3" Style="border-left: 4px solid #0284C7;">
+                <MudText Typo="Typo.caption" Style="color: #64748B; font-weight: 600;">TOTAL DRAWER CASH (COUNTED)</MudText>
+                <MudText Typo="Typo.h5" Style="font-weight: 700; color: #0284C7;">@result.TotalActualCash.ToString("N2") SAR</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3" Style="@GetVarianceBorder(result.TotalDifference)">
+                <MudText Typo="Typo.caption" Style="color: #64748B; font-weight: 600;">TOTAL VARIANCE / DISCREPANCY</MudText>
+                <MudText Typo="Typo.h5" Style="@GetVarianceTextStyle(result.TotalDifference)">
+                    @(result.TotalDifference >= 0 ? $"+{result.TotalDifference:N2}" : result.TotalDifference.ToString("N2")) SAR
+                </MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* Additional Metric Strip *@
+    <MudPaper Elevation="1" Class="ma-2 pa-3 d-flex flex-wrap gap-4 align-center" Style="background: #F8FAFC;">
+        <div>
+            <span style="font-size: 11px; color: #64748B;">Cash Sales:</span>
+            <strong style="font-size: 13px; color: #16A34A; margin-left: 4px;">@result.TotalCashSales.ToString("N2") SAR</strong>
+        </div>
+        <MudDivider Vertical="true" FlexItem="true" />
+        <div>
+            <span style="font-size: 11px; color: #64748B;">Card/Bank Sales:</span>
+            <strong style="font-size: 13px; color: #2563EB; margin-left: 4px;">@result.TotalCardSales.ToString("N2") SAR</strong>
+        </div>
+        <MudDivider Vertical="true" FlexItem="true" />
+        <div>
+            <span style="font-size: 11px; color: #64748B;">Credit Sales:</span>
+            <strong style="font-size: 13px; color: #7C3AED; margin-left: 4px;">@result.TotalCreditSales.ToString("N2") SAR</strong>
+        </div>
+        <MudDivider Vertical="true" FlexItem="true" />
+        <div>
+            <span style="font-size: 11px; color: #64748B;">Sales Returns:</span>
+            <strong style="font-size: 13px; color: #DC2626; margin-left: 4px;">@result.TotalReturns.ToString("N2") SAR</strong>
+        </div>
+        <MudDivider Vertical="true" FlexItem="true" />
+        <div>
+            <span style="font-size: 11px; color: #64748B;">Expected Drawer Cash:</span>
+            <strong style="font-size: 13px; color: #0F172A; margin-left: 4px;">@result.TotalExpectedCash.ToString("N2") SAR</strong>
+        </div>
+    </MudPaper>
+
+    @* Results Table *@
+    <MudTable T="ShiftClosingRecord" Items="@result.Reports" Filter="new Func<ShiftClosingRecord, bool>(FilterFunc)"
+              Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px" Class="ma-2" Elevation="3">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("Closed Shifts") (@result.Reports.Count)</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString" Placeholder="@Localizer("Search shift code, cashier, terminal, status...")"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.ShiftCode)">Shift #</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.DateTo ?? DateTime.MinValue)">Closed At</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.Terminal)">Terminal</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.UserName)">Cashier</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.OpeningBalance)">Opening</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.TotalCashSales)">Cash Sales</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.TotalCardSales)">Card Sales</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.TotalSalesReturn)">Returns</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.NetSales)">Net Sales</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.ExpectedCash)">Expected</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.ActualCash)">Counted</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:center"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.Difference)">Variance</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:right"><MudTableSortLabel SortBy="new Func<ShiftClosingRecord, object>(x => x.NewOpeningBalance)">Next Float</MudTableSortLabel></MudTh>
+            <MudTh Style="text-align:center">Actions</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="Shift #">
+                <strong style="color: #1E3A8A;">@context.ShiftCode</strong>
+            </MudTd>
+            <MudTd DataLabel="Closed At">
+                @(context.DateTo?.ToString("dd/MM/yyyy hh:mm tt") ?? context.CreatedAt.ToString("dd/MM/yyyy hh:mm tt"))
+            </MudTd>
+            <MudTd DataLabel="Terminal">@context.Terminal</MudTd>
+            <MudTd DataLabel="Cashier">@context.UserName</MudTd>
+            <MudTd DataLabel="Opening" Style="text-align:right">@context.OpeningBalance.ToString("N2")</MudTd>
+            <MudTd DataLabel="Cash Sales" Style="text-align:right; color: #16A34A; font-weight: 600;">@context.TotalCashSales.ToString("N2")</MudTd>
+            <MudTd DataLabel="Card Sales" Style="text-align:right; color: #2563EB;">@context.TotalCardSales.ToString("N2")</MudTd>
+            <MudTd DataLabel="Returns" Style="text-align:right; color: #DC2626;">@context.TotalSalesReturn.ToString("N2")</MudTd>
+            <MudTd DataLabel="Net Sales" Style="text-align:right; font-weight: 700;">@context.NetSales.ToString("N2")</MudTd>
+            <MudTd DataLabel="Expected" Style="text-align:right">@context.ExpectedCash.ToString("N2")</MudTd>
+            <MudTd DataLabel="Counted" Style="text-align:right; font-weight: 700; color: #0284C7;">@context.ActualCash.ToString("N2")</MudTd>
+            <MudTd DataLabel="Variance" Style="text-align:center">
+                <MudChip T="string" Color="@GetRowStatusColor(context.Difference)" Size="Size.Small" Variant="Variant.Filled" Style="font-weight: 700;">
+                    @(context.Difference == 0 ? "Balanced" : context.Difference > 0 ? $"+{context.Difference:N2}" : context.Difference.ToString("N2"))
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Next Float" Style="text-align:right">@context.NewOpeningBalance.ToString("N2")</MudTd>
+            <MudTd DataLabel="Actions" Style="text-align:center">
+                <div class="d-flex justify-center gap-1">
+                    <MudTooltip Text="View Full Shift Details">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Primary"
+                                       OnClick="@(() => ViewDetails(context))" />
+                    </MudTooltip>
+                    <MudTooltip Text="Print Shift Thermal Receipt">
+                        <MudIconButton Icon="@Icons.Material.Filled.Print" Size="Size.Small" Color="Color.Secondary"
+                                       OnClick="@(() => PrintTicket(context))" />
+                    </MudTooltip>
+                </div>
+            </MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+}
+

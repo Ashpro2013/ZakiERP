@@ -935,7 +935,8 @@ VALUES
 ('Delivery Note Register','Delivery Note Register','سجل إشعارات التسليم','ZakiSAASERP.Shared.Pages.Reports.Sales.DeliveryNoteRegisterView','DeliveryNoteRegisterView',8),
 ('Date Wise Profit Report','Date Wise Profit Report','تقرير الأرباح حسب التاريخ','ZakiSAASERP.Shared.Pages.Reports.Sales.DateWiseProfitReportView','DateWiseProfitReportView',9),
 ('Proforma Invoice Report','Proforma Invoice Report','تقرير الفاتورة المبدئية','ZakiSAASERP.Shared.Pages.Reports.Sales.ProformaInvoiceReportView','ProformaInvoiceReportView',10),
-('Vat Report','Vat Report','تقرير ضريبة القيمة المضافة','ZakiSAASERP.Shared.Pages.Reports.Sales.VatReportView','VatReportView',11)
+('Vat Report','Vat Report','تقرير ضريبة القيمة المضافة','ZakiSAASERP.Shared.Pages.Reports.Sales.VatReportView','VatReportView',11),
+('Shift Closing Report','Shift Closing Report','تقرير إغلاق الوردية','ZakiSAASERP.Shared.Pages.Reports.Sales.ShiftClosingReportView','ShiftClosingReportView',14)
 ) AS v(""Name"",""MenuCaption"",""ArabicCaption"",""AssemblyName"",""ClassName"",""Position"")
 
 JOIN ""MenuDetails"" rs

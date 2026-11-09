@@ -367,6 +367,28 @@ public class ShiftService
         await _jsService.SetLocal(json, "Ashpro_POS_Shift_Details");
     }
 
+    public async Task PrintShiftClosingRecordAsync(ShiftClosingRecord record, CompanyDetails? company)
+    {
+        var shift = new ShiftDetails
+        {
+            DateFrom = record.DateFrom,
+            DateTo = record.DateTo,
+            UserName = record.UserName,
+            Terminal = record.Terminal,
+            OpeningBalance = record.OpeningBalance,
+            TotalSale = record.TotalSale,
+            TotalSalesReturn = record.TotalSalesReturn,
+            TotalCashSales = record.TotalCashSales,
+            TotalCardSales = record.TotalCardSales,
+            TotalCreditSales = record.TotalCreditSales,
+            TotalPayment = record.TotalPayment,
+            TotalCashReceipt = record.TotalCashReceipt,
+            TotalCardReceipt = record.TotalCardReceipt,
+            ClosingBalance = record.ActualCash
+        };
+        await PrintShiftDetailsAsync(shift, company);
+    }
+
     public async Task PrintShiftDetailsAsync(ShiftDetails shift, CompanyDetails? company)
     {
         var companyName = company?.Name ?? "ASHPRO ERP";

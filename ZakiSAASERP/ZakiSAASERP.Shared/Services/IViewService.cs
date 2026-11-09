@@ -6,6 +6,7 @@ using ZakiSAASERP.Models.Transactions.Workshop;
 using ZakiSAASERP.Models.User;
 using ZakiSAASERP.Models.ViewModel;
 using Refit;
+using ZakiSAASERP.Models.Settings;
 namespace ZakiSAASERP.Shared.Services;
 
 public interface IViewService
@@ -787,6 +788,12 @@ public interface IViewService
     #region ProductExport
     Task<List<ProductExportRowDTO>> GetProductsForExportAsync();
     Task<byte[]> ExportProductsToCsvAsync();
+    #endregion
+
+    #region Shift Closing
+    Task<OutputResponse> SaveShiftClosingAsync(ShiftClosingRecord record);
+    Task<ShiftClosingReportResponse> GetShiftClosingReportAsync(ShiftClosingReportRequest request);
+    Task<ShiftClosingRecord?> GetShiftClosingByIdAsync(int id);
     #endregion
 
 }

@@ -1,3 +1,4 @@
+using ZakiSAASERP.Interface.Settings;
 using ZakiSAASERP.Models.Settings;
 using ZakiSAASERP.POS.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,6 +10,7 @@ public partial class ShiftViewModel : ObservableObject
 {
     private readonly ShiftService _shiftService;
     private readonly PrintHelper _printHelper;
+    private readonly IShiftClosingRepo _shiftClosingRepo;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ExpectedCash))]
@@ -42,10 +44,11 @@ public partial class ShiftViewModel : ObservableObject
     public bool ShiftChangedResult { get; private set; }
     public Action? CloseAction { get; set; }
 
-    public ShiftViewModel(ShiftService shiftService, PrintHelper printHelper)
+    public ShiftViewModel(ShiftService shiftService, PrintHelper printHelper, IShiftClosingRepo shiftClosingRepo)
     {
         _shiftService = shiftService;
         _printHelper = printHelper;
+        _shiftClosingRepo = shiftClosingRepo;
     }
 
     [RelayCommand]
@@ -82,6 +85,40 @@ public partial class ShiftViewModel : ObservableObject
 
             // Print summary report
             await PrintShiftReportAsync();
+
+            // Save shift closing record to DB
+            try
+            {
+                var closingRecord = new ShiftClosingRecord
+                {
+                    ShiftCode = "SC-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"),
+                    UserName = user,
+                    Terminal = CurrentShift.Terminal,
+                    DateFrom = CurrentShift.DateFrom ?? DateTime.Now,
+                    DateTo = DateTime.Now,
+                    OpeningBalance = CurrentShift.OpeningBalance,
+                    TotalSale = CurrentShift.TotalSale,
+                    TotalSalesReturn = CurrentShift.TotalSalesReturn,
+                    NetSales = NetSales,
+                    TotalCashSales = CurrentShift.TotalCashSales,
+                    TotalCardSales = CurrentShift.TotalCardSales,
+                    TotalCreditSales = CurrentShift.TotalCreditSales,
+                    TotalPayment = CurrentShift.TotalPayment,
+                    TotalCashReceipt = CurrentShift.TotalCashReceipt,
+                    TotalCardReceipt = CurrentShift.TotalCardReceipt,
+                    ExpectedCash = ExpectedCash,
+                    ActualCash = ActualCash,
+                    Difference = Difference,
+                    NewOpeningBalance = NewOpeningBalance,
+                    Status = Difference == 0 ? "Balanced" : Difference > 0 ? "Overage" : "Shortage",
+                    CreatedAt = DateTime.Now
+                };
+                await _shiftClosingRepo.SaveShiftClosingAsync(closingRecord);
+            }
+            catch (Exception dbEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ShiftViewModel] Error saving shift closing to DB: {dbEx.Message}");
+            }
 
             // Reset shift with new opening balance
             await _shiftService.ResetShiftDetailsAsync("Terminal 1", user, NewOpeningBalance);

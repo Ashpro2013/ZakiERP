@@ -7,6 +7,7 @@ using ZakiSAASERP.Models.Transactions.Workshop;
 using ZakiSAASERP.Models.User;
 using ZakiSAASERP.Models.ViewModel;
 using Refit;
+using ZakiSAASERP.Models.Settings;
 
 namespace ZakiSAASERP.Shared.Services;
 
@@ -1470,5 +1471,16 @@ public interface IRefitService
 
     [Get("/api/productexport/csv")]
     Task<byte[]> ExportProductsToCsvAsync();
+    #endregion
+
+    #region Shift Closing
+    [Post("/api/shift/close")]
+    Task<OutputResponse> SaveShiftClosingAsync([Body] ShiftClosingRecord record);
+
+    [Post("/api/shift/report")]
+    Task<ShiftClosingReportResponse> GetShiftClosingReportAsync([Body] ShiftClosingReportRequest request);
+
+    [Get("/api/shift/{id}")]
+    Task<ShiftClosingRecord?> GetShiftClosingByIdAsync(int id);
     #endregion
 }

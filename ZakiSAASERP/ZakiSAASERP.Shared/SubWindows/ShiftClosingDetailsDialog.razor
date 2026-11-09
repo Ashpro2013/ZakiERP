@@ -1,0 +1,379 @@
+@namespace ZakiSAASERP.Shared.SubWindows
+@using MudBlazor
+@using ZakiSAASERP.Models.Settings
+@using ZakiSAASERP.Shared.Services
+@inject ShiftService ShiftService
+@inject ISnackbar Snackbar
+
+<MudDialog Class="shift-details-dialog-root" DefaultFocus="DefaultFocus.None">
+    <TitleContent>
+        <div class="d-flex align-center justify-space-between w-100 pa-1">
+            <div class="d-flex align-center gap-3">
+                <div class="shift-badge">
+                    <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Medium" Style="color: #2563EB;" />
+                </div>
+                <div>
+                    <MudText Typo="Typo.h6" Style="font-weight: 700; color: #0F172A; line-height: 1.2;">
+                        Shift Closing Details - @Record.ShiftCode
+                    </MudText>
+                    <div class="meta-line mt-1">
+                        <span class="meta-label">Cashier: </span>
+                        <span class="meta-val highlight">@Record.UserName</span>
+                        <span class="meta-sep"> | </span>
+                        <span class="meta-label">Terminal: </span>
+                        <span class="meta-val highlight">@Record.Terminal</span>
+                        <span class="meta-sep"> | </span>
+                        <span class="meta-label">Closed: </span>
+                        <span class="meta-val">@(Record.DateTo?.ToString("dd-MM-yyyy hh:mm tt") ?? Record.CreatedAt.ToString("dd-MM-yyyy hh:mm tt"))</span>
+                    </div>
+                </div>
+            </div>
+            <MudChip T="string" Color="@GetStatusColor(Record.Status)" Size="Size.Small" Variant="Variant.Filled" Style="font-weight: 700;">
+                @Record.Status
+            </MudChip>
+        </div>
+    </TitleContent>
+
+    <DialogContent>
+        <div class="d-flex flex-column gap-3 pt-2">
+            @* Time Period Info Card *@
+            <div class="info-card">
+                <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+                    <div>
+                        <div class="metric-label">SHIFT STARTED</div>
+                        <div class="time-val">@(Record.DateFrom?.ToString("dd/MM/yyyy hh:mm:ss tt") ?? "-")</div>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Style="color: #94A3B8;" />
+                    <div>
+                        <div class="metric-label">SHIFT CLOSED</div>
+                        <div class="time-val">@(Record.DateTo?.ToString("dd/MM/yyyy hh:mm:ss tt") ?? Record.CreatedAt.ToString("dd/MM/yyyy hh:mm:ss tt"))</div>
+                    </div>
+                    <div>
+                        <div class="metric-label">DURATION</div>
+                        <div class="time-val">@GetDuration()</div>
+                    </div>
+                </div>
+            </div>
+
+            @* Sales Performance Breakdown *@
+            <div class="section-title">Sales Performance Summary</div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">GROSS SALES</div>
+                    <div class="metric-val text-dark">@Record.TotalSale.ToString("N2") SAR</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">SALES RETURNS</div>
+                    <div class="metric-val text-red">@Record.TotalSalesReturn.ToString("N2") SAR</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">NET SALES</div>
+                    <div class="metric-val text-blue">@Record.NetSales.ToString("N2") SAR</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">CASH SALES</div>
+                    <div class="metric-val text-green">@Record.TotalCashSales.ToString("N2") SAR</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">CARD / BANK SALES</div>
+                    <div class="metric-val text-indigo">@Record.TotalCardSales.ToString("N2") SAR</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">CREDIT SALES</div>
+                    <div class="metric-val text-purple">@Record.TotalCreditSales.ToString("N2") SAR</div>
+                </div>
+            </div>
+
+            @* Cash Drawer Movement & Reconciliation *@
+            <div class="section-title mt-1">Cash Drawer Reconciliation</div>
+            <div class="recon-grid">
+                <div class="recon-box">
+                    <div class="recon-label">Opening Float:</div>
+                    <div class="recon-val">@Record.OpeningBalance.ToString("N2") SAR</div>
+                </div>
+                <div class="recon-box">
+                    <div class="recon-label">+ Cash Sales:</div>
+                    <div class="recon-val text-green">@Record.TotalCashSales.ToString("N2") SAR</div>
+                </div>
+                <div class="recon-box">
+                    <div class="recon-label">+ Cash Receipts:</div>
+                    <div class="recon-val text-green">@Record.TotalCashReceipt.ToString("N2") SAR</div>
+                </div>
+                <div class="recon-box">
+                    <div class="recon-label">- Cash Payments / Exp.:</div>
+                    <div class="recon-val text-red">@Record.TotalPayment.ToString("N2") SAR</div>
+                </div>
+                <div class="recon-box highlight">
+                    <div class="recon-label">Expected Drawer Cash:</div>
+                    <div class="recon-val">@Record.ExpectedCash.ToString("N2") SAR</div>
+                </div>
+                <div class="recon-box highlight counted">
+                    <div class="recon-label">Actual Counted Cash:</div>
+                    <div class="recon-val text-blue">@Record.ActualCash.ToString("N2") SAR</div>
+                </div>
+            </div>
+
+            @* Variance Banner *@
+            <div class="variance-banner @GetVarianceClass(Record.Difference)">
+                <div class="d-flex align-center gap-2">
+                    <MudIcon Icon="@GetVarianceIcon(Record.Difference)" Size="Size.Small" />
+                    <span class="variance-label">Discrepancy / Variance:</span>
+                </div>
+                <span class="variance-amount">@GetVarianceText(Record.Difference)</span>
+            </div>
+
+            @* Handover Float & Remarks *@
+            <div class="d-flex gap-3 flex-wrap">
+                <div class="info-card flex-1">
+                    <div class="metric-label">NEXT SHIFT OPENING FLOAT</div>
+                    <div class="metric-val text-dark">@Record.NewOpeningBalance.ToString("N2") SAR</div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Record.Remarks))
+                {
+                    <div class="info-card flex-1">
+                        <div class="metric-label">HANDOVER NOTES</div>
+                        <div class="notes-val">@Record.Remarks</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <div class="d-flex justify-space-between align-center w-100 pa-2">
+            <button class="shift-btn shift-btn-secondary" @onclick="PrintReceiptAsync">
+                <MudIcon Icon="@Icons.Material.Filled.Print" Size="Size.Small" Class="mr-1" />
+                Print Thermal Receipt
+            </button>
+            <button class="shift-btn shift-btn-cancel" @onclick="Close">
+                Close
+            </button>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .shift-details-dialog-root {
+        max-width: 720px !important;
+        width: 100% !important;
+        border-radius: 12px !important;
+        background: #F8FAFC !important;
+        font-family: 'Segoe UI', Inter, Outfit, sans-serif !important;
+    }
+    .shift-badge {
+        width: 38px;
+        height: 38px;
+        background: #EFF6FF;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .meta-line {
+        font-size: 11px;
+        color: #64748B;
+    }
+    .meta-val.highlight {
+        color: #1E3A8A;
+        font-weight: 700;
+    }
+    .meta-sep {
+        color: #CBD5E1;
+        margin: 0 4px;
+    }
+    .info-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 10px 14px;
+    }
+    .time-val {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0F172A;
+    }
+    .section-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0F172A;
+    }
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .metric-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+    .metric-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748B;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .metric-val {
+        font-size: 15px;
+        font-weight: 700;
+    }
+    .text-dark { color: #0F172A; }
+    .text-red { color: #DC2626; }
+    .text-green { color: #16A34A; }
+    .text-blue { color: #2563EB; }
+    .text-indigo { color: #4F46E5; }
+    .text-purple { color: #7C3AED; }
+
+    .recon-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .recon-box {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .recon-box.highlight {
+        background: #F1F5F9;
+        font-weight: 700;
+    }
+    .recon-box.counted {
+        border-color: #3B82F6;
+        background: #EFF6FF;
+    }
+    .recon-label {
+        font-size: 12px;
+        color: #334155;
+    }
+    .recon-val {
+        font-size: 14px;
+        font-weight: 700;
+    }
+    .variance-banner {
+        border-radius: 8px;
+        padding: 10px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .variance-balanced {
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        color: #16A34A;
+    }
+    .variance-overage {
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+        color: #2563EB;
+    }
+    .variance-shortage {
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        color: #DC2626;
+    }
+    .notes-val {
+        font-size: 13px;
+        color: #334155;
+        margin-top: 2px;
+    }
+    .shift-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        padding: 8px 16px;
+        font-weight: 600;
+        transition: all 0.15s ease-in-out;
+    }
+    .shift-btn-secondary {
+        background: #F1F5F9;
+        color: #1E293B;
+        border: 1px solid #CBD5E1;
+    }
+    .shift-btn-secondary:hover {
+        background: #E2E8F0;
+    }
+    .shift-btn-cancel {
+        background: #F1F5F9;
+        color: #475569;
+        border: 1px solid #CBD5E1;
+    }
+    .shift-btn-cancel:hover {
+        background: #E2E8F0;
+    }
+</style>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public ShiftClosingRecord Record { get; set; } = new();
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Balanced" => Color.Success,
+        "Overage" => Color.Info,
+        "Shortage" => Color.Error,
+        _ => Color.Default
+    };
+
+    private string GetVarianceClass(decimal diff)
+    {
+        if (diff == 0) return "variance-balanced";
+        if (diff > 0) return "variance-overage";
+        return "variance-shortage";
+    }
+
+    private string GetVarianceIcon(decimal diff)
+    {
+        if (diff == 0) return Icons.Material.Filled.CheckCircle;
+        if (diff > 0) return Icons.Material.Filled.ArrowUpward;
+        return Icons.Material.Filled.Warning;
+    }
+
+    private string GetVarianceText(decimal diff)
+    {
+        if (diff == 0) return "Balanced (0.00 SAR)";
+        if (diff > 0) return $"+{diff:N2} SAR (Overage)";
+        return $"{diff:N2} SAR (Shortage)";
+    }
+
+    private string GetDuration()
+    {
+        if (Record.DateFrom.HasValue && Record.DateTo.HasValue)
+        {
+            var span = Record.DateTo.Value - Record.DateFrom.Value;
+            if (span.TotalHours >= 1)
+            {
+                return $"{(int)span.TotalHours}h {span.Minutes}m";
+            }
+            return $"{span.Minutes}m {span.Seconds}s";
+        }
+        return "-";
+    }
+
+    private async Task PrintReceiptAsync()
+    {
+        try
+        {
+            await ShiftService.PrintShiftClosingRecordAsync(Record, AppData.CompanyDetails);
+            Snackbar.Add("Shift receipt sent to printer.", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Printing failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Close() => MudDialog.Close();
+}
+

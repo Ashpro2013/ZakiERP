@@ -1,4 +1,5 @@
 using ZakiSAASERP.Models.Others;
+using ZakiSAASERP.Models.Settings;
 using ZakiSAASERP.Models.Transactions.Accounts;
 using ZakiSAASERP.Models.Transactions.Inventory;
 using ZakiSAASERP.Models.Transactions.Purchase;
@@ -91,6 +92,7 @@ public class TenantDBContext : DbContext
     public DbSet<PermanentSettings> PermanentSettings { get; set; } = default!;
     public DbSet<CodeSequence> CodeSequences { get; set; } = default!;
     public DbSet<CompanyDetails> CompanyDetails { get; set; } = default!;
+    public DbSet<ShiftClosingRecord> ShiftClosingRecords { get; set; } = default!;
 
     // Menu Visibility Settings
     public DbSet<ERPType> ERPTypes { get; set; } = default!;

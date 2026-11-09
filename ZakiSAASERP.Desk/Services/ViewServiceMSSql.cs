@@ -104,7 +104,8 @@ public class ViewServiceMSSql(
     IZatcaInvoiceRepo zatcaInvoiceRepo,
     IZatcaUploadService zatcaUploadService,
     IProductImportRepo productImportRepo,
-    IProductExportRepo productExportRepo
+    IProductExportRepo productExportRepo,
+    IShiftClosingRepo shiftClosingRepo
     ) : IViewService
 {
 
@@ -1328,5 +1329,16 @@ public class ViewServiceMSSql(
 
     public async Task<byte[]> ExportProductsToCsvAsync()
         => await productExportRepo.ExportProductsToCsvAsync();
+    #endregion
+
+    #region Shift Closing
+    public async Task<OutputResponse> SaveShiftClosingAsync(ShiftClosingRecord record)
+        => await shiftClosingRepo.SaveShiftClosingAsync(record);
+
+    public async Task<ShiftClosingReportResponse> GetShiftClosingReportAsync(ShiftClosingReportRequest request)
+        => await shiftClosingRepo.GetShiftClosingReportAsync(request);
+
+    public async Task<ShiftClosingRecord?> GetShiftClosingByIdAsync(int id)
+        => await shiftClosingRepo.GetShiftClosingByIdAsync(id);
     #endregion
 }

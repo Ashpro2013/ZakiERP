@@ -134,6 +134,7 @@ public static class DIHelper
         builder.Services.AddScoped<IServerRepo, ServerRepo>();
         builder.Services.AddScoped<IProductImportRepo, ProductImportRepo>();
         builder.Services.AddScoped<IProductExportRepo, ProductExportRepo>();
+        builder.Services.AddScoped<IShiftClosingRepo, ShiftClosingRepo>();
 
         #endregion
 

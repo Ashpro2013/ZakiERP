@@ -5,6 +5,7 @@ using ZakiSAASERP.Models.Transactions.Workshop;
 using ZakiSAASERP.Models.User;
 using ZakiSAASERP.Models.ViewModel;
 using Refit;
+using ZakiSAASERP.Models.Settings;
 namespace ZakiSAASERP.Shared.Services;
 
 public class ViewService(IApiAccessor service) : IViewService
@@ -932,6 +933,17 @@ public class ViewService(IApiAccessor service) : IViewService
 
     public async Task<byte[]> ExportProductsToCsvAsync()
         => await service.Api.ExportProductsToCsvAsync();
+    #endregion
+
+    #region Shift Closing
+    public async Task<OutputResponse> SaveShiftClosingAsync(ShiftClosingRecord record)
+        => await service.Api.SaveShiftClosingAsync(record);
+
+    public async Task<ShiftClosingReportResponse> GetShiftClosingReportAsync(ShiftClosingReportRequest request)
+        => await service.Api.GetShiftClosingReportAsync(request);
+
+    public async Task<ShiftClosingRecord?> GetShiftClosingByIdAsync(int id)
+        => await service.Api.GetShiftClosingByIdAsync(id);
     #endregion
 
 }

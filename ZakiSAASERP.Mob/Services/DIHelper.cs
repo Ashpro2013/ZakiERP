@@ -125,6 +125,7 @@ public static class DIHelper
         Services.AddScoped<IServerRepo, ServerRepo>();
         Services.AddScoped<IProductImportRepo, ProductImportRepo>();
         Services.AddScoped<IProductExportRepo, ProductExportRepo>();
+        Services.AddScoped<IShiftClosingRepo, ShiftClosingRepo>();
 
         // Register all implementations as transient
         Services.AddTransient<ZakiSAASERP.SQlite.DatabaseSeedService>();
