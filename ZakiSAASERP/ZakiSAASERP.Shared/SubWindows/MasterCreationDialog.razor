@@ -18,11 +18,26 @@
 
     [Parameter] public Type ComponentType { get; set; }
 
-    private Dictionary<string, object?> ComponentParameters =>
-        new()
+    [Parameter] public Dictionary<string, object?>? ExtraParameters { get; set; }
+
+    private Dictionary<string, object?> ComponentParameters
+    {
+        get
         {
-            { "IsDialog", true }
-        };
+            var parameters = new Dictionary<string, object?>
+            {
+                { "IsDialog", true }
+            };
+            if (ExtraParameters != null)
+            {
+                foreach (var kvp in ExtraParameters)
+                {
+                    parameters[kvp.Key] = kvp.Value;
+                }
+            }
+            return parameters;
+        }
+    }
 
     void Submit()
     {

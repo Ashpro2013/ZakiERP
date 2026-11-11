@@ -499,13 +499,14 @@ public partial class POSView : ITabAware, IDisposable
     {
         if (_activeInputField == "BarcodeSearch")
         {
-            if (!string.IsNullOrEmpty(_barcodeSearchQuery))
+            if (!string.IsNullOrWhiteSpace(_barcodeSearchQuery))
             {
-                await ProcessBarcode(_barcodeSearchQuery);
+                var barcode = _barcodeSearchQuery.Trim();
                 _barcodeSearchQuery = "";
                 _numPadBuffer = "";
-                await txtBarcode!.Clear();
+                if (txtBarcode != null) await txtBarcode.Clear();
                 StateHasChanged();
+                await ProcessBarcode(barcode);
             }
         }
         else
@@ -571,8 +572,9 @@ public partial class POSView : ITabAware, IDisposable
         }
     }
 
-    private void OnBarcodeSearchInput()
+    private void OnBarcodeSearchInput(Microsoft.AspNetCore.Components.ChangeEventArgs e)
     {
+        _barcodeSearchQuery = e.Value?.ToString() ?? "";
         _numPadBuffer = _barcodeSearchQuery;
     }
 
@@ -689,11 +691,34 @@ public partial class POSView : ITabAware, IDisposable
         }
         await FocusBarcodeInputAsync();
     }
-    private async Task ProcessBarcode(string barcode)
+    private async Task ProcessBarcode(string barcode, bool allowCreatePrompt = true)
     {
         try
         {
-            var multiUnit = await api.GetItemMultiUnit(1, 1, barcode);
+            var trimmedBarcode = barcode?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(trimmedBarcode)) return;
+
+            var multiUnit = await api.GetItemMultiUnit(1, 1, trimmedBarcode);
+            if (multiUnit == null)
+            {
+                var existingByBarcode = await api.GetItemByBarcode(trimmedBarcode);
+                if (existingByBarcode != null &&
+                    string.Equals(existingByBarcode.Barcode?.Trim(), trimmedBarcode, StringComparison.OrdinalIgnoreCase))
+                {
+                    multiUnit = new ItemMultiUnit
+                    {
+                        FK_ItemId = existingByBarcode.ItemId,
+                        FK_UnitId = existingByBarcode.FK_UnitId ?? 1,
+                        MultiUnitName = existingByBarcode.ItemName,
+                        MultiUnitArabicName = existingByBarcode.ItemNameArabic,
+                        Barcode = existingByBarcode.Barcode,
+                        QTYPerUnit = 1,
+                        Rate = existingByBarcode.SalesRate,
+                        IncRate = existingByBarcode.InclusiveRate
+                    };
+                }
+            }
+
             if (multiUnit != null)
             {
                 if ((multiUnit.IncRate ?? 0) == 0 && (multiUnit.Rate ?? 0) > 0)
@@ -708,35 +733,46 @@ public partial class POSView : ITabAware, IDisposable
             }
             else
             {
-                if (_activeInputField == "BarcodeSearch")
+                if (!allowCreatePrompt)
                 {
                     return;
                 }
-                    // Fallback to Item Search Dialog
-                    var selectedProduct = await Dialog.GetItemSearchMethod(barcode);
-                if (selectedProduct != null)
+
+                bool? confirm = await DialogService.ShowMessageBox(
+                    Localizer("ProductNotAvailable"),
+                    $"{Localizer("ProductInBarcodeNotAvailable")} ({trimmedBarcode}).\n\n{Localizer("DoYouWantNewProduct")}",
+                    yesText: Localizer("Yes"),
+                    cancelText: Localizer("No"));
+
+                if (confirm == true)
                 {
-                    // Map ItemSelectionResult to ItemMultiUnit format
-                    var simulatedMultiUnit = new ItemMultiUnit
+                    AppData.PassingValue = null;
+                    var extraParams = new Dictionary<string, object?>
                     {
-                        FK_ItemId = selectedProduct.FK_ItemId,
-                        FK_UnitId = selectedProduct.FK_UnitId,
-                        MultiUnitName = selectedProduct.MultiUnitName,
-                        MultiUnitArabicName = selectedProduct.MultiUnitArabicName,
-                        Barcode = selectedProduct.Barcode,
-                        QTYPerUnit = selectedProduct.QTYPerUnit,
-                        Rate = selectedProduct.Rate,
-                        IncRate = selectedProduct.IncRate
+                        { "InitialBarcode", trimmedBarcode },
+                        { "CloseOnSave", true }
                     };
-                    if ((simulatedMultiUnit.IncRate ?? 0) == 0 && (simulatedMultiUnit.Rate ?? 0) > 0)
+                    var result = await Dialog.MasterCreationDialogMethod<ZakiSAASERP.Shared.Pages.Masters.ItemMasterView>(extraParams, MaxWidth.ExtraLarge);
+                    if (result != null && !result.Canceled && (result.Data is CommonModel || AppData.PassingValue != null))
                     {
-                        var itemDetails = await api.GetItemById(simulatedMultiUnit.FK_ItemId);
-                        if (itemDetails != null && (itemDetails.InclusiveRate ?? 0) > 0)
+                        var createdModel = result.Data as CommonModel ?? AppData.PassingValue;
+                        products = await api.GetMasters("posproduct", 1);
+                        _productImageCache.Clear();
+
+                        var createdMultiUnit = await api.GetItemMultiUnit(1, 1, trimmedBarcode);
+                        if (createdMultiUnit != null)
                         {
-                            simulatedMultiUnit.IncRate = itemDetails.InclusiveRate;
+                            await ProcessMultiUnit(createdMultiUnit);
+                        }
+                        else if (createdModel != null)
+                        {
+                            var newProd = products.FirstOrDefault(x => x.Id == createdModel.Id);
+                            if (newProd is not null)
+                            {
+                                await AddProductToBill(newProd);
+                            }
                         }
                     }
-                    await ProcessMultiUnit(simulatedMultiUnit);
                 }
             }
         }

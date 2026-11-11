@@ -18,6 +18,13 @@ public interface IPosDataService
     Task<ItemMultiUnit?> GetItemMultiUnitByBarcodeAsync(string barcode);
     Task<ItemMultiUnit?> GetItemMultiUnitByProductIdAsync(int productId);
     Task<ItemMaster?> GetItemByIdAsync(int itemId);
+    Task<ItemMaster?> GetItemByBarcodeAsync(string barcode);
+    Task<List<UnitMaster>> GetAllUnitsAsync();
+    Task<List<SubCategoryMaster>> GetSubCategoriesAsync();
+    Task<List<BrandMaster>> GetBrandsAsync();
+    Task<List<VatMaster>> GetVatsAsync();
+    Task<string> GetNextItemCodeAsync(int? categoryId, int? subCategoryId, string? catCode, string? subCatCode);
+    Task<OutputResponse> CreateItemAsync(ItemMaster item);
     Task<decimal> GetVatPercentageAsync(int itemId);
     Task<string> GetNextInvoiceNoAsync(int branchId, bool isAutoCode);
     Task<OutputResponse> SaveInvoiceAsync(SalesInvoiceDTO dto);

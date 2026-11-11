@@ -1227,6 +1227,11 @@ public static class ArabicLocalization
             "ItemNotFound" => AppData.IsArabic ? "لم يتم العثور على الصنف" : "Item not found",
             "ItemLoadedSuccessfully" => AppData.IsArabic ? "تم تحميل بيانات الصنف بنجاح" : "Item loaded successfully",
 
+            // POS Unavailable Barcode / New Product Prompt
+            "ProductNotAvailable" => AppData.IsArabic ? "الصنف غير متوفر" : "Product Not Available",
+            "ProductInBarcodeNotAvailable" => AppData.IsArabic ? "الصنف بالباركود المعطى غير متوفر" : "The Product in the given Barcode is not available",
+            "DoYouWantNewProduct" => AppData.IsArabic ? "هل تريد إضافة صنف جديد؟" : "Do you want new product?",
+
             _ => tableName // Fallback to technical name
         };
     }

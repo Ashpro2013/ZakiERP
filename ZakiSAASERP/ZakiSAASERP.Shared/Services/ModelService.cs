@@ -434,16 +434,18 @@ public sealed class ModelService(IDialogService DialogService, IViewService api)
         var result = await dialog.Result;
         return (ExMasters)result!.Data!;
     }
-    public async Task<DialogResult?> MasterCreationDialogMethod<T>() where T : new()
+    public async Task<DialogResult?> MasterCreationDialogMethod<T>(Dictionary<string, object?>? extraParameters = null, MaxWidth maxWidth = MaxWidth.Large) where T : new()
     {
         var options = new DialogOptions
         {
             CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Large
+            MaxWidth = maxWidth,
+            FullWidth = true
         };
         var parameters = new DialogParameters
         {
-            { "ComponentType", typeof(T) }
+            { "ComponentType", typeof(T) },
+            { "ExtraParameters", extraParameters }
         };
         var dialog = await DialogService.ShowAsync<MasterCreationDialog>("", parameters, options);
         return await dialog.Result;

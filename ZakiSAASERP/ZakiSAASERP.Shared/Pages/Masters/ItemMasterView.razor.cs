@@ -11,8 +11,12 @@ public partial class ItemMasterView : ITabAware
 {
     [Inject] public ISnackbar Snackbar { get; set; }
     [Inject] public IJSRuntime JSRuntime { get; set; }
+    [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
     [Parameter] public bool IsDialog { get; set; } = false;
+    [Parameter] public string? InitialBarcode { get; set; }
+    [Parameter] public bool CloseOnSave { get; set; } = false;
     [Parameter] public int TabId { get; set; }
+    private bool _initialBarcodeApplied = false;
 
     #region Variables
     private ItemMaster item { get; set; } = new();
@@ -84,6 +88,16 @@ public partial class ItemMasterView : ITabAware
         await LoadDropdowns();
         // Ensure new item state has one empty row
         if (item.ItemId == 0) await NewClick();
+        if (!_initialBarcodeApplied && !string.IsNullOrWhiteSpace(InitialBarcode))
+        {
+            _initialBarcodeApplied = true;
+            item.Barcode = InitialBarcode.Trim();
+            if (item.MultiUnits != null && item.MultiUnits.Any())
+            {
+                item.MultiUnits[0].Barcode = item.Barcode;
+            }
+            StateHasChanged();
+        }
     }
 
 
@@ -369,6 +383,12 @@ public partial class ItemMasterView : ITabAware
                     if (IsDialog)
                     {
                         AppData.PassingValue = new CommonModel { Id = result.Id, Name = item.ItemName };
+                        if (CloseOnSave && MudDialog != null)
+                        {
+                            Snackbar.Add(Localizer("SaveMessage"), Severity.Success);
+                            MudDialog.Close(DialogResult.Ok(AppData.PassingValue));
+                            return;
+                        }
                     }
                     Snackbar.Add(Localizer("SaveMessage"), Severity.Success);
                     await NewClick();

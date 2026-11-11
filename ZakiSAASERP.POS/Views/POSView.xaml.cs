@@ -155,6 +155,31 @@ public partial class POSView : UserControl
             return Task.FromResult(res == true && vm.ShiftChangedResult);
         };
 
+        viewModel.ConfirmActionHandler = (title, message) =>
+        {
+            return Dispatcher.InvokeAsync(() =>
+            {
+                var res = MessageBox.Show(
+                    Window.GetWindow(this),
+                    message,
+                    title,
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+                return res == MessageBoxResult.Yes;
+            }).Task;
+        };
+
+        viewModel.ShowItemMasterDialogHandler = async (initialBarcode) =>
+        {
+            var dialog = _serviceProvider.GetRequiredService<ItemMasterDialog>();
+            dialog.Owner = Window.GetWindow(this);
+            var vm = (ItemMasterViewModel)dialog.DataContext;
+            await vm.InitializeAsync(initialBarcode);
+
+            bool? res = dialog.ShowDialog();
+            return res == true && vm.DialogResult ? vm.CreatedItem : null;
+        };
+
         Loaded += async (_, _) =>
         {
             await ViewModel.InitializeCommand.ExecuteAsync(null);

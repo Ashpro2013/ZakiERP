@@ -168,6 +168,8 @@ public partial class POSViewModel : ObservableObject
     public Func<Task<bool>>? ShowSettingsDialogHandler;
     public Func<Task>? ShowZatcaPendingHandler;
     public Func<Task<bool>>? ShowShiftDialogHandler;
+    public Func<string, string, Task<bool>>? ConfirmActionHandler;
+    public Func<string?, Task<ItemMaster?>>? ShowItemMasterDialogHandler;
     public Action<string, string>? ShowNotificationHandler;
     public Action? FocusBarcodeHandler;
     public Action<string>? FocusCartCellHandler;
@@ -294,6 +296,13 @@ public partial class POSViewModel : ObservableObject
 
         var paged = filtered.Skip((ProductPage - 1) * PageSize).Take(PageSize).ToList();
         DisplayedProducts = new ObservableCollection<ExMasters>(paged);
+    }
+
+    private async Task RefreshProductsAsync()
+    {
+        int branchId = AppData.BranchId > 0 ? AppData.BranchId : 1;
+        _allProducts = await _posDataService.GetPosProductsAsync(branchId);
+        FilterProducts();
     }
 
     [RelayCommand]
@@ -599,6 +608,26 @@ public partial class POSViewModel : ObservableObject
         try
         {
             var multiUnit = await _posDataService.GetItemMultiUnitByBarcodeAsync(barcode);
+            if (multiUnit == null)
+            {
+                var itemByBarcode = await _posDataService.GetItemByBarcodeAsync(barcode);
+                if (itemByBarcode != null &&
+                    string.Equals(itemByBarcode.Barcode?.Trim(), barcode, StringComparison.OrdinalIgnoreCase))
+                {
+                    multiUnit = new ItemMultiUnit
+                    {
+                        FK_ItemId = itemByBarcode.ItemId,
+                        FK_UnitId = itemByBarcode.FK_UnitId ?? 1,
+                        MultiUnitName = itemByBarcode.ItemName,
+                        MultiUnitArabicName = itemByBarcode.ItemNameArabic,
+                        Barcode = itemByBarcode.Barcode,
+                        QTYPerUnit = 1,
+                        Rate = itemByBarcode.SalesRate,
+                        IncRate = itemByBarcode.InclusiveRate
+                    };
+                }
+            }
+
             if (multiUnit != null)
             {
                 if ((multiUnit.IncRate ?? 0) == 0 && (multiUnit.Rate ?? 0) > 0)
@@ -613,29 +642,41 @@ public partial class POSViewModel : ObservableObject
             }
             else
             {
-                // Fallback to item search
-                if (ShowItemSearchHandler != null)
+                bool createNew = false;
+                if (ConfirmActionHandler != null)
                 {
-                    var selected = await ShowItemSearchHandler.Invoke(barcode);
-                    if (selected != null)
-                    {
-                        var simulated = new ItemMultiUnit
-                        {
-                            FK_ItemId = selected.ItemId,
-                            FK_UnitId = selected.FK_UnitId ?? 1,
-                            MultiUnitName = selected.ItemName,
-                            MultiUnitArabicName = selected.ItemNameArabic,
-                            Barcode = selected.Barcode,
-                            QTYPerUnit = 1,
-                            Rate = selected.SalesRate,
-                            IncRate = selected.InclusiveRate
-                        };
-                        await AddMultiUnitToCartAsync(simulated);
-                    }
+                    createNew = await ConfirmActionHandler.Invoke(
+                        "Product Not Available",
+                        $"The Product in the given Barcode ({barcode}) is not available.\n\nDo you want new product?");
                 }
                 else
                 {
-                    ShowNotificationHandler?.Invoke("Warning", $"Barcode '{barcode}' not found");
+                    ShowNotificationHandler?.Invoke("Warning", $"The Product in the given Barcode ({barcode}) is not available.");
+                }
+
+                if (createNew && ShowItemMasterDialogHandler != null)
+                {
+                    var createdItem = await ShowItemMasterDialogHandler.Invoke(barcode);
+                    if (createdItem != null)
+                    {
+                        await RefreshProductsAsync();
+
+                        var newMultiUnit = await _posDataService.GetItemMultiUnitByBarcodeAsync(barcode)
+                            ?? await _posDataService.GetItemMultiUnitByProductIdAsync(createdItem.ItemId)
+                            ?? new ItemMultiUnit
+                            {
+                                FK_ItemId = createdItem.ItemId,
+                                FK_UnitId = createdItem.FK_UnitId ?? 1,
+                                MultiUnitName = createdItem.ItemName,
+                                MultiUnitArabicName = createdItem.ItemNameArabic,
+                                Barcode = createdItem.Barcode,
+                                QTYPerUnit = 1,
+                                Rate = createdItem.SalesRate,
+                                IncRate = createdItem.InclusiveRate
+                            };
+
+                        await AddMultiUnitToCartAsync(newMultiUnit);
+                    }
                 }
             }
         }

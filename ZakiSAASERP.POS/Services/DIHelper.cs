@@ -45,6 +45,8 @@ public static class DIHelper
         services.AddScoped<ISalesManMasterRepo, SalesManMasterRepo>();
         services.AddScoped<ICategoryMasterRepo, CategoryMasterRepo>();
         services.AddScoped<ISubCategoryMasterRepo, SubCategoryMasterRepo>();
+        services.AddScoped<IBrandMasterRepo, BrandMasterRepo>();
+        services.AddScoped<IVatMasterRepo, VatMasterRepo>();
         services.AddScoped<ICustomerMasterRepo, CustomerMasterRepo>();
         services.AddScoped<IItemMasterRepo, ItemMasterRepo>();
         services.AddScoped<ICompanyDetailsRepo, CompanyDetailsRepo>();
@@ -99,6 +101,7 @@ public static class DIHelper
         services.AddTransient<CustomerDisplayViewModel>();
         services.AddTransient<ZatcaPendingViewModel>();
         services.AddTransient<ShiftViewModel>();
+        services.AddTransient<ItemMasterViewModel>();
 
         // Views & Windows
         services.AddTransient<SplashWindow>();
@@ -115,6 +118,7 @@ public static class DIHelper
         services.AddTransient<CustomerDisplayWindow>();
         services.AddTransient<ZatcaPendingDialog>();
         services.AddTransient<ShiftDialog>();
+        services.AddTransient<ItemMasterDialog>();
     }
 }
 

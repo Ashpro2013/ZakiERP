@@ -22,7 +22,11 @@ public class PosDataService(
     ISalesInvoiceHoldRepo holdRepo,
     IPrintDesignRepo printDesignRepo,
     ICompanyDetailsRepo companyDetailsRepo,
-    IPermanentSettingsRepo permanentSettingsRepo) : IPosDataService
+    IPermanentSettingsRepo permanentSettingsRepo,
+    ISubCategoryMasterRepo subCategoryRepo,
+    IBrandMasterRepo brandRepo,
+    IUnitMasterRepo unitRepo,
+    IVatMasterRepo vatRepo) : IPosDataService
 {
     public async Task InitializeSystemSettingsAsync()
     {
@@ -110,6 +114,42 @@ public class PosDataService(
     public async Task<ItemMaster?> GetItemByIdAsync(int itemId)
     {
         return await itemRepo.GetAsync(itemId);
+    }
+
+    public async Task<ItemMaster?> GetItemByBarcodeAsync(string barcode)
+    {
+        if (string.IsNullOrWhiteSpace(barcode)) return null;
+        return await itemRepo.GetByBarcodeAsync(barcode.Trim());
+    }
+
+    public async Task<List<UnitMaster>> GetAllUnitsAsync()
+    {
+        return await unitRepo.GetAllAsync();
+    }
+
+    public async Task<List<SubCategoryMaster>> GetSubCategoriesAsync()
+    {
+        return await subCategoryRepo.GetAllAsync();
+    }
+
+    public async Task<List<BrandMaster>> GetBrandsAsync()
+    {
+        return await brandRepo.GetAllAsync();
+    }
+
+    public async Task<List<VatMaster>> GetVatsAsync()
+    {
+        return await vatRepo.GetAllAsync();
+    }
+
+    public async Task<string> GetNextItemCodeAsync(int? categoryId, int? subCategoryId, string? catCode, string? subCatCode)
+    {
+        return await itemRepo.GetNextItemCodeAsync(categoryId, subCategoryId, catCode, subCatCode);
+    }
+
+    public async Task<OutputResponse> CreateItemAsync(ItemMaster item)
+    {
+        return await itemRepo.CreateAsync(item);
     }
 
     public async Task<decimal> GetVatPercentageAsync(int itemId)
