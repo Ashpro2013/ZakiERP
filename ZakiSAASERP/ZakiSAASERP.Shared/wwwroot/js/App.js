@@ -305,6 +305,18 @@ window.focusBarcodeInput = () => {
     requestAnimationFrame(doFocus);
 };
 
+window.clearPosBarcodeInputs = () => {
+    ['barcode-input', 'mob-barcode-input'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = '';
+        }
+    });
+    document.querySelectorAll('.pos-search-area input, .barcode-input, .mob-barcode-input').forEach(el => {
+        el.value = '';
+    });
+};
+
 window.initPosGlobalFocusHandler = () => {
     if (window._posClickHandler) {
         document.removeEventListener('click', window._posClickHandler, true);

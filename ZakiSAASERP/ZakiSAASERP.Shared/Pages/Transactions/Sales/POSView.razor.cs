@@ -25,9 +25,10 @@ public partial class POSView : ITabAware, IDisposable
     private Party party = new();
     private MudTextField<string>? txtInvoiceNo;
     private MudTextField<string>? txtBarcode;
-    public string _barcodeSearchQuery { get; set; }
+    public string _barcodeSearchQuery { get; set; } = string.Empty;
     private string _numPadBuffer = "";
     private string _activeInputField = "BarcodeSearch";
+    private bool _isProcessingBarcode = false;
     private TransactionDtls? _selectedRow;
     private decimal _totalQty = 0;
 
@@ -187,6 +188,27 @@ public partial class POSView : ITabAware, IDisposable
             }
             catch { }
         }
+    }
+
+    private async Task ClearBarcodeInputAsync()
+    {
+        _barcodeSearchQuery = string.Empty;
+        _numPadBuffer = string.Empty;
+        if (txtBarcode != null)
+        {
+            try
+            {
+                await txtBarcode.Clear();
+                await txtBarcode.SetText(string.Empty);
+            }
+            catch { }
+        }
+        try
+        {
+            await js.InvokeVoidAsync("clearPosBarcodeInputs");
+        }
+        catch { }
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnInvoiceNoKeyDown(KeyboardEventArgs e)
@@ -384,6 +406,10 @@ public partial class POSView : ITabAware, IDisposable
         {
             _numPadBuffer = "";
             UpdateActiveFieldFromBuffer();
+            if (_activeInputField == "BarcodeSearch")
+            {
+                await ClearBarcodeInputAsync();
+            }
             await FocusBarcodeInputAsync();
             return;
         }
@@ -499,14 +525,22 @@ public partial class POSView : ITabAware, IDisposable
     {
         if (_activeInputField == "BarcodeSearch")
         {
+            if (_isProcessingBarcode) return;
             if (!string.IsNullOrWhiteSpace(_barcodeSearchQuery))
             {
                 var barcode = _barcodeSearchQuery.Trim();
-                _barcodeSearchQuery = "";
-                _numPadBuffer = "";
-                if (txtBarcode != null) await txtBarcode.Clear();
-                StateHasChanged();
-                await ProcessBarcode(barcode);
+                _isProcessingBarcode = true;
+                try
+                {
+                    await ClearBarcodeInputAsync();
+                    await Task.Yield();
+                    await ProcessBarcode(barcode);
+                }
+                finally
+                {
+                    await ClearBarcodeInputAsync();
+                    _isProcessingBarcode = false;
+                }
             }
         }
         else
@@ -650,6 +684,7 @@ public partial class POSView : ITabAware, IDisposable
     {
         if (e.Key == "Enter")
         {
+            _activeInputField = "BarcodeSearch";
             await CommitActiveField();
         }
     }
@@ -1211,8 +1246,7 @@ public partial class POSView : ITabAware, IDisposable
             salesInvoice.CustomerName = defaultCustomer.Name;
         }
 
-        _barcodeSearchQuery = "";
-        _numPadBuffer = "";
+        await ClearBarcodeInputAsync();
         _activeInputField = "BarcodeSearch";
         _selectedRow = null;
         _mobileStep = 1;

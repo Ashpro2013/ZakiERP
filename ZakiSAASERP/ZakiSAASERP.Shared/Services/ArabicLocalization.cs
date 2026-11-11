@@ -982,6 +982,10 @@ public static class ArabicLocalization
             "HeldRetrievedSuccess" => AppData.IsArabic ? "تم استرجاع المعاملة المعلقة بنجاح" : "Held transaction retrieved successfully",
             "TransactionPlacedOnHold" => AppData.IsArabic ? "تم وضع المعاملة في وضع التعليق" : "Transaction placed on Hold",
             "HeldTransactions" => AppData.IsArabic ? "المعاملات المعلقة" : "Held Transactions",
+            // POS Unavailable Barcode / New Product Prompt
+            "ProductNotAvailable" => AppData.IsArabic ? "الصنف غير متوفر" : "Product Not Available",
+            "ProductInBarcodeNotAvailable" => AppData.IsArabic ? "الصنف بالباركود المعطى غير متوفر" : "The Product in the given Barcode is not available",
+            "DoYouWantNewProduct" => AppData.IsArabic ? "هل تريد إضافة صنف جديد؟" : "Do you want new product?",
             _ => key,
         };
     }
