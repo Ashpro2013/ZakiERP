@@ -36,7 +36,7 @@ public partial class CompanyDetailsView : ITabAware
         {
             if (AppData.privileges is not null && AppData.privileges.Any())
             {
-                _privilege = AppData.privileges.FirstOrDefault(x => x.Caption == "CompanyDetails") ?? new();
+                _privilege = AppData.privileges.FirstOrDefault(x => x.Caption == "Company Details") ?? new();
             }
             // Load branches
             var branchList = await viewService.GetAllBranches();

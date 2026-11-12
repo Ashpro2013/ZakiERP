@@ -66,28 +66,68 @@ public partial class UserPrevilageView : ITabAware
     }
     private void EnableChecked(bool isChecked)
     {
-        userPrivilages.ForEach(x => { x.Visible = isChecked; });
-        StateHasChanged();
+        try
+        {
+            userPrivilages.ForEach(x => { x.Visible = isChecked; });
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
     private void SaveChecked(bool isChecked)
     {
-        userPrivilages.ForEach(x => { x.SaveData = isChecked; });
-        StateHasChanged();
+        try
+        {
+            userPrivilages.ForEach(x => { x.SaveData = isChecked; });
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
     private void EditChecked(bool isChecked)
     {
-        userPrivilages.ForEach(x => { x.EditData = isChecked; });
-        StateHasChanged();
+        try
+        {
+            userPrivilages.ForEach(x => { x.EditData = isChecked; });
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
     private void DeleteChecked(bool isChecked)
     {
-        userPrivilages.ForEach(x => { x.DeleteData = isChecked; });
-        StateHasChanged();
+        try
+        {
+            userPrivilages.ForEach(x => { x.DeleteData = isChecked; });
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
     private void FunEnableChecked(bool isChecked)
     {
-        exFuncDetails.ForEach(x => { x.Enable = isChecked; });
-        StateHasChanged();
+        try
+        {
+            exFuncDetails.ForEach(x => { x.Enable = isChecked; });
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
     async Task SaveOrUpdate()
     {
@@ -129,50 +169,74 @@ public partial class UserPrevilageView : ITabAware
     }
     async Task Delete()
     {
-        if (privilegeHdr.Id == 0) { return; }
-        if (await Dialog.DeleteDialogMethod())
+        try
         {
-            var output = await api.DeleteUserprivilege(privilegeHdr.Id);
-            if (string.IsNullOrEmpty(output.Message))
+            if (privilegeHdr.Id == 0) { return; }
+            if (await Dialog.DeleteDialogMethod())
             {
-                Snackbar.Add(Localizer("DeleteMessage"), Severity.Success);
-                await NewClick();
+                var output = await api.DeleteUserprivilege(privilegeHdr.Id);
+                if (string.IsNullOrEmpty(output.Message))
+                {
+                    Snackbar.Add(Localizer("DeleteMessage"), Severity.Success);
+                    await NewClick();
+                }
+                else
+                {
+                    Dialog.DialogMethod(output.Message!);
+                }
             }
-            else
-            {
-                Dialog.DialogMethod(output.Message!);
-            }
+        }
+        catch (Exception)
+        {
+
+            throw;
         }
     }
     async Task NewClick()
     {
-        privilegeHdr = new();
-        userPrivilages = new();
-        exFuncDetails = new();
-        var dto = await api.GetUserprivilege(0);
-        privileges = await api.GetMasters("privileges", AppData.BranchId);
-        if (dto is not null)
+        try
         {
-            userPrivilages = dto.entUserPrivilegeDtls;
-            exFuncDetails = dto.entFunctionalPrivilege;
+            privilegeHdr = new();
+            userPrivilages = new();
+            exFuncDetails = new();
+            var dto = await api.GetUserprivilege(0);
+            privileges = await api.GetMasters("privileges", AppData.BranchId);
+            if (dto is not null)
+            {
+                userPrivilages = dto.entUserPrivilegeDtls;
+                exFuncDetails = dto.entFunctionalPrivilege;
+            }
+            await textField!.FocusAsync();
+            StateHasChanged();
         }
-        await textField.FocusAsync();
-        StateHasChanged();
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
     async Task SearchMethod()
     {
-        var masters = await Dialog.TransactionSearchMethod("Privileges");
-        if (masters is not null)
+        try
         {
-            var dto = await api.GetUserprivilege(masters.Id);
-            if (dto is not null)
+            var masters = await Dialog.TransactionSearchMethod("Privileges");
+            if (masters is not null)
             {
-                privilegeHdr = dto.entUserPrivilegeHdr;
-                userPrivilages = dto.entUserPrivilegeDtls;
-                exFuncDetails = dto.entFunctionalPrivilege;
-                StateHasChanged();
-            }
+                var dto = await api.GetUserprivilege(masters.Id);
+                if (dto is not null)
+                {
+                    privilegeHdr = dto.entUserPrivilegeHdr;
+                    userPrivilages = dto.entUserPrivilegeDtls;
+                    exFuncDetails = dto.entFunctionalPrivilege;
+                    StateHasChanged();
+                }
 
+            }
+        }
+        catch (Exception)
+        {
+
+            throw;
         }
     }
     #endregion

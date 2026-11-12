@@ -41,19 +41,22 @@
                     </MudDataGrid>
 
                 </MudTabPanel>
-                <MudTabPanel Text=@Localizer("Functional Privileges")>
-                    <MudGrid>
-                        <MudCheckBox T="bool" ValueChanged="FunEnableChecked">@Localizer("Enable")</MudCheckBox>
-                    </MudGrid>
-                    <MudDataGrid Class="ma-2" T="ExFuncDetails" Items="@exFuncDetails" FixedHeader="true" Bordered="true" Dense="true" Height="600px" RowClick="@FuncRowClicked">
-                        <Columns>
-                            <PropertyColumn Property="x => x.SL" Title=@Localizer("SL") />
-                            <PropertyColumn Property="x => x.EventCaption" Title=@Localizer("Function") />
-                            <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
-                            <SelectColumn Property="x => x.Enable" Title=@Localizer("Enable") />
-                        </Columns>
-                    </MudDataGrid>
-                </MudTabPanel>
+                @if (exFuncDetails.Any())
+                {
+                    <MudTabPanel Text=@Localizer("Functional Privileges")>
+                        <MudGrid>
+                            <MudCheckBox T="bool" ValueChanged="FunEnableChecked">@Localizer("Enable")</MudCheckBox>
+                        </MudGrid>
+                        <MudDataGrid Class="ma-2" T="ExFuncDetails" Items="@exFuncDetails" FixedHeader="true" Bordered="true" Dense="true" Height="600px" RowClick="@FuncRowClicked">
+                            <Columns>
+                                <PropertyColumn Property="x => x.SL" Title=@Localizer("SL") />
+                                <PropertyColumn Property="x => x.EventCaption" Title=@Localizer("Function") />
+                                <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
+                                <SelectColumn Property="x => x.Enable" Title=@Localizer("Enable") />
+                            </Columns>
+                        </MudDataGrid>
+                    </MudTabPanel>
+                }
             </MudTabs>
         </MudCardContent>
         <MudCardActions>
