@@ -1236,6 +1236,11 @@ public static class ArabicLocalization
             "ProductInBarcodeNotAvailable" => AppData.IsArabic ? "الصنف بالباركود المعطى غير متوفر" : "The Product in the given Barcode is not available",
             "DoYouWantNewProduct" => AppData.IsArabic ? "هل تريد إضافة صنف جديد؟" : "Do you want new product?",
 
+            // Customer Master ZATCA Validation Prompts
+            "PleaseEnter" => AppData.IsArabic ? "الرجاء إدخال" : "Please enter",
+            "PleaseSelect" => AppData.IsArabic ? "الرجاء اختيار" : "Please select",
+            "RequiredField" => AppData.IsArabic ? "حقل إلزامي" : "Required field",
+
             _ => tableName // Fallback to technical name
         };
     }

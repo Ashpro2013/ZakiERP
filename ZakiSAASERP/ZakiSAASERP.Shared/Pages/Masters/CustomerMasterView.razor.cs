@@ -62,6 +62,7 @@ public partial class CustomerMasterView : ITabAware
     MudNumericField<decimal?>? numDiscount;
     MudTabs? tabs;
     private bool IsAutoCode => PermanentSettingsData.AutoCustomerCode;
+    private bool IsZatcaPhase2 => PermanentSettingsData.ZatcaPhase == 2;
 
     async Task KeyDown(KeyboardEventArgs e, int fieldId)
     {
@@ -223,16 +224,10 @@ public partial class CustomerMasterView : ITabAware
     async Task SaveOrUpdate()
     {
         if (_isSaving) return;
-        if(PermanentSettingsData.ZatcaPhase==2 && (string.IsNullOrEmpty(customer.VatNo) 
-            || string.IsNullOrEmpty(customer.IdentificationNo) 
-            || string.IsNullOrEmpty(customer.Identification) 
-            || string.IsNullOrEmpty(customer.StreetName) 
-            || string.IsNullOrEmpty(customer.BuildingNo) 
-            || string.IsNullOrEmpty(customer.City) 
-            || string.IsNullOrEmpty(customer.PostalCode) 
-            || string.IsNullOrEmpty(customer.District) 
-            || string.IsNullOrEmpty(customer.CountrySubentity) 
-            || customer.Country==null)) { await Dialog.DialogMethod(Localizer("FillRequired")); return; }
+        if (!await ValidateZatcaCustomerFieldsAsync())
+        {
+            return;
+        }
         if (editContext is not null && !editContext.Validate())
         {
             snackbar.Add(Localizer("CheckValidationErrors"), Severity.Error);
@@ -381,6 +376,52 @@ public partial class CustomerMasterView : ITabAware
     #endregion
 
     #region Helpers
+    /// <summary>
+    /// Validates each ZATCA Phase 2 required customer field individually, prompting and focusing the first missing input.
+    /// </summary>
+    private async Task<bool> ValidateZatcaCustomerFieldsAsync()
+    {
+        if (!IsZatcaPhase2)
+            return true;
+
+        (bool isMissing, string promptKey, string fieldKey, Func<Task> focusField)[] requiredFields =
+        [
+            (string.IsNullOrWhiteSpace(customer.VatNo), "PleaseEnter", "VatNo", async () => { if (txtVatNo is not null) await txtVatNo.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.IdentificationNo), "PleaseEnter", "IdentificationNo", async () => { if (txtIdNo is not null) await txtIdNo.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.Identification), "PleaseSelect", "Identification", async () => { if (cmbIdentification is not null) await cmbIdentification.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.StreetName), "PleaseEnter", "StreetName", async () => { if (txtStreet is not null) await txtStreet.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.BuildingNo), "PleaseEnter", "BuildingNo", async () => { if (txtBuild is not null) await txtBuild.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.City), "PleaseEnter", "City", async () => { if (txtCity is not null) await txtCity.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.PostalCode), "PleaseEnter", "PostalCode", async () => { if (txtPostal is not null) await txtPostal.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.District), "PleaseEnter", "District", async () => { if (txtDistrict is not null) await txtDistrict.FocusAsync(); }),
+            (string.IsNullOrWhiteSpace(customer.CountrySubentity), "PleaseEnter", "Region", async () => { if (txtRegion is not null) await txtRegion.FocusAsync(); }),
+            ((!customer.FK_CountryId.HasValue || customer.FK_CountryId.Value <= 0) && customer.Country is null, "PleaseSelect", "Country", async () => { if (txtCountry is not null) await txtCountry.FocusAsync(); })
+        ];
+
+        foreach (var (isMissing, promptKey, fieldKey, focusField) in requiredFields)
+        {
+            if (!isMissing) continue;
+
+            await Dialog.ShowMessage($"{Localizer(promptKey)} {Localizer(fieldKey)}");
+
+            if (tabs is not null && tabs.ActivePanelIndex != 1)
+            {
+                await tabs.ActivatePanelAsync(1);
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(100);
+            }
+            else
+            {
+                await Task.Delay(50);
+            }
+
+            await focusField();
+            return false;
+        }
+
+        return true;
+    }
+
     private void SetDefaults()
     {
         // Default Bill Type

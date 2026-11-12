@@ -100,7 +100,7 @@
                     <MudGrid Class="mb-3">
                         <!-- Country -->
                         <MudItem xs="12" sm="4">
-                            <MudText>@Localizer("Country")</MudText>
+                            @RenderZatcaFieldLabel("Country")
                             <MudStack Row="true" Spacing="1">
                                 <MudTextField @bind-Value="strCountryName" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtCountry" OnKeyDown="@(e => KeyDown(e, 7))" ReadOnly="true" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Search" Color="Color.Info" Size="Size.Small" OnClick="OpenCountryDialog" />
@@ -110,7 +110,7 @@
 
                          <!-- Identification Moved Here -->
                         <MudItem xs="12" sm="4">
-                            <MudText>@Localizer("Identification")</MudText>
+                            @RenderZatcaFieldLabel("Identification")
                             <MudSelect @bind-Value="customer.Identification" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" @ref="cmbIdentification" OnKeyDown="@(e => KeyDown(e, 8))">
                                 <MudSelectItem Value="@("CRN")">@Localizer("CRN")</MudSelectItem>
                                 <MudSelectItem Value="@("TIN")">@Localizer("TIN")</MudSelectItem>
@@ -126,7 +126,7 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" sm="4">
-                            <MudText>@Localizer("IdentificationNo")</MudText>
+                            @RenderZatcaFieldLabel("IdentificationNo")
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.IdentificationNo" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtIdNo" OnKeyDown="@(e => KeyDown(e, 9))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("IdentificationNo"))" />
@@ -139,7 +139,7 @@
 
                         <!-- VAT Details Moved Here -->
                         <MudItem xs="12" sm="3">
-                            <MudText>@Localizer("VatNo")</MudText>
+                            @RenderZatcaFieldLabel("VatNo")
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.VatNo" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtVatNo" OnKeyDown="@(e => KeyDown(e, 11))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("VatNo"))" />
@@ -164,7 +164,7 @@
                         <!-- ZATCA Details -->
                         <!-- Building No -->
                         <MudItem xs="6" sm="3">
-                            <MudText Typo="Typo.caption">@Localizer("BuildingNo")</MudText>
+                            @RenderZatcaFieldLabel("BuildingNo", Typo.caption)
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.BuildingNo" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtBuild" OnKeyDown="@(e => KeyDown(e, 14))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("BuildingNo"))" />
@@ -177,7 +177,7 @@
 
                         <!-- Street Name -->
                         <MudItem xs="6" sm="3">
-                            <MudText Typo="Typo.caption">@Localizer("StreetName")</MudText>
+                            @RenderZatcaFieldLabel("StreetName", Typo.caption)
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.StreetName" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtStreet" OnKeyDown="@(e => KeyDown(e, 16))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("StreetName"))" />
@@ -190,7 +190,7 @@
 
                         <!-- District -->
                         <MudItem xs="6" sm="3">
-                            <MudText Typo="Typo.caption">@Localizer("District")</MudText>
+                            @RenderZatcaFieldLabel("District", Typo.caption)
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.District" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtDistrict" OnKeyDown="@(e => KeyDown(e, 18))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("District"))" />
@@ -203,7 +203,7 @@
 
                         <!-- City -->
                         <MudItem xs="6" sm="3">
-                            <MudText Typo="Typo.caption">@Localizer("City")</MudText>
+                            @RenderZatcaFieldLabel("City", Typo.caption)
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.City" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtCity" OnKeyDown="@(e => KeyDown(e, 20))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("City"))" />
@@ -216,7 +216,7 @@
 
                         <!-- Postal Code -->
                         <MudItem xs="6" sm="3">
-                            <MudText Typo="Typo.caption">@Localizer("PostalCode")</MudText>
+                            @RenderZatcaFieldLabel("PostalCode", Typo.caption)
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.PostalCode" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtPostal" OnKeyDown="@(e => KeyDown(e, 22))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("PostalCode"))" />
@@ -253,7 +253,7 @@
                             <MudTextField @bind-Value="customer.OtherSellerNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtOtherAr" OnKeyDown="@(e => KeyDown(e, 27))" />
                         </MudItem>
                         <MudItem xs="6" sm="3">
-                            <MudText Typo="Typo.caption">@Localizer("Region")</MudText>
+                            @RenderZatcaFieldLabel("Region", Typo.caption)
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="customer.CountrySubentity" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtRegion" OnKeyDown="@(e => KeyDown(e, 28))" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("Region"))" />
@@ -447,4 +447,11 @@
             <MudDataGridPager T="CustomerMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
         </PagerContent>
     </MudDataGrid>
+}
+
+@code {
+    private RenderFragment RenderZatcaFieldLabel(string localizationKey, Typo typo = Typo.body1) => __builder =>
+    {
+        <MudText Typo="@typo">@Localizer(localizationKey)@if (IsZatcaPhase2){<span style="color: var(--mud-palette-error, #d32f2f); font-weight: bold;" title="@Localizer("RequiredField")" aria-hidden="true"> *</span>}</MudText>
+    };
 }
