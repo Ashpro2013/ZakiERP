@@ -94,7 +94,7 @@ public partial class POSView : ITabAware, IDisposable
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Initialization Error: {ex.Message}");
+            await Dialog.DialogMethod($"Initialization Error: {ex.Message}");
         }
     }
 
@@ -1661,7 +1661,7 @@ public partial class POSView : ITabAware, IDisposable
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Print error: {ex.Message}");
+            await Dialog.DialogMethod($"Print error: {ex.Message}");
         }
         finally
         {
@@ -1744,7 +1744,7 @@ public partial class POSView : ITabAware, IDisposable
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"PDF error: {ex.Message}");
+            await Dialog.DialogMethod($"PDF error: {ex.Message}");
         }
         finally
         {

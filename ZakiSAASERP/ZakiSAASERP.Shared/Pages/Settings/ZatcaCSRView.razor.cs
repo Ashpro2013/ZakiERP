@@ -65,13 +65,13 @@ namespace ZakiSAASERP.Shared.Pages.Settings
                 {
                     csrModel.company = AppData.CompanyDetails;
                     csrResponse = await api.GenerateCSR(csrModel);
-                    Dialog.DialogMethod(Localizer("CSR Generated Successfully"));
+                    await Dialog.DialogMethod(Localizer("CSR Generated Successfully"));
                     StateHasChanged();
                 }
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod($"Error generating CSR: {ex.Message}");
+                await Dialog.DialogMethod($"Error generating CSR: {ex.Message}");
             }
         }
 

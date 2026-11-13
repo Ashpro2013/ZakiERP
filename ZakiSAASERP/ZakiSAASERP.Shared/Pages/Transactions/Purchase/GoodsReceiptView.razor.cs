@@ -80,7 +80,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -223,7 +223,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
         if (goodsReceipt.GoodsReceiptId == 0) return;
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod())
@@ -232,13 +232,13 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
             if (result.Id > 0)
             {
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
 
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -275,7 +275,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading Goods Receipt No: {ex.Message}");
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -287,12 +287,12 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
         if (_isSaving) return;
         if (privilege is not null && goodsReceipt.GoodsReceiptId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && goodsReceipt.GoodsReceiptId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -310,7 +310,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
             // Validate supplier
             if (goodsReceipt.FK_SupplierId == 0)
             {
-                Dialog.DialogMethod("Please select a Supplier.");
+                await Dialog.DialogMethod("Please select a Supplier.");
                 return;
             }
 
@@ -321,12 +321,12 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
                 if (string.IsNullOrEmpty(result.Message))
                 {
                     goodsReceipt.GoodsReceiptId = result.Id;
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
@@ -334,12 +334,12 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
                 var result = await api.UpdateGoodsReceipt(new GoodsReceiptDTO(goodsReceipt, entTransactions));
                 if (string.IsNullOrEmpty(result.Message))
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
@@ -369,7 +369,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
             var validTransactions = entTransactions.Where(x => !string.IsNullOrEmpty(x.ItemName) && x.FK_ItemId > 0).ToList();
             if (!validTransactions.Any())
             {
-                Dialog.DialogMethod(Localizer("NoItemsMessage"));
+                await Dialog.DialogMethod(Localizer("NoItemsMessage"));
                 return;
             }
 
@@ -381,7 +381,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
 
             if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
             {
-                Dialog.DialogMethod("Print design 'Goods_Receipts' not found.");
+                await Dialog.DialogMethod("Print design 'Goods_Receipts' not found.");
                 return;
             }
 
@@ -423,7 +423,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);
@@ -445,7 +445,7 @@ public partial class GoodsReceiptView : ComponentBase, ITabAware
             }
             else
             {
-                Dialog.DialogMethod("Failed to load document.");
+                await Dialog.DialogMethod("Failed to load document.");
             }
         }
     }

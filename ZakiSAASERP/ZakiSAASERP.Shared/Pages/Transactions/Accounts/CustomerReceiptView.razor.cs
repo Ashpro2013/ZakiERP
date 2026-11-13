@@ -109,7 +109,7 @@ namespace ZakiSAASERP.Shared.Pages.Transactions.Accounts
                     var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Customer_Receipt"));
                     if (pdto.hdr == null || !pdto.dtls.Any())
                     {
-                        ModelDialog.DialogMethod("Print design for 'Customer Receipt' not found.");
+                        await ModelDialog.DialogMethod("Print design for 'Customer Receipt' not found.");
                         return;
                     }
                     SyncfusionPrintHelper pHelper = new SyncfusionPrintHelper();
@@ -117,12 +117,12 @@ namespace ZakiSAASERP.Shared.Pages.Transactions.Accounts
                 }
                 catch (Exception ex)
                 {
-                    ModelDialog.DialogMethod(ex.Message);
+                    await ModelDialog.DialogMethod(ex.Message);
                 }
             }
             catch (Exception ex)
             {
-                ModelDialog.DialogMethod(ex.Message);
+                await ModelDialog.DialogMethod(ex.Message);
             }
         }
         private async Task LoadNewDefaults()

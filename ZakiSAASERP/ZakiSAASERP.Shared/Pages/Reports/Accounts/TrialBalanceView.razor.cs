@@ -162,12 +162,12 @@ public partial class TrialBalanceView
             }
             else
             {
-                Dialog.DialogMethod("No records found");
+                await Dialog.DialogMethod("No records found");
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion

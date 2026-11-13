@@ -53,7 +53,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
         #endregion
@@ -106,7 +106,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 
@@ -144,7 +144,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             {
                 if (editContext is not null && !editContext.Validate())
                 {
-                    Dialog.DialogMethod(Localizer("FillRequired"));
+                    await Dialog.DialogMethod(Localizer("FillRequired"));
                     _isSaving = false;
                     StateHasChanged();
                     return;
@@ -153,7 +153,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 // Create
                 if (supplier.SupplierId == 0)
                 {
-                    if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                    if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                     var result = await api.CreateSupplier(supplier);
 
                     if (result.Message == null)
@@ -168,36 +168,36 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                             };
                         }
                         supplier.SupplierId = result.Id;
-                        Dialog.DialogMethod(Localizer("SaveMessage"));
+                        await Dialog.DialogMethod(Localizer("SaveMessage"));
                         await NewClick();
                         await grid.ReloadServerData();
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
                 // Update
                 else
                 {
-                    if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                    if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                     var result = await api.UpdateSupplier(supplier);
 
                     if (result.Message == null)
                     {
-                        Dialog.DialogMethod(Localizer("UpdateMessage"));
+                        await Dialog.DialogMethod(Localizer("UpdateMessage"));
                         await NewClick();
                         await grid.ReloadServerData();
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
             finally
             {
@@ -210,7 +210,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
         {
             if (supplier.SupplierId == 0)
             {
-                Dialog.DialogMethod(Localizer("SelectRecordDelete"));
+                await Dialog.DialogMethod(Localizer("SelectRecordDelete"));
                 return;
             }
 
@@ -219,7 +219,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 if (!await Dialog.DeleteDialogMethod())
                     return;
 
-                if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+                if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
                 var result = await api.DeleteSupplier(supplier.SupplierId);
 
@@ -231,25 +231,25 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 else
                 {
                     if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                        Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                        await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                     else
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                 }
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
                 else
-                    Dialog.DialogMethod(ex.Message);
+                    await Dialog.DialogMethod(ex.Message);
             }
         }
         #endregion
 
         #region Helpers
-        private void HandleInvalidSubmit()
+        private async Task HandleInvalidSubmit()
         {
-            Dialog.DialogMethod(Localizer("FillRequired"));
+            await Dialog.DialogMethod(Localizer("FillRequired"));
             // Optionally focus the first invalid field or just let Blazor handle it
         }
 
@@ -342,7 +342,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                     }
                 }
             }
-            catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+            catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
         }
 
 

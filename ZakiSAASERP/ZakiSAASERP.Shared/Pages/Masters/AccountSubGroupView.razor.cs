@@ -125,7 +125,7 @@ public partial class AccountSubGroupView : ITabAware
 
             if (accountSubGroup?.SubGroupId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                 var result = await api.CreateAccountSubGroup(accountSubGroup);
                 if (result.Message == null)
                 {
@@ -137,26 +137,26 @@ public partial class AccountSubGroupView : ITabAware
                             Name = accountSubGroup.Name
                         };
                     }
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
             {
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                 var result = await api.UpdateAccountSubGroup(accountSubGroup!);
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
@@ -173,11 +173,11 @@ public partial class AccountSubGroupView : ITabAware
         {
             if (accountSubGroup!.IsReserved)
             {
-                Dialog.DialogMethod(Localizer("Cannot delete this record because it is reserved."));
+                await Dialog.DialogMethod(Localizer("Cannot delete this record because it is reserved."));
                 return;
             }
 
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
             if (await Dialog.DeleteDialogMethod())
             {
@@ -189,9 +189,9 @@ public partial class AccountSubGroupView : ITabAware
                 else
                 {
                     if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                        Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                        await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                     else
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                 }
             }
             else
@@ -202,9 +202,9 @@ public partial class AccountSubGroupView : ITabAware
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
 

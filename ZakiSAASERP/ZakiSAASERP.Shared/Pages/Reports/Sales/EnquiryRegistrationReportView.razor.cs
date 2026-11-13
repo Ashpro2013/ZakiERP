@@ -38,7 +38,7 @@ public partial class EnquiryRegistrationReportView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 

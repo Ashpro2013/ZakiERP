@@ -78,7 +78,7 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -321,12 +321,12 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
         if (_processing) return;
         if (privilege is not null && hdr.MatTransInId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && hdr.MatTransInId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _processing = true;
@@ -423,7 +423,7 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
@@ -437,13 +437,13 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
         finally
         {
@@ -519,7 +519,7 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPreviewMethod() => await PrintHelperMethod(true);
@@ -529,7 +529,7 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         bool? result = await DialogService.ShowMessageBox(
@@ -547,7 +547,7 @@ public partial class MaterialTransferInView : ComponentBase, ITabAware
             }
             else
             {
-                Dialog.DialogMethod(response.Message);
+                await Dialog.DialogMethod(response.Message);
             }
         }
     }

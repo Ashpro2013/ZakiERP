@@ -911,7 +911,7 @@ public class SyncfusionPrintHelper
         }
         catch (Exception ex)
         {
-            Dialog!.DialogMethod(ex.Message);
+            Dialog?.DialogMethod(ex.Message).SafeFireAndForget();
         }
         MemoryStream stream = new MemoryStream();
         document.Save(stream);

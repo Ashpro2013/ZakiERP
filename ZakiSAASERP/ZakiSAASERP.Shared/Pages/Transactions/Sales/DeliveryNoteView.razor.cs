@@ -88,7 +88,7 @@ public partial class DeliveryNoteView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -559,12 +559,12 @@ public partial class DeliveryNoteView : ITabAware
         if (_isSaving) return;
         if (privilege is not null && deliveryNote.DeliveryNoteId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && deliveryNote.DeliveryNoteId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -577,7 +577,7 @@ public partial class DeliveryNoteView : ITabAware
 
             if (deliveryNote.FK_ProjectId == 0)
             {
-                Dialog.DialogMethod(Localizer("ProjectIdRequired")); // Or use a hardcoded message if localizer key missing
+                await Dialog.DialogMethod(Localizer("ProjectIdRequired")); // Or use a hardcoded message if localizer key missing
                 return;
             }
 
@@ -605,12 +605,12 @@ public partial class DeliveryNoteView : ITabAware
                         await PrintMethod();
                     }
                     DisablePrintButton = false;
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
                 }
             }
             else
@@ -618,11 +618,11 @@ public partial class DeliveryNoteView : ITabAware
                 var result = await api.UpdateDeliveryNote(new DeliveryNoteDTO(deliveryNote, entTransactions));
                 if (!string.IsNullOrEmpty(result.Message))
                 {
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
                 }
                 else
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
             }
@@ -648,13 +648,13 @@ public partial class DeliveryNoteView : ITabAware
             if (result.Id > 0)
             {
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
 
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(Localizer(result.Message));
+                await Dialog.DialogMethod(Localizer(result.Message));
             }
         }
     }
@@ -663,7 +663,7 @@ public partial class DeliveryNoteView : ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (deliveryNote.DeliveryNoteId == 0 || !entTransactions.Any()) { return; }
@@ -676,7 +676,7 @@ public partial class DeliveryNoteView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(Localizer(result.Message));
+                await Dialog.DialogMethod(Localizer(result.Message));
             }
         }
     }
@@ -726,7 +726,7 @@ public partial class DeliveryNoteView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);

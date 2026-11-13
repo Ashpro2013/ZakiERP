@@ -121,7 +121,7 @@ public partial class ProformaInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -206,7 +206,7 @@ public partial class ProformaInvoiceView : ITabAware
                     });
 
                     StateHasChanged();
-                    Dialog.DialogMethod(Localizer("QuotationLoadedSuccessfully"));
+                    await Dialog.DialogMethod(Localizer("QuotationLoadedSuccessfully"));
 
                     // Recalculate based on existing discount type in the quotation
                     // Logic aligned with SalesQuotationView/SalesInvoiceView
@@ -220,7 +220,7 @@ public partial class ProformaInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Error loading quotation: {ex.Message}");
+            await Dialog.DialogMethod($"Error loading quotation: {ex.Message}");
         }
     }
 
@@ -289,7 +289,7 @@ public partial class ProformaInvoiceView : ITabAware
         {
             if (privilege is not null && !privilege.DeleteData)
             {
-                Dialog.DialogMethod(Localizer("No...Privilege"));
+                await Dialog.DialogMethod(Localizer("No...Privilege"));
                 return;
             }
             var result = await Dialog.DeleteDialogMethod();
@@ -298,18 +298,18 @@ public partial class ProformaInvoiceView : ITabAware
                 var response = await api.DeleteProformaInvoice(proformaInvoice.ProformaInvoiceId);
                 if (response.Id > 0)
                 {
-                    Dialog.DialogMethod(Localizer("DeletedSuccessfully"));
+                    await Dialog.DialogMethod(Localizer("DeletedSuccessfully"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(response.Message ?? Localizer("DeleteFailed"));
+                    await Dialog.DialogMethod(response.Message ?? Localizer("DeleteFailed"));
                 }
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Error: {ex.Message}");
+            await Dialog.DialogMethod($"Error: {ex.Message}");
         }
     }
     async Task LoadProformaInvoice(int id)
@@ -351,7 +351,7 @@ public partial class ProformaInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Error: {ex.Message}");
+            await Dialog.DialogMethod($"Error: {ex.Message}");
         }
     }
     async Task SearchClickAsync()
@@ -397,7 +397,7 @@ public partial class ProformaInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Error: {ex.Message}");
+            await Dialog.DialogMethod($"Error: {ex.Message}");
         }
     }
 
@@ -1152,13 +1152,13 @@ public partial class ProformaInvoiceView : ITabAware
         StateHasChanged();
         if (privilege is not null && proformaInvoice.ProformaInvoiceId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             _isSaving = false;
             return;
         }
         if (privilege is not null && proformaInvoice.ProformaInvoiceId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             _isSaving = false;
             return;
         }
@@ -1208,7 +1208,7 @@ public partial class ProformaInvoiceView : ITabAware
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
             }
@@ -1223,7 +1223,7 @@ public partial class ProformaInvoiceView : ITabAware
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
                 else
@@ -1351,13 +1351,13 @@ public partial class ProformaInvoiceView : ITabAware
             if (result.Id > 0)
             {
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
 
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -1366,7 +1366,7 @@ public partial class ProformaInvoiceView : ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (proformaInvoice.ProformaInvoiceId == 0 || !entTransactions.Any()) { return; }
@@ -1379,7 +1379,7 @@ public partial class ProformaInvoiceView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -1399,7 +1399,7 @@ public partial class ProformaInvoiceView : ITabAware
             var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Proforma_Invoice"));
             if (pdto.hdr == null || !pdto.dtls.Any())
             {
-                Dialog.DialogMethod(Localizer("PrintDesignNotFound"));
+                await Dialog.DialogMethod(Localizer("PrintDesignNotFound"));
                 return;
             }
 
@@ -1421,7 +1421,7 @@ public partial class ProformaInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);

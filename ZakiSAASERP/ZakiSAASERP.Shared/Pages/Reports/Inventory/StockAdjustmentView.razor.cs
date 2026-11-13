@@ -23,7 +23,7 @@ public partial class StockAdjustmentView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -57,7 +57,7 @@ public partial class StockAdjustmentView
                 var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "StockAdjustment_Report"));
                 if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print design 'StockAdjustment_Report' not found.");
+                    await Dialog.DialogMethod("Print design 'StockAdjustment_Report' not found.");
                     return;
                 }
 
@@ -66,12 +66,12 @@ public partial class StockAdjustmentView
             }
             else
             {
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -111,11 +111,11 @@ public partial class StockAdjustmentView
                 await JS.InvokeVoidAsyncIgnoreErrors("exportJsonToExcel", jsonData);
             }
             else
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion

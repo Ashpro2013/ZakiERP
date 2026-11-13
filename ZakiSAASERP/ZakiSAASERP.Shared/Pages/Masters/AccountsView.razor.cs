@@ -102,7 +102,7 @@ public partial class AccountsView : ITabAware
                 return;
             }
 
-            if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+            if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
 
             _isSaving = true;
             StateHasChanged();
@@ -119,13 +119,13 @@ public partial class AccountsView : ITabAware
                             Name = accountMaster.Name
                         };
                     }
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     if (grid is not null) await grid.ReloadServerData();
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             catch (Exception ex)
@@ -151,7 +151,7 @@ public partial class AccountsView : ITabAware
                 return;
             }
 
-            if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+            if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
 
             _isSaving = true;
             StateHasChanged();
@@ -160,13 +160,13 @@ public partial class AccountsView : ITabAware
                 var result = await api.UpdateAccountMaster(accountMaster);
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     if (grid is not null) await grid.ReloadServerData();
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             finally
@@ -183,11 +183,11 @@ public partial class AccountsView : ITabAware
         {
             if (accountMaster.IsReserved)
             {
-                Dialog.DialogMethod(Localizer("ReservedDeleteError"));
+                await Dialog.DialogMethod(Localizer("ReservedDeleteError"));
                 return;
             }
 
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
             if (await Dialog.DeleteDialogMethod())
             {
@@ -199,18 +199,18 @@ public partial class AccountsView : ITabAware
                 else
                 {
                     if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                        Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                        await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                     else
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                 }
             }
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -231,11 +231,11 @@ public partial class AccountsView : ITabAware
         var assetType = accountTypeList.FirstOrDefault(x => x.AcTypeName.Contains("Asset", StringComparison.OrdinalIgnoreCase));
         if (assetType is not null)
         {
-            OnTypeChanged(assetType.AcTypeId);
+            await OnTypeChanged(assetType.AcTypeId);
         }
         else
         {
-            OnTypeChanged(null);
+            await OnTypeChanged(null);
         }
 
         if (txtCode is not null) await txtCode.FocusAsync();
@@ -292,7 +292,7 @@ public partial class AccountsView : ITabAware
         }
     }
 
-    private void OnTypeChanged(int? typeId)
+    private async Task OnTypeChanged(int? typeId)
     {
         accountMaster.FK_AcTypeId = typeId;
 
@@ -317,7 +317,7 @@ public partial class AccountsView : ITabAware
 
         // Reset dependent fields
         accountMaster.FK_AccountHeadId = 0;
-        OnHeadChanged(0);
+        await OnHeadChanged(0);
     }
 
     private async Task ToArabic()
@@ -328,7 +328,7 @@ public partial class AccountsView : ITabAware
         }
     }
 
-    private void OnHeadChanged(int headId)
+    private async Task OnHeadChanged(int headId)
     {
         accountMaster.FK_AccountHeadId = headId;
         if (headId > 0)
@@ -342,10 +342,10 @@ public partial class AccountsView : ITabAware
 
         // Reset dependent fields
         accountMaster.FK_AcGroupId = 0;
-        OnGroupChanged(0);
+        await OnGroupChanged(0);
     }
 
-    private void OnGroupChanged(int groupId)
+    private async Task OnGroupChanged(int groupId)
     {
         accountMaster.FK_AcGroupId = groupId;
         if (groupId > 0)
@@ -359,7 +359,7 @@ public partial class AccountsView : ITabAware
 
         // Reset dependent fields
         accountMaster.FK_AccountSubGroupId = 0;
-        OnSubGroupChanged(0);
+        await OnSubGroupChanged(0);
     }
 
     private async Task OnSubGroupChanged(int subGroupId)

@@ -1,4 +1,4 @@
-﻿using ZakiSAASERP.Shared.Helpers;
+using ZakiSAASERP.Shared.Helpers;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -89,7 +89,7 @@ public partial class SalesManMasterView : ITabAware
         {
             if (salesman.SalesmanId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
 
                 var result = await api.CreateSalesMan(salesman);
                 if (result.Message == null)
@@ -102,27 +102,27 @@ public partial class SalesManMasterView : ITabAware
                             Name = salesman.Name
                         };
                     }
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
             {
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
 
                 var result = await api.UpdateSalesMan(salesman);
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
@@ -140,7 +140,7 @@ public partial class SalesManMasterView : ITabAware
     {
         try
         {
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
             if (!await Dialog.DeleteDialogMethod())
                 return;
@@ -153,17 +153,17 @@ public partial class SalesManMasterView : ITabAware
             else
             {
                 if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task NewClick()
@@ -179,7 +179,7 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task RowClicked(DataGridRowClickEventArgs<SalesManMaster> args)
@@ -208,7 +208,7 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task UploadSalesmanImage(IBrowserFile file)
@@ -219,7 +219,7 @@ public partial class SalesManMasterView : ITabAware
 
             if (bytes == null)
             {
-                Dialog.DialogMethod("Maximum allowed file size is 1 MB.");
+                await Dialog.DialogMethod("Maximum allowed file size is 1 MB.");
                 return;
             }
             salesman.SalesmanImage = bytes;
@@ -227,7 +227,7 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task UploadSignature(IBrowserFile file)
@@ -237,7 +237,7 @@ public partial class SalesManMasterView : ITabAware
             var bytes = await FileHelper.ValidateAndConvertAsync(file);
             if (bytes == null)
             {
-                Dialog.DialogMethod("Maximum allowed file size is 1 MB.");
+                await Dialog.DialogMethod("Maximum allowed file size is 1 MB.");
                 return;
             }
             salesman.SignatureImage = bytes;
@@ -245,7 +245,7 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task UploadSeal(IBrowserFile file)
@@ -255,7 +255,7 @@ public partial class SalesManMasterView : ITabAware
             var bytes = await FileHelper.ValidateAndConvertAsync(file);
             if (bytes == null)
             {
-                Dialog.DialogMethod("Maximum allowed file size is 1 MB.");
+                await Dialog.DialogMethod("Maximum allowed file size is 1 MB.");
                 return;
             }
             salesman.SealImage = bytes;
@@ -263,10 +263,10 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
-    void RemoveSalesmanImage()
+    async Task RemoveSalesmanImage()
     {
         try
         {
@@ -275,11 +275,11 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
-    void RemoveSignature()
+    async Task RemoveSignature()
     {
         try
         {
@@ -288,10 +288,10 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
-    void RemoveSeal()
+    async Task RemoveSeal()
     {
         try
         {
@@ -300,7 +300,7 @@ public partial class SalesManMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task ShowImagePopup(string img) => await CrudHelper.ShowImagePopup(Dialog, DialogService, img);
@@ -310,14 +310,14 @@ public partial class SalesManMasterView : ITabAware
         {
             if (string.IsNullOrWhiteSpace(salesman.Name))
             {
-                Dialog.DialogMethod(Localizer("EnterNameFirst")); // show warning
+                await Dialog.DialogMethod(Localizer("EnterNameFirst")); // show warning
                 return;
             }
             salesman.NameArabic = await api.GetArabicText(salesman.Name);
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 }

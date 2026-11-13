@@ -799,12 +799,12 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
         if (_isSaving) return;
         if (privilege is not null && hdr.PurchaseReturnId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && hdr.PurchaseReturnId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
 
@@ -914,7 +914,7 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
         if (hdr.PurchaseReturnId == 0 || !entTransactions.Any()) { return; }
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod(Localizer("CancelDialog")))
@@ -946,7 +946,7 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
         if (hdr.PurchaseReturnId == 0 || !entTransactions.Any()) { return; }
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod())
@@ -1039,7 +1039,7 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);
@@ -1141,7 +1141,7 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
                 var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Purchase"));
                 if (pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print Design for Purchase not found");
+                    await Dialog.DialogMethod("Print Design for Purchase not found");
                     return;
                 }
 
@@ -1182,7 +1182,7 @@ public partial class PurchaseReturnView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     void OnLoadModeChanged(int value)

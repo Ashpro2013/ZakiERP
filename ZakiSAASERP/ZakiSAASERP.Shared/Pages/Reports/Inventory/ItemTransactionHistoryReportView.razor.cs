@@ -40,12 +40,12 @@ public partial class ItemTransactionHistoryReportView
         try
         {
             if (selectedItem is not null) req.ItemId = selectedItem.Id;
-            else { Dialog.DialogMethod(Localizer("No Item Selected")); return; }
+            else { await Dialog.DialogMethod(Localizer("No Item Selected")); return; }
 
             result = await ViewService.GetItemTransactionHistoryReport(req);
             if (result == null || result.Items == null || !result.Items.Any())
             {
-                Dialog.DialogMethod(Localizer("No records found")); return;
+                await Dialog.DialogMethod(Localizer("No records found")); return;
             }
             // Dynamic Header
             var reportHeader = new
@@ -60,13 +60,13 @@ public partial class ItemTransactionHistoryReportView
             Dictionary<string, object> ReportDtls = new() { { "Details", result.Items } };
             if (pdto.hdr == null || !pdto.dtls.Any())
             {
-                Dialog.DialogMethod("Print design 'Item_Transaction_History_Report' not found.");
+                await Dialog.DialogMethod("Print design 'Item_Transaction_History_Report' not found.");
                 return;
             }
             SyncfusionPrintHelper pHelper = new SyncfusionPrintHelper();
             pdfData = await pHelper.PrintReportMethodNew(downloader, pdto.hdr, pdto.dtls, ReportHdr!, ReportDtls, null, IsPreview);
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     async Task ReportGenerate()
     {
@@ -89,7 +89,7 @@ public partial class ItemTransactionHistoryReportView
         }
         else
         {
-            Dialog.DialogMethod(Localizer("No records found"));
+            await Dialog.DialogMethod(Localizer("No records found"));
         }
     }
     void ClearMethod()

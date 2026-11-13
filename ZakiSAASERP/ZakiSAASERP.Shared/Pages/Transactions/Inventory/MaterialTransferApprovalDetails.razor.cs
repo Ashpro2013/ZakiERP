@@ -477,7 +477,7 @@ public partial class MaterialTransferApprovalDetails
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 

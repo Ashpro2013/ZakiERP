@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace ZakiSAASERP.Shared.Pages.Masters
 {
@@ -100,7 +100,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 
@@ -130,13 +130,13 @@ namespace ZakiSAASERP.Shared.Pages.Masters
 
                 if (exists)
                 {
-                    Dialog.DialogMethod(Localizer("ProjectCodeExists"));
+                    await Dialog.DialogMethod(Localizer("ProjectCodeExists"));
                     return;
                 }
 
                 if (project.ProjectId == 0)
                 {
-                    if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                    if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                     var response = await api.CreateProject(project);
 
                     if (response.Message == null)
@@ -144,15 +144,15 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                         project.ProjectId = response.Id;
                         projectList.Add(project);
 
-                        Dialog.DialogMethod(Localizer("SaveMessage"));
+                        await Dialog.DialogMethod(Localizer("SaveMessage"));
                         NewClick();
                     }
                     else
-                        Dialog.DialogMethod(response.Message);
+                        await Dialog.DialogMethod(response.Message);
                 }
                 else
                 {
-                    if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                    if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                     var response = await api.UpdateProject(project);
 
                     if (response.Message == null)
@@ -160,11 +160,11 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                         var index = projectList.FindIndex(x => x.ProjectId == project.ProjectId);
                         if (index >= 0) projectList[index] = project;
 
-                        Dialog.DialogMethod(Localizer("UpdateMessage"));
+                        await Dialog.DialogMethod(Localizer("UpdateMessage"));
                         NewClick();
                     }
                     else
-                        Dialog.DialogMethod(response.Message);
+                        await Dialog.DialogMethod(response.Message);
                 }
             }
             catch (Exception ex)
@@ -182,7 +182,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
         {
             try
             {
-                if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+                if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
                 if (!await Dialog.DeleteDialogMethod())
                     return;
 
@@ -196,17 +196,17 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 else
                 {
                     if (response.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || response.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || response.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                        Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(response.Message));
+                        await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(response.Message));
                     else
-                        Dialog.DialogMethod(response.Message);
+                        await Dialog.DialogMethod(response.Message);
                 }
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
                 else
-                    Dialog.DialogMethod(ex.Message);
+                    await Dialog.DialogMethod(ex.Message);
             }
         }
 
@@ -245,7 +245,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 
@@ -281,7 +281,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 
@@ -324,7 +324,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 
@@ -367,7 +367,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
 
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace ZakiSAASERP.Shared.Pages.Masters;
 
@@ -98,7 +98,7 @@ public partial class AccountHeadView : ITabAware
         {
             if (accountHead?.AccountHeadId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                 var result = await api.CreateAccountHead(accountHead);
                 if (result.Message == null)
                 {
@@ -110,26 +110,26 @@ public partial class AccountHeadView : ITabAware
                             Name = accountHead.Name
                         };
                     }
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
             {
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                 var result = await api.UpdateAccountHead(accountHead!);
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
@@ -146,10 +146,10 @@ public partial class AccountHeadView : ITabAware
 
     async Task Delete()
     {
-        if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+        if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
         if (accountHead!.IsReserved)
         {
-            Dialog.DialogMethod(Localizer("Cannot delete this record because it is reserved."));
+            await Dialog.DialogMethod(Localizer("Cannot delete this record because it is reserved."));
             return;
         }
 
@@ -162,7 +162,7 @@ public partial class AccountHeadView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
         else

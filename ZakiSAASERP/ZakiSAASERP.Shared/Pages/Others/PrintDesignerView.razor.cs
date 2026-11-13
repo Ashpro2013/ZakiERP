@@ -810,12 +810,12 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
                 var output = await api.CreatePrintDesignAsync(dto);
                 if (string.IsNullOrEmpty(output.Message))
                 {
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(output.Message);
+                    await Dialog.DialogMethod(output.Message);
                 }
             }
             else
@@ -823,18 +823,18 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
                 var output = await api.UpdatePrintDesignAsync(dto);
                 if (string.IsNullOrEmpty(output.Message))
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(output.Message);
+                    await Dialog.DialogMethod(output.Message);
                 }
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task Delete()
@@ -849,7 +849,7 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
             }
             else
             {
-                Dialog.DialogMethod(output.Message);
+                await Dialog.DialogMethod(output.Message);
             }
         }
     }
@@ -894,11 +894,11 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
         }
         catch (JsonException)
         {
-            Dialog.DialogMethod("The uploaded file is not valid JSON.");
+            await Dialog.DialogMethod("The uploaded file is not valid JSON.");
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"{ex.Message}_427");
+            await Dialog.DialogMethod($"{ex.Message}_427");
         }
     }
     async Task DownloadJson()
@@ -925,7 +925,7 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"{ex.Message}_453");
+            await Dialog.DialogMethod($"{ex.Message}_453");
         }
     }
 
@@ -944,7 +944,7 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
 
             if (!Controls.Any())
             {
-                Dialog.DialogMethod("No controls available to preview. Please add or load controls first.");
+                await Dialog.DialogMethod("No controls available to preview. Please add or load controls first.");
                 isLoadingPreview = false;
                 StateHasChanged();
                 return;
@@ -965,7 +965,7 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"Preview error: {ex.Message}");
+            await Dialog.DialogMethod($"Preview error: {ex.Message}");
         }
         finally
         {

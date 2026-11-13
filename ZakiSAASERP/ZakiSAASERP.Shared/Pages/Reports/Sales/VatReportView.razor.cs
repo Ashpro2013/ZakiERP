@@ -33,7 +33,7 @@ public partial class VatReportView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     void ClearMethod()
@@ -87,7 +87,7 @@ public partial class VatReportView
                 var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Vat_Report"));
                 if (pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print design 'Vat_Report' not found.");
+                    await Dialog.DialogMethod("Print design 'Vat_Report' not found.");
                     return;
                 }
 
@@ -96,12 +96,12 @@ public partial class VatReportView
             }
             else
             {
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
         finally
         {
@@ -148,12 +148,12 @@ public partial class VatReportView
             }
             else
             {
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion

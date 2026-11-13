@@ -35,7 +35,7 @@ public partial class ExpenseReportView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -77,7 +77,7 @@ public partial class ExpenseReportView
                 var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Expense_Report"));
                 if (pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print design 'Expense_Report' not found. Please create design from designer.");
+                    await Dialog.DialogMethod("Print design 'Expense_Report' not found. Please create design from designer.");
                     return;
                 }
 
@@ -86,12 +86,12 @@ public partial class ExpenseReportView
             }
             else
             {
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -126,12 +126,12 @@ public partial class ExpenseReportView
             }
             else
             {
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion

@@ -162,7 +162,9 @@ END";
     }
     private string GetAccSubGrpSql()
     {
-        return @"IF NOT EXISTS (SELECT 1 FROM AccountSubGroup)
+        return """
+            IF NOT EXISTS (SELECT 1 FROM AccountSubGroup)
+            
 BEGIN
     INSERT INTO [dbo].[AccountSubGroup]
            ([FK_AcGroupId],[Code],[Name],[NameArabic],[Remarks],[FK_AcHeadId],[IsReserved])
@@ -191,7 +193,8 @@ BEGIN
     (15,'42000101','Local Purchases',N'مشتريات محلية',NULL,8,1),
     (16,'11000301','VAT Input',N'مدخلات الضريبة',NULL,1,1),
     (17,'11000401','Stock',N'مخزون',NULL,1,1);
-END";
+END
+""";
     }
     private string GetAccGrpSql()
     {

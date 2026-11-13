@@ -79,7 +79,7 @@ public partial class SalesOrderView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -489,12 +489,12 @@ public partial class SalesOrderView : ITabAware
         if (_isSaving) return;
         if (privilege is not null && salesOrder.SalesOrderId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && salesOrder.SalesOrderId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -533,7 +533,7 @@ public partial class SalesOrderView : ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
@@ -541,11 +541,11 @@ public partial class SalesOrderView : ITabAware
                 var result = await api.UpdateSalesOrder(new SalesOrderDTO(salesOrder, entTransactions));
                 if (!string.IsNullOrEmpty(result.Message))
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
                 else
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
             }
@@ -571,13 +571,13 @@ public partial class SalesOrderView : ITabAware
             if (result.Id > 0)
             {
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
 
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -586,7 +586,7 @@ public partial class SalesOrderView : ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (salesOrder.SalesOrderId == 0 || !entTransactions.Any()) { return; }
@@ -599,7 +599,7 @@ public partial class SalesOrderView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -652,7 +652,7 @@ public partial class SalesOrderView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace ZakiSAASERP.Shared.Pages.Masters;
 
@@ -54,7 +54,7 @@ public partial class PurchaserMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -75,9 +75,9 @@ public partial class PurchaserMasterView : ITabAware
         };
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     // SAVE / UPDATE
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     private bool _isSaving = false;
 
     private async Task SaveOrUpdate()
@@ -89,32 +89,32 @@ public partial class PurchaserMasterView : ITabAware
         {
             if (purchaserMaster.PurchaserId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                 // Server-side handles duplicate check now
                 var result = await api.CreatePurchaser(purchaserMaster);
 
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod("Saved successfully");
+                    await Dialog.DialogMethod("Saved successfully");
                     NewClick();
                     if (grid is not null) await grid.ReloadServerData();
                 }
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
             else
             {
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                 var result = await api.UpdatePurchaser(purchaserMaster);
 
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod("Updated successfully");
+                    await Dialog.DialogMethod("Updated successfully");
                     NewClick();
                     if (grid is not null) await grid.ReloadServerData();
                 }
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
         }
         catch (Exception ex)
@@ -128,14 +128,14 @@ public partial class PurchaserMasterView : ITabAware
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     // DELETE
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     private async Task Delete()
     {
         try
         {
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
             if (await Dialog.DeleteDialogMethod())
             {
                 var result = await api.DeletePurchaser(purchaserMaster.PurchaserId);
@@ -147,9 +147,9 @@ public partial class PurchaserMasterView : ITabAware
                 else
                 {
                     if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                        Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                        await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                     else
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                 }
             }
             else
@@ -160,15 +160,15 @@ public partial class PurchaserMasterView : ITabAware
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     // NEW CLICK
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     private void NewClick()
     {
         purchaserMaster = new PurchaserMaster();
@@ -178,9 +178,9 @@ public partial class PurchaserMasterView : ITabAware
         txtCode?.FocusAsync();
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     // PARSE CREDIT LIMIT
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     private void ParseCreditLimit()
     {
         if (decimal.TryParse(creditLimitText, out var val))
@@ -189,9 +189,9 @@ public partial class PurchaserMasterView : ITabAware
             creditLimitText = purchaserMaster.CreditLimit.ToString();
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     // ROW CLICKED
-    // ─────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------
     private async Task RowClicked(DataGridRowClickEventArgs<PurchaserMaster> args)
     {
 

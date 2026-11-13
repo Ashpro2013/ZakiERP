@@ -36,7 +36,7 @@ public partial class CustomerStatementView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -75,7 +75,7 @@ public partial class CustomerStatementView
         {
             if (CustomerId == 0)
             {
-                Dialog.DialogMethod(Localizer("Please select a customer"));
+                await Dialog.DialogMethod(Localizer("Please select a customer"));
                 return;
             }
 
@@ -112,12 +112,12 @@ public partial class CustomerStatementView
             else
             {
                 IsLoaded = false;
-                Dialog.DialogMethod(Localizer("No records found"));
+                await Dialog.DialogMethod(Localizer("No records found"));
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -173,7 +173,7 @@ public partial class CustomerStatementView
 
             if (pdto.hdr == null || !pdto.dtls.Any())
             {
-                Dialog.DialogMethod(Localizer("Print Design 'Customer_Statement' not found. Please contact admin."));
+                await Dialog.DialogMethod(Localizer("Print Design 'Customer_Statement' not found. Please contact admin."));
                 return;
             }
 
@@ -183,7 +183,7 @@ public partial class CustomerStatementView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -224,7 +224,7 @@ public partial class CustomerStatementView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task RowClickEvent(TableRowClickEventArgs<CustomerStatementReportDtls> args)

@@ -1,4 +1,4 @@
-﻿using ZakiSAASERP.Models.Settings;
+using ZakiSAASERP.Models.Settings;
 using ZakiSAASERP.Shared.Pages.Masters;
 using Microsoft.AspNetCore.Components.Web;
 using System.Text.Json;
@@ -98,7 +98,7 @@ public partial class SalesInvoiceView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -773,7 +773,7 @@ public partial class SalesInvoiceView : ITabAware
                 var result = await api.UpdateSalesInvoice(new SalesInvoiceDTO(salesInvoice, entTransactions, AppData.CompanyDetails!));
                 if (result.IsSuccess)
                 {
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
                 }
                 else
                 {
@@ -816,7 +816,7 @@ public partial class SalesInvoiceView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(Localizer(result.Message));
+                await Dialog.DialogMethod(Localizer(result.Message));
             }
         }
     }
@@ -824,7 +824,7 @@ public partial class SalesInvoiceView : ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (salesInvoice.SalesInvoiceId == 0 || !entTransactions.Any()) { return; }
@@ -919,9 +919,9 @@ public partial class SalesInvoiceView : ITabAware
     {
         return billType switch
         {
-            "Cash" => "نقدي",
-            "Bank" => "بطاقة",
-            "Credit" => "آجل",
+            "Cash" => "????",
+            "Bank" => "?????",
+            "Credit" => "???",
             _ => billType
         };
     }

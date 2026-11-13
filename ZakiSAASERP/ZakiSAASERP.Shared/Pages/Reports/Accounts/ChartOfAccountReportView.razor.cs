@@ -37,7 +37,7 @@ public partial class ChartOfAccountReportView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -73,7 +73,7 @@ public partial class ChartOfAccountReportView
                 var pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Chart_Of_Account_Report"));
                 if (pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print design 'Chart Of Account Report' not found. Please create design from designer.");
+                    await Dialog.DialogMethod("Print design 'Chart Of Account Report' not found. Please create design from designer.");
                     return;
                 }
 
@@ -82,12 +82,12 @@ public partial class ChartOfAccountReportView
             }
             else
             {
-                Dialog.DialogMethod("No records found");
+                await Dialog.DialogMethod("No records found");
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -116,12 +116,12 @@ public partial class ChartOfAccountReportView
             }
             else
             {
-                Dialog.DialogMethod("No records found");
+                await Dialog.DialogMethod("No records found");
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 

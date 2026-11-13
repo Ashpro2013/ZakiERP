@@ -77,7 +77,7 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -94,7 +94,7 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
                 // Qty validation
                 if (lastItem.Quantity == 0)
                 {
-                    Dialog.DialogMethod(Localizer("QtyCannotBeZero"));
+                    await Dialog.DialogMethod(Localizer("QtyCannotBeZero"));
                     return;
                 }
 
@@ -474,12 +474,12 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
         if (_isSaving) return;
         if (privilege is not null && purchaseOrder.PurchaseOrderId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && purchaseOrder.PurchaseOrderId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -504,12 +504,12 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
                 {
                     purchaseOrder.PurchaseOrderId = result.Id;
                     DisablePrintButton = false;
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
@@ -517,11 +517,11 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
                 var result = await api.UpdatePurchaseOrder(new PurchaseOrderDTO(purchaseOrder, entTransactions));
                 if (!string.IsNullOrEmpty(result.Message))
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
                 else
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
             }
@@ -622,7 +622,7 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
         if (purchaseOrder.PurchaseOrderId == 0 || !validTransactions.Any()) { return; }
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod(Localizer("CancelDialog")))
@@ -633,13 +633,13 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
             if (result.Id > 0)
             {
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
 
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -649,7 +649,7 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
         if (purchaseOrder.PurchaseOrderId == 0 || !entTransactions.Any()) { return; }
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod())
@@ -661,7 +661,7 @@ public partial class PurchaseOrderView : ComponentBase, ITabAware
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }

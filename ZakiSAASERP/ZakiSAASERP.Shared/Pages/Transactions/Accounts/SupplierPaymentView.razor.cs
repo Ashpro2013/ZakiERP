@@ -238,7 +238,7 @@ public partial class SupplierPaymentView : ITabAware
             }
             else
             {
-                DialogModel.DialogMethod(result.Message);
+                await DialogModel.DialogMethod(result.Message);
             }
         }
         catch (Exception ex)
@@ -328,7 +328,7 @@ public partial class SupplierPaymentView : ITabAware
         }
         catch (Exception ex)
         {
-            DialogModel.DialogMethod(ex.Message);
+            await DialogModel.DialogMethod(ex.Message);
         }
     }
 
@@ -580,12 +580,12 @@ public partial class SupplierPaymentView : ITabAware
                 }
                 else
                 {
-                    DialogModel.DialogMethod(result.Message);
+                    await DialogModel.DialogMethod(result.Message);
                 }
             }
             catch (Exception ex)
             {
-                DialogModel.DialogMethod(ex.Message);
+                await DialogModel.DialogMethod(ex.Message);
             }
         }
     }

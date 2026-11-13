@@ -1,4 +1,4 @@
-﻿using ZakiSAASERP.Models.DTO;
+using ZakiSAASERP.Models.DTO;
 using ZakiSAASERP.Models.Others;
 using ZakiSAASERP.Models.Services;
 using MudBlazor;
@@ -256,7 +256,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         catch (Exception ex)
         {
             snackbar?.Add(AppData.IsArabic
-                ? $"خطأ أثناء معالجة الباركود: {ex.Message}"
+                ? $"??? ????? ?????? ????????: {ex.Message}"
                 : $"Error processing barcode: {ex.Message}", Severity.Error);
         }
         StateHasChanged();
@@ -272,7 +272,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         ItemId = 101,
         ItemCode = "ITM-SAMS-A15",
         ItemName = "Samsung Galaxy A15",
-        ItemNameArabic = "سامسونج جالكسي A15",
+        ItemNameArabic = "??????? ?????? A15",
         BrandName = "Samsung",
         CategoryName = "Mobile Phones",
         SubCategoryName = "Android Phones",
@@ -294,7 +294,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         ItemId = 102,
         ItemCode = "ITM-HP-M15",
         ItemName = "HP Laptop M15",
-        ItemNameArabic = "اتش بي لابتوب M15",
+        ItemNameArabic = "??? ?? ?????? M15",
         BrandName = "HP",
         CategoryName = "Computers",
         SubCategoryName = "Laptops",
@@ -316,7 +316,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         ItemId = 103,
         ItemCode = "ITM-SONY-BT",
         ItemName = "Sony Bluetooth Speaker",
-        ItemNameArabic = "مكبر صوت سوني",
+        ItemNameArabic = "???? ??? ????",
         BrandName = "Sony",
         CategoryName = "Electronics",
         SubCategoryName = "Audio Devices",
@@ -338,7 +338,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         ItemId = 104,
         ItemCode = "ITM-LG-TV55",
         ItemName = "LG 55\" Smart TV",
-        ItemNameArabic = "تلفزيون ال جي 55 بوصة",
+        ItemNameArabic = "??????? ?? ?? 55 ????",
         BrandName = "LG",
         CategoryName = "Home Appliances",
         SubCategoryName = "Televisions",
@@ -360,7 +360,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         ItemId = 105,
         ItemCode = "ITM-DELL-KB",
         ItemName = "Dell Keyboard USB",
-        ItemNameArabic = "لوحة مفاتيح ديل",
+        ItemNameArabic = "???? ?????? ???",
         BrandName = "Dell",
         CategoryName = "Computer Accessories",
         SubCategoryName = "Keyboards",
@@ -395,7 +395,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
     }
@@ -406,7 +406,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         {
             if (string.IsNullOrEmpty(hdr.DesignName) || !Controls.Any())
             {
-                Dialog.DialogMethod("Please provide a design name and add at least one field.");
+                await Dialog.DialogMethod("Please provide a design name and add at least one field.");
                 return;
             }
 
@@ -418,25 +418,25 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
                 var output = await api.CreateBarcodeDesignAsync(dto);
                 if (string.IsNullOrEmpty(output.Message))
                 {
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     NewClick();
                 }
-                else Dialog.DialogMethod(output.Message);
+                else await Dialog.DialogMethod(output.Message);
             }
             else
             {
                 var output = await api.UpdateBarcodeDesignAsync(dto);
                 if (string.IsNullOrEmpty(output.Message))
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     NewClick();
                 }
-                else Dialog.DialogMethod(output.Message);
+                else await Dialog.DialogMethod(output.Message);
             }
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -449,10 +449,10 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
             var output = await api.DeleteBarcodeDesignAsync(hdr.BarcodeDesignHdrId);
             if (string.IsNullOrEmpty(output.Message))
             {
-                Dialog.DialogMethod("Deleted successfully.");
+                await Dialog.DialogMethod("Deleted successfully.");
                 NewClick();
             }
-            else Dialog.DialogMethod(output.Message);
+            else await Dialog.DialogMethod(output.Message);
         }
     }
 
@@ -507,11 +507,11 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         }
         catch (JsonException)
         {
-            Dialog.DialogMethod("The uploaded file is not valid JSON.");
+            await Dialog.DialogMethod("The uploaded file is not valid JSON.");
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod($"{ex.Message}_427");
+            await Dialog.DialogMethod($"{ex.Message}_427");
         }
 
     }
@@ -527,7 +527,7 @@ public partial class BarcodeDesignerView : IDisposable, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 }

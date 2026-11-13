@@ -144,12 +144,12 @@
 
     [CascadingParameter] public MainLayout Layout { get; set; }
 
-    void NavigateToItemMaster()
+    async Task NavigateToItemMaster()
     {
         if (Layout is not null)
         {
             // ID=5 for ItemMaster as per NavMenu
-            Layout.AddTab(5, Localizer("ItemMaster"), "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView");
+            await Layout.AddTab(5, Localizer("ItemMaster"), "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView");
         }
         MudDialog.Cancel();
     }

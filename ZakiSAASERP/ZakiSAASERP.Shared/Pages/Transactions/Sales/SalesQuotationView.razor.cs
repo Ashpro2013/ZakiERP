@@ -89,7 +89,7 @@ public partial class SalesQuotationView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -547,7 +547,7 @@ public partial class SalesQuotationView : ITabAware
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
             }
@@ -562,7 +562,7 @@ public partial class SalesQuotationView : ITabAware
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
                 else
@@ -592,7 +592,7 @@ public partial class SalesQuotationView : ITabAware
             var result = await api.UpdateSalesQuotation(new SalesQuotationDTO(salesQuotation, entTransactions));
             if (!string.IsNullOrEmpty(result.Message))
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
                 await NewClick();
             }
             else
@@ -606,7 +606,7 @@ public partial class SalesQuotationView : ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (salesQuotation.SalesQuotationId == 0 || !entTransactions.Any()) { return; }
@@ -620,7 +620,7 @@ public partial class SalesQuotationView : ITabAware
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }

@@ -242,7 +242,7 @@ public partial class CustomerMasterView : ITabAware
             // --- Create ---
             if (customer.CustomerId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                 var result = await api.CreateCustomer(customer);
 
                 if (result.Message == null)
@@ -256,25 +256,25 @@ public partial class CustomerMasterView : ITabAware
                         };
                     }
                     customer.CustomerId = result.Id;
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
             else
             {
                 // --- Update ---
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                 var result = await api.UpdateCustomer(customer);
 
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
         }
         catch (Exception ex)
@@ -296,29 +296,29 @@ public partial class CustomerMasterView : ITabAware
             if (!await Dialog.DeleteDialogMethod())
                 return;
 
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
             var result = await api.DeleteCustomer(customer.CustomerId);
 
             if (result.Message == null)
             {
-                NewClick();
+                await NewClick();
                 StateHasChanged();
             }
             else
             {
                 if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -341,7 +341,7 @@ public partial class CustomerMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -370,7 +370,7 @@ public partial class CustomerMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -504,7 +504,7 @@ public partial class CustomerMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -548,7 +548,7 @@ public partial class CustomerMasterView : ITabAware
                 }
             }
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
 
     async Task OpenCountryDialog()
@@ -575,7 +575,7 @@ public partial class CustomerMasterView : ITabAware
                 }
             }
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
 
     async Task OpenSalesManDialog()
@@ -602,7 +602,7 @@ public partial class CustomerMasterView : ITabAware
                 }
             }
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     #endregion
 
@@ -645,7 +645,7 @@ public partial class CustomerMasterView : ITabAware
                 {
                     if (customer.LocationDetails.Any(x => x != item && x.FK_CustomerLocationId == resItem.LocationId))
                     {
-                        Dialog.DialogMethod(Localizer("LocationAlreadyAdded"));
+                        await Dialog.DialogMethod(Localizer("LocationAlreadyAdded"));
                         return;
                     }
                     item.FK_CustomerLocationId = resItem.LocationId;
@@ -653,7 +653,7 @@ public partial class CustomerMasterView : ITabAware
                 }
             }
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     #endregion
 

@@ -90,7 +90,7 @@ public partial class AdminLayout
             _currentTheme = _isDarkMode ? "dark" : "white";
             await JSService.SetLocal(_currentTheme, "Currenttheme");
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     #endregion
 

@@ -97,7 +97,7 @@ public partial class SalesInvoiceRtnView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -511,12 +511,12 @@ public partial class SalesInvoiceRtnView : ITabAware
         if (_isSaving) return;
         if (privilege is not null && salesInvoiceRtn.SalesInvoiceRtnId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && salesInvoiceRtn.SalesInvoiceRtnId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (salesInvoiceRtn.SalesInvoiceRtnId != 0 && !gridSettings.EnableUpdate)
@@ -633,7 +633,7 @@ public partial class SalesInvoiceRtnView : ITabAware
     {
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (salesInvoiceRtn.SalesInvoiceRtnId == 0 || !entTransactions.Any()) { return; }
@@ -735,7 +735,7 @@ public partial class SalesInvoiceRtnView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);

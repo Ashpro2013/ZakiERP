@@ -100,7 +100,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
 
                 if (vehicle.VehicleId == 0)
                 {
-                    if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                    if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                     var res = await api.CreateVehicle(vehicle);
                     if (res.Id > 0)
                     {
@@ -135,7 +135,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                             // If user clicks "Save" in VehicleMasterView, it saves but stays open?
                             // In CustomerMasterView:
                             // if (IsDialog) { AppData.PassingValue = ...; } 
-                            // Dialog.DialogMethod(Localizer("SaveMessage")); // Shows success
+                            // await Dialog.DialogMethod(Localizer("SaveMessage")); // Shows success
                             // await NewClick(); // Resets
                         }
 
@@ -150,7 +150,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 }
                 else
                 {
-                    if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                    if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                     if (pendingImageBytes is not null)
                     {
                         // Upload new image
@@ -317,7 +317,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
         {
             if (vehicle.VehicleId == 0) return;
 
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
             var confirm = await DialogService.ShowMessageBox(Localizer("Confirm"), Localizer("DeleteConfirmation"), yesText: Localizer("Delete"), cancelText: Localizer("Cancel"));
             if (confirm == true)

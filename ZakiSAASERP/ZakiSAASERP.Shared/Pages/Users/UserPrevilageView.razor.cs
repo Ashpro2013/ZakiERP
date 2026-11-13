@@ -1,4 +1,4 @@
-﻿using ZakiSAASERP.Models.User;
+using ZakiSAASERP.Models.User;
 
 namespace ZakiSAASERP.Shared.Pages.Users;
 
@@ -34,7 +34,7 @@ public partial class UserPrevilageView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task RowClicked(DataGridRowClickEventArgs<ExUserPrivilege> args)
@@ -50,7 +50,7 @@ public partial class UserPrevilageView : ITabAware
             data.DeleteData = item.DeleteData;
             StateHasChanged();
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     private async Task FuncRowClicked(DataGridRowClickEventArgs<ExFuncDetails> args)
     {
@@ -62,7 +62,7 @@ public partial class UserPrevilageView : ITabAware
             data!.Enable = item.Enable;
             StateHasChanged();
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     private void EnableChecked(bool isChecked)
     {
@@ -133,7 +133,7 @@ public partial class UserPrevilageView : ITabAware
     {
         try
         {
-            if (string.IsNullOrEmpty(privilegeHdr.Name)) { Dialog.DialogMethod("Please enter name and try again!"); return; }
+            if (string.IsNullOrEmpty(privilegeHdr.Name)) { await Dialog.DialogMethod("Please enter name and try again!"); return; }
             userPrivilages.ForEach(x => { x.FK_MenuDetailsId = x.MenuId; x.FK_UserPrivilegeHdrId = privilegeHdr.Id; x.Visible = x.Visible; });
             privilegeHdr.FK_BranchId = AppData.BranchId;
             var dto = new UserPrivilegeDTO(privilegeHdr, userPrivilages, exFuncDetails);
@@ -148,7 +148,7 @@ public partial class UserPrevilageView : ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(output.Message!);
+                    await Dialog.DialogMethod(output.Message!);
                 }
             }
             else
@@ -161,11 +161,11 @@ public partial class UserPrevilageView : ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(output.Message!);
+                    await Dialog.DialogMethod(output.Message!);
                 }
             }
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     async Task Delete()
     {
@@ -182,7 +182,7 @@ public partial class UserPrevilageView : ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(output.Message!);
+                    await Dialog.DialogMethod(output.Message!);
                 }
             }
         }

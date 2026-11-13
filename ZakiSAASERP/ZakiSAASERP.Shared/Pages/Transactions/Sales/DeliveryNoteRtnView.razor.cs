@@ -73,7 +73,7 @@ public partial class DeliveryNoteRtnView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -494,12 +494,12 @@ public partial class DeliveryNoteRtnView : ITabAware
         if (_isSaving) return;
         if (privilege is not null && dnRturn.DeliveryNoteRtnId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && dnRturn.DeliveryNoteRtnId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -533,20 +533,20 @@ public partial class DeliveryNoteRtnView : ITabAware
                         await PrintMethod();
                     }
                     DisablePrintButton = false;
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
             }
             else
             {
                 var result = await api.UpdateDeliveryNoteRtn(new DeliveryNoteRtnDTO(dnRturn, entTransactions));
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
                 else
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
             }
@@ -572,13 +572,13 @@ public partial class DeliveryNoteRtnView : ITabAware
             if (result.Id > 0)
             {
                 if (!string.IsNullOrEmpty(result.Message))
-                    Dialog.DialogMethod(Localizer(result.Message));
+                    await Dialog.DialogMethod(Localizer(result.Message));
 
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(Localizer(result.Message));
+                await Dialog.DialogMethod(Localizer(result.Message));
             }
         }
     }
@@ -588,7 +588,7 @@ public partial class DeliveryNoteRtnView : ITabAware
         if (dnRturn.DeliveryNoteRtnId == 0 || !entTransactions.Any()) { return; }
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod())
@@ -597,7 +597,7 @@ public partial class DeliveryNoteRtnView : ITabAware
             if (string.IsNullOrEmpty(result.Message))
                 await NewClick();
             else
-                Dialog.DialogMethod(Localizer(result.Message));
+                await Dialog.DialogMethod(Localizer(result.Message));
         }
     }
     async Task NewClick()
@@ -638,7 +638,7 @@ public partial class DeliveryNoteRtnView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);

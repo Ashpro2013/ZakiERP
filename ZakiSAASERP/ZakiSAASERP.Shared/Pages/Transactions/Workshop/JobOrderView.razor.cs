@@ -82,7 +82,7 @@ public partial class JobOrderView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -485,7 +485,7 @@ public partial class JobOrderView : ComponentBase, ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
 
@@ -548,7 +548,7 @@ public partial class JobOrderView : ComponentBase, ITabAware
                 pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Job Order"));
                 if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print Design 'Job_Order' not found. Please import the design.");
+                    await Dialog.DialogMethod("Print Design 'Job_Order' not found. Please import the design.");
                     return;
                 }
             }

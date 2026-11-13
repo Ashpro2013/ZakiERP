@@ -376,7 +376,7 @@ public partial class ItemMasterView : ITabAware
 
             if (item.ItemId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); RestoreNavProps(tempUnit, tempCategory, tempSubCategory, tempBrand, tempMultiUnitUnits); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); RestoreNavProps(tempUnit, tempCategory, tempSubCategory, tempBrand, tempMultiUnitUnits); return; }
                 var result = await api.CreateItem(item);
                 if ((result.Message is not null && result.Message.Contains("Saved Successfully")) || (result.Id > 0 && result.Message == null))
                 {
@@ -411,7 +411,7 @@ public partial class ItemMasterView : ITabAware
             }
             else
             {
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); RestoreNavProps(tempUnit, tempCategory, tempSubCategory, tempBrand, tempMultiUnitUnits); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); RestoreNavProps(tempUnit, tempCategory, tempSubCategory, tempBrand, tempMultiUnitUnits); return; }
                 var result = await api.UpdateItem(item);
                 if ((result.Message is not null && result.Message.Contains("Updated Successfully")) || (result.Id > 0 && result.Message == null))
                 {
@@ -482,7 +482,7 @@ public partial class ItemMasterView : ITabAware
     {
         try
         {
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
             if (!await Dialog.DeleteDialogMethod())
                 return;
             var result = await api.DeleteItem(item.ItemId);
@@ -494,17 +494,17 @@ public partial class ItemMasterView : ITabAware
             else
             {
                 if ((result.Message ?? "").Contains("FK_", StringComparison.OrdinalIgnoreCase) || (result.Message ?? "").Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || (result.Message ?? "").Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                 else
-                    Dialog.DialogMethod(result.Message ?? "Failed");
+                    await Dialog.DialogMethod(result.Message ?? "Failed");
             }
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintBarcode()
@@ -694,7 +694,7 @@ public partial class ItemMasterView : ITabAware
 
         lastEditedRate = "exclusive";
         SetVat(item.FK_VatId, recalculate: false); // Set percentage without overwriting loaded inclusive rate
-        OnVatCategoryChanged(item.VatCategory ?? "S");
+        await OnVatCategoryChanged(item.VatCategory ?? "S");
 
         itemImagePreview = fullData.ItemImage is not null
             ? "data:image/png;base64," + Convert.ToBase64String(fullData.ItemImage)

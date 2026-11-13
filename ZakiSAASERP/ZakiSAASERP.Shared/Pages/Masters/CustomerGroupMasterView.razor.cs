@@ -39,7 +39,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
                 return new GridData<CustomerGroupMaster>();
             }
         }
@@ -62,30 +62,30 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             {
                 if (customerGroup.CustomerGroupId == 0)
                 {
-                    if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                    if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                     var result = await api.CreateCustomerGroup(customerGroup);
                     if (result.Message == null)
                     {
-                        Dialog.DialogMethod(Localizer("SaveMessage"));
+                        await Dialog.DialogMethod(Localizer("SaveMessage"));
                         await NewClick();
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
                 else
                 {
-                    if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                    if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                     var result = await api.UpdateCustomerGroup(customerGroup);
                     if (result.Message == null)
                     {
-                        Dialog.DialogMethod(Localizer("UpdateMessage"));
+                        await Dialog.DialogMethod(Localizer("UpdateMessage"));
                         await NewClick();
                     }
                     else
                     {
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                     }
                 }
             }
@@ -106,7 +106,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 if (!await Dialog.DeleteDialogMethod())
                     return;
 
-                if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+                if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
                 var result = await api.DeleteCustomerGroup(customerGroup.CustomerGroupId);
                 if (result.Message == null)
@@ -117,17 +117,17 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 else
                 {
                     if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                        Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                        await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                     else
-                        Dialog.DialogMethod(result.Message);
+                        await Dialog.DialogMethod(result.Message);
                 }
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
                 else
-                    Dialog.DialogMethod(ex.Message);
+                    await Dialog.DialogMethod(ex.Message);
             }
         }
         async Task NewClick()
@@ -141,7 +141,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
         async Task RowClicked(DataGridRowClickEventArgs<CustomerGroupMaster> args)
@@ -155,7 +155,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
         private async Task ToArabic()
@@ -164,14 +164,14 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             {
                 if (string.IsNullOrWhiteSpace(customerGroup.Name))
                 {
-                    Dialog.DialogMethod(Localizer("EnterNameFirst"));
+                    await Dialog.DialogMethod(Localizer("EnterNameFirst"));
                     return;
                 }
                 customerGroup.NameArabic = await api.GetArabicText(customerGroup.Name);
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 

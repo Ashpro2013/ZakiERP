@@ -41,7 +41,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
         {
             if (repair.RepairId == 0) return;
 
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
 
             var confirm = await DialogService.ShowMessageBox(
                 Localizer("Warning"),
@@ -77,7 +77,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
             {
                 if (repair.RepairId == 0)
                 {
-                    if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                    if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                     var res = await api.CreateRepair(repair);
                     if (res.Id > 0)
                     {
@@ -92,7 +92,7 @@ namespace ZakiSAASERP.Shared.Pages.Masters
                 }
                 else
                 {
-                    if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                    if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                     var res = await api.UpdateRepair(repair);
                     if (res.Id > 0)
                     {

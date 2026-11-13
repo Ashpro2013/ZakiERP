@@ -28,7 +28,7 @@ public partial class StockTransferReportView
             result = await ViewService.GetStockTransferReport(req);
             if (result == null || result.Items == null || !result.Items.Any())
             {
-                Dialog.DialogMethod(Localizer("No records found")); return;
+                await Dialog.DialogMethod(Localizer("No records found")); return;
             }
             var reportHeader = new StockReportHdr(
                 $"{req.FromDate:dd-MM-yyyy} - {req.ToDate:dd-MM-yyyy}",
@@ -40,13 +40,13 @@ public partial class StockTransferReportView
             Dictionary<string, object> ReportDtls = new() { { "Details", obj } };
             if (pdto.hdr == null || !pdto.dtls.Any())
             {
-                Dialog.DialogMethod("Print design 'Stock_Transfer_Report' not found.");
+                await Dialog.DialogMethod("Print design 'Stock_Transfer_Report' not found.");
                 return;
             }
             SyncfusionPrintHelper pHelper = new SyncfusionPrintHelper();
             pdfData = await pHelper.PrintReportMethod(downloader, pdto.hdr, pdto.dtls, ReportHdr!, ReportDtls, null, IsPreview);
         }
-        catch (Exception ex) { Dialog.DialogMethod(ex.Message); }
+        catch (Exception ex) { await Dialog.DialogMethod(ex.Message); }
     }
     async Task ReportGenerate()
     {
@@ -68,7 +68,7 @@ public partial class StockTransferReportView
         }
         else
         {
-            Dialog.DialogMethod(Localizer("No records found"));
+            await Dialog.DialogMethod(Localizer("No records found"));
         }
     }
     void ClearMethod()

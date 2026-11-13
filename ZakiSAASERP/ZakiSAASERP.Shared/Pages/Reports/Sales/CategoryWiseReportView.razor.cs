@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace ZakiSAASERP.Shared.Pages.Reports.Sales;
 
@@ -113,7 +113,7 @@ public partial class CategoryWiseReportView
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion

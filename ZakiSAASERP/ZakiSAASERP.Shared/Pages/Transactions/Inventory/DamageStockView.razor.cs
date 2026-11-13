@@ -53,7 +53,7 @@ public partial class DamageStockView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -292,12 +292,12 @@ public partial class DamageStockView : ITabAware
         if (_isSaving) return;
         if (privilege is not null && hdr.DamageStockId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && hdr.DamageStockId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -327,7 +327,7 @@ public partial class DamageStockView : ITabAware
                     }
                     await NewClick();
                 }
-                else Dialog.DialogMethod(res.Message);
+                else await Dialog.DialogMethod(res.Message);
             }
             else
             {
@@ -337,7 +337,7 @@ public partial class DamageStockView : ITabAware
                     snackbar.Add("Updated Successfully", Severity.Success);
                     await NewClick();
                 }
-                else Dialog.DialogMethod(res.Message);
+                else await Dialog.DialogMethod(res.Message);
             }
         }
         catch (Exception ex)
@@ -356,7 +356,7 @@ public partial class DamageStockView : ITabAware
         if (hdr.DamageStockId == 0) return;
         if (privilege is not null && !privilege.DeleteData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (await Dialog.DeleteDialogMethod())
@@ -371,7 +371,7 @@ public partial class DamageStockView : ITabAware
 
                 await NewClick();
             }
-            else Dialog.DialogMethod(res.Message);
+            else await Dialog.DialogMethod(res.Message);
         }
     }
 

@@ -260,12 +260,12 @@ namespace ZakiSAASERP.Shared.Pages.Reports.Sales
                 }
                 else
                 {
-                    Dialog.DialogMethod(Localizer("No records found"));
+                    await Dialog.DialogMethod(Localizer("No records found"));
                 }
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
             }
         }
 

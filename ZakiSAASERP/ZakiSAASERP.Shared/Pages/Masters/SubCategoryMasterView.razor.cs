@@ -84,32 +84,32 @@ public partial class SubCategoryMasterView : ITabAware
             subcat.Category = null;
             if (subcat.SubCategoryId == 0)
             {
-                if (privilege is not null && !privilege.SaveData) { Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
+                if (privilege is not null && !privilege.SaveData) { await Dialog.DialogMethod(Localizer("NoSavePrivilege")); return; }
                 var result = await api.CreateSubCategory(subcat);
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("SaveMessage"));
+                    await Dialog.DialogMethod(Localizer("SaveMessage"));
                     await NewClick();
                 }
                 else
                 {
                     subcat.Category = tempCategory;
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
             else
             {
-                if (privilege is not null && !privilege.EditData) { Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
+                if (privilege is not null && !privilege.EditData) { await Dialog.DialogMethod(Localizer("NoEditPrivilege")); return; }
                 var result = await api.UpdateSubCategory(subcat);
                 if (result.Message == null)
                 {
-                    Dialog.DialogMethod(Localizer("UpdateMessage"));
+                    await Dialog.DialogMethod(Localizer("UpdateMessage"));
                     await NewClick();
                 }
                 else
                 {
                     subcat.Category = tempCategory;
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
@@ -129,7 +129,7 @@ public partial class SubCategoryMasterView : ITabAware
     {
         try
         {
-            if (privilege is not null && !privilege.DeleteData) { Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
+            if (privilege is not null && !privilege.DeleteData) { await Dialog.DialogMethod(Localizer("NoDeletePrivilege")); return; }
             if (!await Dialog.DeleteDialogMethod())
                 return;
             var result = await api.DeleteSubCategory(subcat.SubCategoryId);
@@ -141,17 +141,17 @@ public partial class SubCategoryMasterView : ITabAware
             else
             {
                 if (result.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || result.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                    Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
+                    await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(result.Message));
                 else
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
             }
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("FK_", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("Constraint", StringComparison.OrdinalIgnoreCase))
-                Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
+                await Dialog.DialogMethod(ArabicLocalization.GetFriendlyForeignKeyError(ex.Message));
             else
-                Dialog.DialogMethod(ex.Message);
+                await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -170,7 +170,7 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -196,7 +196,7 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -209,13 +209,13 @@ public partial class SubCategoryMasterView : ITabAware
             var bytes = await FileHelper.ValidateAndConvertAsync(file);
             if (bytes == null)
             {
-                Dialog.DialogMethod(Localizer("MaxFileSize1MB"));
+                await Dialog.DialogMethod(Localizer("MaxFileSize1MB"));
                 return;
             }
             var extension = Path.GetExtension(file.Name)?.ToLower();
             if (extension is not ".png" and not ".jpg" and not ".jpeg")
             {
-                Dialog.DialogMethod(Localizer("InvalidImageFormat"));
+                await Dialog.DialogMethod(Localizer("InvalidImageFormat"));
                 return;
             }
             subcat.ItemImageName = file.Name;
@@ -224,11 +224,11 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
-    void RemoveImage()
+    async Task RemoveImage()
     {
         try
         {
@@ -238,11 +238,11 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
-    private void ShowImagePopup(string img)
+    private async Task ShowImagePopup(string img)
     {
         try
         {
@@ -250,11 +250,11 @@ public partial class SubCategoryMasterView : ITabAware
             {
                 ["ImageUrl"] = img
             };
-            DialogService.Show<ImagePreviewDialog>(Localizer("Preview"), parameters);
+            await DialogService.ShowAsync<ImagePreviewDialog>(Localizer("Preview"), parameters);
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -266,7 +266,7 @@ public partial class SubCategoryMasterView : ITabAware
         {
             if (string.IsNullOrWhiteSpace(subcat.Name))
             {
-                Dialog.DialogMethod(Localizer("EnterNameFirst"));
+                await Dialog.DialogMethod(Localizer("EnterNameFirst"));
                 return;
             }
             subcat.NameArabic = await api.GetArabicText(subcat.Name);
@@ -274,7 +274,7 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -318,7 +318,7 @@ public partial class SubCategoryMasterView : ITabAware
             }
             catch (Exception ex)
             {
-                Dialog.DialogMethod($"Error loading auto code: {ex.Message}");
+                await Dialog.DialogMethod($"Error loading auto code: {ex.Message}");
             }
         }
     }
@@ -417,7 +417,7 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -458,7 +458,7 @@ public partial class SubCategoryMasterView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
         finally
         {

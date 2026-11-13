@@ -70,7 +70,7 @@
                 <!-- Account Type (Asset/Liability) -->
                 <MudItem xs="12" sm="4">
                     <MudText>@Localizer("AccountType")</MudText>
-                    <MudSelect T="int?" Value="@accountMaster.FK_AcTypeId" ValueChanged="@((int? value) => OnTypeChanged(value))"
+                    <MudSelect T="int?" Value="@accountMaster.FK_AcTypeId" ValueChanged="@(async (int? value) => await OnTypeChanged(value))"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
                         @foreach (var item in accountTypeList)
                         {
@@ -84,7 +84,7 @@
                 <!-- Account Head -->
                 <MudItem xs="12" sm="4">
                    <MudText>@Localizer("AccountHead")</MudText>
-                    <MudSelect T="int?" Value="@(accountMaster.FK_AccountHeadId == 0 ? (int?)null : accountMaster.FK_AccountHeadId)" ValueChanged="@((int? value) => OnHeadChanged(value ?? 0))"
+                    <MudSelect T="int?" Value="@(accountMaster.FK_AccountHeadId == 0 ? (int?)null : accountMaster.FK_AccountHeadId)" ValueChanged="@(async (int? value) => await OnHeadChanged(value ?? 0))"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
                         @foreach (var item in filteredAccountHeadList)
                         {
@@ -96,7 +96,7 @@
                 <!-- Group -->
                 <MudItem xs="12" sm="4">
                     <MudText>@Localizer("Group")</MudText>
-                    <MudSelect T="int?" Value="@(accountMaster.FK_AcGroupId == 0 ? (int?)null : accountMaster.FK_AcGroupId)" ValueChanged="@((int? value) => OnGroupChanged(value ?? 0))"
+                    <MudSelect T="int?" Value="@(accountMaster.FK_AcGroupId == 0 ? (int?)null : accountMaster.FK_AcGroupId)" ValueChanged="@(async (int? value) => await OnGroupChanged(value ?? 0))"
                                Variant="Variant.Outlined" Margin="Margin.Dense">
                         @foreach (var item in filteredAccountGroupList)
                         {

@@ -43,7 +43,7 @@ public partial class UserView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     private async Task LoadBranches()
@@ -55,7 +55,7 @@ public partial class UserView : ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -115,7 +115,7 @@ public partial class UserView : ITabAware
         var selectedBranches = _dropZoneItems.Where(x => x.Zone == "selected").Select(x => x.Branch).ToList();
         if (!selectedBranches.Any())
         {
-            Dialog.DialogMethod("Please select at least one branch.");
+            await Dialog.DialogMethod("Please select at least one branch.");
             return;
         }
 
@@ -133,7 +133,7 @@ public partial class UserView : ITabAware
         {
             if (!_privilege.SaveData && !string.Equals(AppData.UserName, "admin", StringComparison.OrdinalIgnoreCase))
             {
-                Dialog.DialogMethod("You have no privilege to Save User!");
+                await Dialog.DialogMethod("You have no privilege to Save User!");
                 return;
             }
             var result = await api.CreateUser(userDetails);
@@ -141,19 +141,19 @@ public partial class UserView : ITabAware
             {
                 // Save user branches
                 await SaveUserBranches(result.Id);
-                Dialog.DialogMethod(Localizer("SaveMessage"));
+                await Dialog.DialogMethod(Localizer("SaveMessage"));
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
         else
         {
             if (!_privilege.EditData && !string.Equals(AppData.UserName, "admin", StringComparison.OrdinalIgnoreCase))
             {
-                Dialog.DialogMethod("You have no privilege to Edit User!");
+                await Dialog.DialogMethod("You have no privilege to Edit User!");
                 return;
             }
             var result = await api.UpdateUser(userDetails!);
@@ -161,12 +161,12 @@ public partial class UserView : ITabAware
             {
                 // Update user branches
                 await SaveUserBranches(userDetails.UserId);
-                Dialog.DialogMethod(Localizer("UpdateMessage"));
+                await Dialog.DialogMethod(Localizer("UpdateMessage"));
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
     }
@@ -191,7 +191,7 @@ public partial class UserView : ITabAware
         var result = await api.SaveUserBranches(userBranches);
         if (result.Message is not null)
         {
-            Dialog.DialogMethod("Error saving branches: " + result.Message);
+            await Dialog.DialogMethod("Error saving branches: " + result.Message);
         }
     }
 
@@ -199,7 +199,7 @@ public partial class UserView : ITabAware
     {
         if (!_privilege.DeleteData && !string.Equals(AppData.UserName, "admin", StringComparison.OrdinalIgnoreCase))
         {
-            Dialog.DialogMethod("You have no privilege to Delete User!");
+            await Dialog.DialogMethod("You have no privilege to Delete User!");
             return;
         }
         if (await Dialog.DeleteDialogMethod())
@@ -207,12 +207,12 @@ public partial class UserView : ITabAware
             var result = await api.DeleteUser(userDetails!.UserId);
             if (result.Message == null)
             {
-                Dialog.DialogMethod("Deleted Successfully");
+                await Dialog.DialogMethod("Deleted Successfully");
                 await NewClick();
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
         }
         else

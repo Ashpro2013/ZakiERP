@@ -184,7 +184,7 @@ public partial class PurchaseView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
@@ -195,7 +195,7 @@ public partial class PurchaseView : ComponentBase, ITabAware
         {
             if (privilege is not null && !privilege.DeleteData)
             {
-                Dialog.DialogMethod(Localizer("No...Privilege"));
+                await Dialog.DialogMethod(Localizer("No...Privilege"));
                 return;
             }
             try
@@ -227,12 +227,12 @@ public partial class PurchaseView : ComponentBase, ITabAware
         if (_isSaving) return;
         if (privilege is not null && purchase.PurchaseId == 0 && !privilege.SaveData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         if (privilege is not null && purchase.PurchaseId != 0 && !privilege.EditData)
         {
-            Dialog.DialogMethod(Localizer("No...Privilege"));
+            await Dialog.DialogMethod(Localizer("No...Privilege"));
             return;
         }
         _isSaving = true;
@@ -803,7 +803,7 @@ public partial class PurchaseView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     async Task PrintPrviewMethod() => await PrintHelperMethod(true);

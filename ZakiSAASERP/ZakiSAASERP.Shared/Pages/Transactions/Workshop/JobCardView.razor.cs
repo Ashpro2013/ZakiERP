@@ -88,7 +88,7 @@ public partial class JobCardView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
     #endregion
@@ -663,7 +663,7 @@ public partial class JobCardView : ComponentBase, ITabAware
             }
             else
             {
-                Dialog.DialogMethod(result.Message);
+                await Dialog.DialogMethod(result.Message);
             }
 
         }
@@ -702,7 +702,7 @@ public partial class JobCardView : ComponentBase, ITabAware
                 }
                 else
                 {
-                    Dialog.DialogMethod(result.Message);
+                    await Dialog.DialogMethod(result.Message);
                 }
             }
         }
@@ -733,7 +733,7 @@ public partial class JobCardView : ComponentBase, ITabAware
                 pdto = await api.GetPrintDesignAsync(new PrintDesignReq(0, "Job Card"));
                 if (pdto == null || pdto.hdr == null || !pdto.dtls.Any())
                 {
-                    Dialog.DialogMethod("Print Design 'Job_Card' not found. Please import the design.");
+                    await Dialog.DialogMethod("Print Design 'Job_Card' not found. Please import the design.");
                     return;
                 }
             }
@@ -808,7 +808,7 @@ public partial class JobCardView : ComponentBase, ITabAware
         }
         catch (Exception ex)
         {
-            Dialog.DialogMethod(ex.Message);
+            await Dialog.DialogMethod(ex.Message);
         }
     }
 
