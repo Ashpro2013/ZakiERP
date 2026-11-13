@@ -61,9 +61,18 @@ public partial class SalesInvoiceView : ITabAware
 
     #region Properties
     [Parameter] public int? Id { get; set; }
+    private int? _lastLoadedId;
     #endregion
 
     #region Initialize
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is not null && Id > 0 && (Id != _lastLoadedId || salesInvoice.SalesInvoiceId != Id.Value))
+        {
+            _lastLoadedId = Id;
+            await LoadInvoice(Id.Value);
+        }
+    }
     protected async override Task OnInitializedAsync()
     {
         try
@@ -87,6 +96,7 @@ public partial class SalesInvoiceView : ITabAware
             }
             if (Id is not null && Id > 0)
             {
+                _lastLoadedId = Id;
                 await LoadInvoice(Id ?? 0);
             }
             else
@@ -856,6 +866,9 @@ public partial class SalesInvoiceView : ITabAware
     }
     async Task NewClick()
     {
+        _lastLoadedId = null;
+        Id = null;
+        IsFromZatcaReport = false;
         IsSymplified = true;
         salesInvoice = new();
         sQuotationNo = string.Empty;

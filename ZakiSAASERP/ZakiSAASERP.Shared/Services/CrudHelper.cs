@@ -88,11 +88,19 @@ public sealed class CrudHelper
             return "";
         }
     }
-    public static async Task Navigation(TabService tService, int id, string view, LedgerReportRequest? req = null)
+    public static async Task Navigation(TabService tService, int id, string view, LedgerReportRequest? req = null, bool isFromZatcaReport = false)
     {
-        var menu = AppData.menuList.FirstOrDefault(m => m.Name == view);
+        var menu = AppData.menuList?.FirstOrDefault(m => 
+            m.Name == view || 
+            m.ClassName == view || 
+            (view.Contains("Return", StringComparison.OrdinalIgnoreCase) && m.Name == "SalesInvoiceRtnTitle"));
+        if (menu == null) return;
         var parameters = req == null ? new Dictionary<string, object> { ["Id"] = id }
                                    : new Dictionary<string, object> { ["req"] = req };
+        if (isFromZatcaReport)
+        {
+            parameters["IsFromZatcaReport"] = true;
+        }
         var tabrequest = new TabRequest
         {
             Id = menu.Id,

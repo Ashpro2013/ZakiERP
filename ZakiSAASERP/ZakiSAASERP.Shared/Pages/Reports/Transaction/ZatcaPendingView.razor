@@ -3,6 +3,7 @@
 @inject ModelService Dialog;
 @inject AppBarState appBar;
 @inject TabService TabService
+@inject ISnackbar snackbar
 
 <PageTitle>@AppData.OEMAgency | Unit</PageTitle>
 <MudPaper Class="pa-2 ma-2" Elevation="3">
@@ -99,6 +100,7 @@
               <MudSpacer />
             @if (ShowSelected && ShowingFailed)
             {
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.Edit" OnClick="@(() => NavigateToVoucherAsync(selectedIcv))">@Localizer("EditInvoice")</MudButton>
                 <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="UploadSelected">@Localizer("UploadSelected")</MudButton>
             }
         </ToolBarContent>
@@ -109,6 +111,16 @@
             <PropertyColumn Property="x => x.InvICVDate" Title=@Localizer("DocDate") />
             <PropertyColumn Property="x => x.DetailedStatus" Title=@Localizer("Status") />
             <PropertyColumn Property="x => x.Message" Title=@Localizer("Message") />
+            <TemplateColumn Title=@Localizer("Actions") Sortable="false" Filterable="false">
+                <CellTemplate>
+                    @if (IsFailedInvoice(context.Item))
+                    {
+                        <MudTooltip Text=@Localizer("EditFailedInvoice")>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(() => NavigateToVoucherAsync(context.Item))" />
+                        </MudTooltip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
         <PagerContent>
             <MudDataGridPager T="ExInvoiceICV" PageSizeOptions="new int[] { 5, 10 }" />

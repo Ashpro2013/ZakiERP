@@ -94,7 +94,78 @@ public partial class ZatcaPendingView
     {
         selectedIcv = args.Item;
         ShowSelected = args.Item != null;
+        if (args.MouseEventArgs.Detail >= 2 && args.Item != null)
+        {
+            if (IsFailedInvoice(args.Item))
+            {
+                await NavigateToVoucherAsync(args.Item);
+            }
+            else
+            {
+                snackbar.Add(Localizer("OnlyFailedInvoicesCanBeNavigated"), Severity.Info);
+            }
+        }
         StateHasChanged();
+    }
+
+    public bool IsFailedInvoice(ExInvoiceICV? item)
+    {
+        if (item == null) return false;
+        if (ShowingFailed) return true;
+        if (!string.IsNullOrEmpty(item.DetailedStatus))
+        {
+            var status = item.DetailedStatus.Trim().ToUpperInvariant();
+            if (status == "PASS" || status == "REPORTED" || status == "CLEARED" || status == "SUCCESS" || status == "WARNING")
+                return false;
+            if (status.Contains("FAIL") || status.Contains("ERROR") || status == "REJECTED")
+                return true;
+        }
+        return false;
+    }
+
+    public bool IsCreditNote(ExInvoiceICV item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.VoucherType))
+        {
+            var type = item.VoucherType.Trim();
+            if (type.Contains("Credit", StringComparison.OrdinalIgnoreCase) ||
+                type.Contains("Return", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            if (type.Contains("Invoice", StringComparison.OrdinalIgnoreCase) ||
+                type.Contains("Sales", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+        return !IsInvoice;
+    }
+
+    public async Task NavigateToVoucherAsync(ExInvoiceICV? item)
+    {
+        if (item == null)
+        {
+            snackbar.Add(Localizer("PleaseSelectInvoice"), Severity.Warning);
+            return;
+        }
+
+        if (item.VoucherId <= 0)
+        {
+            snackbar.Add(Localizer("InvalidVoucherId"), Severity.Warning);
+            return;
+        }
+
+        if (!IsFailedInvoice(item))
+        {
+            snackbar.Add(Localizer("OnlyFailedInvoicesCanBeNavigated"), Severity.Info);
+            return;
+        }
+
+        bool isCredit = IsCreditNote(item);
+        string viewKey = isCredit ? "SalesInvoiceRtnTitle" : "SalesInvoiceTitle";
+
+        await CrudHelper.Navigation(TabService, item.VoucherId, viewKey, null, isFromZatcaReport: true);
     }
 
     private string RowStyleFunc(ExInvoiceICV item, int index)

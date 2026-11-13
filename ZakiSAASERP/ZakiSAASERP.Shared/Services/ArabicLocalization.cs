@@ -990,6 +990,12 @@ public static class ArabicLocalization
             "ValidateWithZatca" => AppData.IsArabic ? "التحقق عبر زاتكا" : "Validate with ZATCA",
             "ZatcaTaxpayerLookup" => AppData.IsArabic ? "التحقق من المكلفين لدى هيئة الزكاة والضريبة والجمارك" : "ZATCA Taxpayer Lookup",
             "ValidateVatNo" => AppData.IsArabic ? "التحقق من الرقم الضريبي" : "Validate VAT No",
+            "EditInvoice" => AppData.IsArabic ? "تعديل الفاتورة" : "Edit Invoice",
+            "EditFailedInvoice" => AppData.IsArabic ? "تعديل الفاتورة المتعثرة" : "Edit Failed Invoice",
+            "OnlyFailedInvoicesCanBeNavigated" => AppData.IsArabic ? "يمكن الانتقال والتعديل فقط للفواتير التي فشل رفعها إلى منصة زاتكا" : "Navigation and editing is only allowed for invoices that failed to upload to ZATCA portal",
+            "ZatcaCorrectionMode" => AppData.IsArabic ? "وضع تصحيح زاتكا" : "ZATCA Correction Mode",
+            "PleaseSelectInvoice" => AppData.IsArabic ? "الرجاء تحديد فاتورة" : "Please select an invoice",
+            "InvalidVoucherId" => AppData.IsArabic ? "معرف الفاتورة غير صالح" : "Invalid invoice ID",
             _ => key,
         };
     }

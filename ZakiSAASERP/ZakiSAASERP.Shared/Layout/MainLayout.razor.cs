@@ -264,7 +264,8 @@ public sealed partial class MainLayout
     public async Task AddTab(int Id, string name, string view,
     Dictionary<string, object>? parameters = null)
     {
-        if (!UserTabs.Any(x => x.Id == Id) && Id != 0)
+        var existingTab = UserTabs.FirstOrDefault(x => x.Id == Id);
+        if (existingTab == null && Id != 0)
         {
             UserTabs.Add(new TabView
             {
@@ -274,10 +275,18 @@ public sealed partial class MainLayout
                 Parameters = parameters
             });
         }
+        else if (existingTab != null && parameters != null)
+        {
+            existingTab.Parameters = parameters;
+        }
 
         UserIndex = UserTabs.FindIndex(x => x.Id == Id) + 1;
 
-        await DynamicTabs!.ActivatePanelAsync(UserIndex);
+        if (DynamicTabs != null)
+        {
+            await DynamicTabs.ActivatePanelAsync(UserIndex);
+        }
+        StateHasChanged();
     }
     private Dictionary<string, object>? GetParameters(TabView tab)
     {

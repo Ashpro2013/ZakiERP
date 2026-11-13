@@ -16,8 +16,12 @@
 
 
 <MudPaper Class="pa-2 ma-2" Elevation="3">
-    <MudStack Row="true">
+    <MudStack Row="true" AlignItems="AlignItems.Center">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("SalesInvoiceTitle")</MudText>
+        @if (IsFromZatcaReport)
+        {
+            <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Warning">@Localizer("ZatcaCorrectionMode")</MudChip>
+        }
         <MudSpacer />
         <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
