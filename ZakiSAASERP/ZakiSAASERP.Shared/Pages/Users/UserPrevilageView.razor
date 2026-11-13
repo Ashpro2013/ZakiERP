@@ -31,12 +31,36 @@
                     </MudStack>
                     <MudDataGrid Class="ma-2" T="ExUserPrivilege" Items="@userPrivilages" FixedHeader="true" Bordered="true" Dense="true" Height="500px" RowClick="@RowClicked">
                         <Columns>
-                            <PropertyColumn Property="x => x.Visible" Title="@Localizer("Visible")" />
+                            <TemplateColumn Title="@Localizer("Visible")" SortBy="x => x.Visible" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
+                                <CellTemplate>
+                                    <div class="d-flex justify-center" @onclick:stopPropagation="true">
+                                        <MudCheckBox T="bool" @bind-Value="context.Item.Visible" Color="Color.Primary" Dense="true" Size="Size.Small" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
                             <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
                             <PropertyColumn Property="x => x.MenuTitle" Title=@Localizer("Title") />
-                            <PropertyColumn Property="x => x.SaveData" Title=@Localizer("Save") />
-                            <PropertyColumn Property="x => x.EditData" Title=@Localizer("Edit") />
-                            <PropertyColumn Property="x => x.DeleteData" Title=@Localizer("Delete") />
+                            <TemplateColumn Title=@Localizer("Save") SortBy="x => x.SaveData" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
+                                <CellTemplate>
+                                    <div class="d-flex justify-center" @onclick:stopPropagation="true">
+                                        <MudCheckBox T="bool" @bind-Value="context.Item.SaveData" Color="Color.Success" Dense="true" Size="Size.Small" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title=@Localizer("Edit") SortBy="x => x.EditData" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
+                                <CellTemplate>
+                                    <div class="d-flex justify-center" @onclick:stopPropagation="true">
+                                        <MudCheckBox T="bool" @bind-Value="context.Item.EditData" Color="Color.Info" Dense="true" Size="Size.Small" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title=@Localizer("Delete") SortBy="x => x.DeleteData" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
+                                <CellTemplate>
+                                    <div class="d-flex justify-center" @onclick:stopPropagation="true">
+                                        <MudCheckBox T="bool" @bind-Value="context.Item.DeleteData" Color="Color.Error" Dense="true" Size="Size.Small" />
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
                         </Columns>
                     </MudDataGrid>
 
@@ -52,7 +76,13 @@
                                 <PropertyColumn Property="x => x.SL" Title=@Localizer("SL") />
                                 <PropertyColumn Property="x => x.EventCaption" Title=@Localizer("Function") />
                                 <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
-                                <SelectColumn Property="x => x.Enable" Title=@Localizer("Enable") />
+                                <TemplateColumn Title=@Localizer("Enable") SortBy="x => x.Enable" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
+                                    <CellTemplate>
+                                        <div class="d-flex justify-center" @onclick:stopPropagation="true">
+                                            <MudCheckBox T="bool" @bind-Value="context.Item.Enable" Color="Color.Primary" Dense="true" Size="Size.Small" />
+                                        </div>
+                                    </CellTemplate>
+                                </TemplateColumn>
                             </Columns>
                         </MudDataGrid>
                     </MudTabPanel>
