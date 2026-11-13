@@ -295,7 +295,7 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
             hdr.QuotationNo = await db.SalesQuotationHdrs.AsNoTracking().Where(x => x.SalesQuotationId == hdr.QuotationId).Select(x => x.SalesQuotationNo).FirstOrDefaultAsync();
         }
         var dtls = await db.SalesInvoiceDtls
-            .AsNoTracking().Include(x=> x.Unit)
+            .AsNoTracking().Include(x => x.Unit).Include(x => x.Item)
             .Where(x => x.FK_SalesInvoiceHdrId == Id)
             .ToListAsync();
         var mapped = dtls.Select(d => new TransactionDtls
@@ -304,6 +304,7 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
             HdrId = d.FK_SalesInvoiceHdrId,
             FK_ItemId = d.FK_ItemId,
             ItemName = d.ItemName,
+            ItemArabicName = d.Item?.ItemNameArabic ?? string.Empty,
             Barcode = d.Barcode,
             FK_UnitId = d.FK_UnitId,
             Quantity = d.Quantity,
