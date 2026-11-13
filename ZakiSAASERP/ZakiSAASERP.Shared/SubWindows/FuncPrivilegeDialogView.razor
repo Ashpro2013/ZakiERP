@@ -1,8 +1,8 @@
-﻿<MudDialog>
+<MudDialog>
     <DialogContent>
         <MudText>@funcDtl.EventName</MudText>
         <MudText>@funcDtl.MenuCaption</MudText>
-        <MudCheckBox @bind-Value="@funcDtl.Enable">Enable</MudCheckBox>
+        <MudSwitch @bind-Value="@funcDtl.Enable" Label="Enable" Color="Color.Primary" />
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>

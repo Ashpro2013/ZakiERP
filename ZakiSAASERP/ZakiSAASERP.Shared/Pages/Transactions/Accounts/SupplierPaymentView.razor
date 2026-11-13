@@ -249,7 +249,7 @@
                 }
                 <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="Delete" Disabled="@(hdr.PaymentId == 0)">@Localizer("Delete")</MudButton>
                  <MudButton Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Print" OnClick="PrintMethod" Disabled="@(hdr.PaymentId == 0)">@Localizer("Print")</MudButton>
-                 <MudCheckBox T="bool" @bind-Value="@IsPrintPreview" Label="@Localizer("PrintPreview")" Color="Color.Error" />
+                 <MudSwitch T="bool" @bind-Value="@IsPrintPreview" Label="@Localizer("PrintPreview")" Color="Color.Error" />
             </MudStack>
         </EditForm>
     </MudStack>

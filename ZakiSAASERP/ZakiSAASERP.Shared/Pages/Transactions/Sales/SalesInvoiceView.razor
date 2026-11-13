@@ -1,4 +1,4 @@
-﻿@page "/salesinvoice"
+@page "/salesinvoice"
 @using ZakiSAASERP.Models.Enums
 @inject IViewService api
 @inject IDialogService DialogService
@@ -266,8 +266,8 @@
                 <MudText>@Localizer("GrandTotal") </MudText>
                 <MudText>@salesInvoice.GrandTotal.ToString(strCurencyFormat) </MudText>
             </MudItem>
-            <MudItem xs="6" sm="2">
-                <MudCheckBox @bind-Value="IsSymplified" Color="Color.Secondary">@Localizer("Simplified Tax")</MudCheckBox>
+            <MudItem xs="6" sm="2" Class="d-flex align-center">
+                <MudSwitch @bind-Value="IsSymplified" Label="@Localizer("Simplified Tax")" Color="Color.Secondary" />
             </MudItem>
         </MudGrid>
         <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">

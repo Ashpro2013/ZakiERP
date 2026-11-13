@@ -1,9 +1,9 @@
-﻿<MudDialog>
+<MudDialog>
     <DialogContent>
-        <MudCheckBox @bind-Value="@privilegeDtl.Visible">Visible</MudCheckBox>
-        <MudCheckBox @bind-Value="@privilegeDtl.SaveData">Save</MudCheckBox>
-        <MudCheckBox @bind-Value="@privilegeDtl.EditData">Edit</MudCheckBox>
-        <MudCheckBox @bind-Value="@privilegeDtl.DeleteData">Delete</MudCheckBox>
+        <MudSwitch @bind-Value="@privilegeDtl.Visible" Label="Visible" Color="Color.Primary" />
+        <MudSwitch @bind-Value="@privilegeDtl.SaveData" Label="Save" Color="Color.Success" />
+        <MudSwitch @bind-Value="@privilegeDtl.EditData" Label="Edit" Color="Color.Info" />
+        <MudSwitch @bind-Value="@privilegeDtl.DeleteData" Label="Delete" Color="Color.Error" />
     </DialogContent>
     <DialogActions>
         <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>

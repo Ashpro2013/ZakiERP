@@ -1,4 +1,4 @@
-﻿@page "/subcategory"
+@page "/subcategory"
 @inject IViewService api
 @inject ModelService Dialog
 @inject IDialogService DialogService
@@ -104,12 +104,12 @@
 
                 <!-- Is Fixed Asset -->
                 <MudItem xs="12" sm="3" Class="d-flex align-center mt-5">
-                    <MudCheckBox T="bool"
-                                 Value="@(subcat.IsFixedAsset ?? false)"
-                                 ValueChanged="@(v => subcat.IsFixedAsset = v)"
-                                 Disabled="subcat.Category?.IsFixedAsset == true"
-                                 Color="Color.Primary"
-                                 Label="@Localizer("IsFixedAsset")" />
+                    <MudSwitch T="bool"
+                               Value="@(subcat.IsFixedAsset ?? false)"
+                               ValueChanged="@(v => subcat.IsFixedAsset = v)"
+                               Disabled="subcat.Category?.IsFixedAsset == true"
+                               Color="Color.Primary"
+                               Label="@Localizer("IsFixedAsset")" />
 
                 </MudItem>
 
@@ -232,7 +232,18 @@
             <PropertyColumn Property="x => x.Category.Code" Title="@Localizer("CategoryCode")" />
             <PropertyColumn Property="x => x.Category.Name" Title="@Localizer("CategoryName")" />
             <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")" />
-            <PropertyColumn Property="x => x.IsFixedAsset" Title="@Localizer("IsFixedAsset")" />
+            <TemplateColumn Title="@Localizer("IsFixedAsset")">
+                <CellTemplate>
+                    @if (context.Item.IsFixedAsset == true)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@Localizer("Yes")</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text">@Localizer("No")</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
 
         <PagerContent>

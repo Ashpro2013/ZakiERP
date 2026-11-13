@@ -74,11 +74,10 @@
 
                 @* Remember Me + Language toggle *@
                 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                    <MudCheckBox @bind-Value="IsRememberMe"
-                                 Label="Remember Me"
-                                 Color="Color.Secondary"
-                                 Dense="true"
-                                 Size="Size.Small" />
+                    <MudSwitch @bind-Value="IsRememberMe"
+                               Label="Remember Me"
+                               Color="Color.Secondary"
+                               Size="Size.Small" />
                     <MudRadioGroup @bind-Value="AppData.IsArabic">
                         <MudRadio Value="@(true)" Color="Color.Secondary" Dense="true">AR</MudRadio>
                         <MudRadio Value="@(false)" Color="Color.Secondary" Dense="true">EN</MudRadio>

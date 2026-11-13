@@ -1,4 +1,4 @@
-﻿@page "/branch"
+@page "/branch"
 @inject IViewService api
 @inject ModelService Dialog
 @inject IDialogService DialogService
@@ -41,7 +41,7 @@
                 <MudStack Row >
                     <MudTextField @ref="txtAccount" @bind-Value="strAccountName" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="@(e => KeyDown(e, 4))" />
                     <MudFab StartIcon="@Icons.Material.Rounded.Search" Color="Color.Info" Size="Size.Small" OnClick="OpenAccountSearchDialog" />
-                <MudCheckBox @bind-value="branchModel.ShowInLogin" Label="@Localizer("ShowInLogin")" />
+                    <MudSwitch @bind-Value="branchModel.ShowInLogin" Label="@Localizer("ShowInLogin")" Color="Color.Primary" />
                 </MudStack>
             </MudItem>
         </MudGrid>

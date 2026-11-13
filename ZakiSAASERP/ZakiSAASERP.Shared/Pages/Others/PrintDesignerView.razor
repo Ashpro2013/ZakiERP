@@ -52,7 +52,7 @@
                 <MudItem xs="12" sm="12">
                     <MudStack Row=true>
                         <MudTextField T="string" Label="Design Name" @bind-Value="hdr.DesignName" Clearable="true" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                        <MudCheckBox @bind-Value="@hdr.IsDefault">Default</MudCheckBox>
+                        <MudSwitch @bind-Value="@hdr.IsDefault" Label="Default" Color="Color.Success" />
                     </MudStack>
                 </MudItem>
                 <MudGrid>

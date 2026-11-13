@@ -247,23 +247,20 @@
             <MudDivider Class="my-3" />
             <MudText Class="section-title"><b>Barcode Settings</b></MudText>
                 <div class="d-flex gap-4 mb-2">
-                    <MudCheckBox T="bool"
-                                 @bind-Value="hdr.IsBorderIncluded"
-                                 Label="Border"
-                                 Size="Size.Small"
-                                 Color="Color.Default" />
+                    <MudSwitch T="bool"
+                               @bind-Value="hdr.IsBorderIncluded"
+                               Label="Border"
+                               Color="Color.Primary" />
 
-                    <MudCheckBox T="bool"
-                                 @bind-Value="hdr.GenerateLabel"
-                                 Label="Label"
-                                 Size="Size.Small"
-                                 Color="Color.Default" />
+                    <MudSwitch T="bool"
+                               @bind-Value="hdr.GenerateLabel"
+                               Label="Label"
+                               Color="Color.Primary" />
 
-                    <MudCheckBox T="bool"
-                                 @bind-Value="hdr.IsDefault"
-                                 Label="Default"
-                                 Size="Size.Small"
-                                 Color="Color.Default" />
+                    <MudSwitch T="bool"
+                               @bind-Value="hdr.IsDefault"
+                               Label="Default"
+                               Color="Color.Success" />
                 </div>
             <MudText Class="settings-label">Name:</MudText>
             <MudTextField @bind-Value="hdr.DesignName" Variant="Variant.Outlined" Margin="Margin.Dense" />

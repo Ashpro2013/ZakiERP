@@ -59,7 +59,7 @@
                 <MudText>@Localizer("ToDate")</MudText>
                 <MudDatePicker @bind-Date="lCompany!.SubscriptionEndingDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 <ValidationMessage For="@(() => lCompany.SubscriptionEndingDate)" />
-                <MudCheckBox @bind-value="lCompany.IsExpired" Label="@Localizer("Closed")" />
+                <MudSwitch @bind-Value="lCompany.IsExpired" Label="@Localizer("Closed")" Color="Color.Error" />
             </MudItem>
             <MudItem xs="12" sm="3">
                 <MudText>User Name</MudText>

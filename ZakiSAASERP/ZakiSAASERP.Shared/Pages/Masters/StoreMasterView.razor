@@ -41,8 +41,8 @@
                         </MudSelect>
                     }
                 </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudCheckBox @bind-Value="store.IsDefaultStore" Label="@Localizer("DefaultStore")" Disabled="@isDefaultCheckboxReadOnly" Color="Color.Primary" />
+                <MudItem xs="12" md="3" Class="d-flex align-center">
+                    <MudSwitch @bind-Value="store.IsDefaultStore" Label="@Localizer("DefaultStore")" Disabled="@isDefaultCheckboxReadOnly" Color="Color.Primary" />
                 </MudItem>
                  <MudItem xs="12" md="12">
                     <MudTextField @bind-Value="store.Remarks" Label="@Localizer("Remarks")" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2"/>
@@ -96,8 +96,14 @@
             </TemplateColumn>
      
             <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")" />
-            <PropertyColumn Property="x => x.IsDefaultStore" Title="@Localizer("IsDefaultStore")">
-            </PropertyColumn>
+            <TemplateColumn Title="@Localizer("IsDefaultStore")">
+                <CellTemplate>
+                    @if (context.Item.IsDefaultStore)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">@Localizer("Default")</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
         <PagerContent>
             <MudDataGridPager T="StoreMaster" PageSizeOptions="new int[]{5,10, 20}" />

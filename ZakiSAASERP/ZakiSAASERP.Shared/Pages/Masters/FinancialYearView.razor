@@ -1,4 +1,4 @@
-﻿@page "/financialyear"
+@page "/financialyear"
 @inject IViewService api
 @inject ModelService Dialog
 @inject IDialogService DialogService
@@ -38,7 +38,7 @@
                 <MudText>@Localizer("ToDate")</MudText>
                 <MudDatePicker @bind-Date="finYear!.ToDate" DateFormat="dd-MM-yyyy" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 <ValidationMessage For="@(() => finYear.ToDate)" />
-                <MudCheckBox @bind-value="finYear.IsClosed" Label="@Localizer("Closed")" />
+                <MudSwitch @bind-Value="finYear.IsClosed" Label="@Localizer("Closed")" Color="Color.Error" />
             </MudItem>
         </MudGrid>
         <MudStack Row="true" Spacing="3" Class="ma-2">

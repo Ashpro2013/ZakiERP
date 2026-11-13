@@ -75,8 +75,8 @@
                         </MudItem>
 
                          <MudItem xs="12" sm="12" Class="d-flex align-center gap-4">
-                            <MudCheckBox @bind-Value="supplier.IsCustomer" Label="@Localizer("IsCustomer")" Color="Color.Primary" />
-                            <MudCheckBox @bind-Value="supplier.NeedsFill" Label="@Localizer("NeedsFill")" Color="Color.Secondary" />
+                            <MudSwitch @bind-Value="supplier.IsCustomer" Label="@Localizer("IsCustomer")" Color="Color.Primary" />
+                            <MudSwitch @bind-Value="supplier.NeedsFill" Label="@Localizer("NeedsFill")" Color="Color.Warning" />
                             <MudSwitch @bind-Value="supplier.IsActive" Label="@Localizer("IsActive")" Color="Color.Success" />
                         </MudItem>
                         

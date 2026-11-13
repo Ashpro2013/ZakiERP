@@ -1,4 +1,4 @@
-﻿@page "/userprevilages"
+@page "/userprevilages"
 @inject IViewService api;
 @inject ModelService Dialog
 @inject ISnackbar Snackbar
@@ -23,11 +23,11 @@
             <MudTabs Class="ma-2" Elevation="3" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-2">
                 <MudTabPanel Text=@Localizer("User Privileges")>
                     <MudStack Row="true">
-                        <MudCheckBox T="bool" ValueChanged="EnableChecked">@Localizer("Enable")</MudCheckBox>
+                        <MudSwitch T="bool" ValueChanged="EnableChecked" Label="@Localizer("Enable")" Color="Color.Primary" />
                         <MudSpacer />
-                        <MudCheckBox T="bool" ValueChanged="SaveChecked">@Localizer("Save")</MudCheckBox>
-                        <MudCheckBox T="bool" ValueChanged="EditChecked">@Localizer("Edit")</MudCheckBox>
-                        <MudCheckBox T="bool" ValueChanged="DeleteChecked">@Localizer("Delete")</MudCheckBox>
+                        <MudSwitch T="bool" ValueChanged="SaveChecked" Label="@Localizer("Save")" Color="Color.Success" />
+                        <MudSwitch T="bool" ValueChanged="EditChecked" Label="@Localizer("Edit")" Color="Color.Info" />
+                        <MudSwitch T="bool" ValueChanged="DeleteChecked" Label="@Localizer("Delete")" Color="Color.Error" />
                     </MudStack>
                     <MudDataGrid Class="ma-2" T="ExUserPrivilege" Items="@userPrivilages" FixedHeader="true" Bordered="true" Dense="true" Height="500px" RowClick="@RowClicked">
                         <Columns>
@@ -45,7 +45,7 @@
                 {
                     <MudTabPanel Text=@Localizer("Functional Privileges")>
                         <MudGrid>
-                            <MudCheckBox T="bool" ValueChanged="FunEnableChecked">@Localizer("Enable")</MudCheckBox>
+                            <MudSwitch T="bool" ValueChanged="FunEnableChecked" Label="@Localizer("Enable")" Color="Color.Primary" />
                         </MudGrid>
                         <MudDataGrid Class="ma-2" T="ExFuncDetails" Items="@exFuncDetails" FixedHeader="true" Bordered="true" Dense="true" Height="600px" RowClick="@FuncRowClicked">
                             <Columns>

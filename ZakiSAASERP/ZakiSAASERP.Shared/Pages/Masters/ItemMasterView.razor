@@ -191,8 +191,8 @@
                                     id="txtNotes" @onkeydown="@(e => HandleMainFormKeyDown(e, "notes"))" />
                                 </MudItem>
                                 <MudItem xs="12" sm="3" Class="d-flex align-center gap-4">
-                                    <MudCheckBox T="bool?" @bind-Value="item.IsActive" Label="@Localizer("IsActive")" Color="Color.Primary" Dense="true" />
-                                    <MudCheckBox T="bool" @bind-Value="item.IsSaleable" Label="@Localizer("Saleable")" Color="Color.Secondary" Dense="true" />
+                                    <MudSwitch T="bool?" @bind-Value="item.IsActive" Label="@Localizer("IsActive")" Color="Color.Success" />
+                                    <MudSwitch T="bool" @bind-Value="item.IsSaleable" Label="@Localizer("Saleable")" Color="Color.Primary" />
                                 </MudItem>
                                 <MudItem xs="12" sm="4">
                                     <MudNumericField T="decimal" Value="@openingStock" Label="@Localizer("OpeningStock")" Disabled="true" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Format="@PermanentSettingsData.QuantityFormat" />

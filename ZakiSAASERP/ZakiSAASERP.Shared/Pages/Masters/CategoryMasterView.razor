@@ -1,4 +1,4 @@
-﻿@page "/category"
+@page "/category"
 @inject IViewService api
 @inject ModelService Dialog
 @inject IDialogService DialogService
@@ -61,11 +61,11 @@
                                   AutoGrow="true" @ref="txtRemarks" OnKeyDown="@(e => KeyDown(e, 4))" />
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex align-center mt-5">
-                    <MudCheckBox T="bool"
-                                 Value="category.IsFixedAsset"
-                                 ValueChanged="@(v => category.IsFixedAsset = v)"
-                                 Color="Color.Primary"
-                                 Label="@Localizer("IsFixedAsset")" />
+                    <MudSwitch T="bool"
+                               Value="category.IsFixedAsset"
+                               ValueChanged="@(v => category.IsFixedAsset = v)"
+                               Color="Color.Primary"
+                               Label="@Localizer("IsFixedAsset")" />
                 </MudItem>
             </MudGrid>
             <!-- Image Upload -->
@@ -159,7 +159,18 @@
             <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
             <PropertyColumn Property="x => x.NameArabic" Title="@Localizer("ArabicName")" />
             <PropertyColumn Property="x => x.Remarks" Title="@Localizer("Remarks")"  Sortable="false" Filterable="false"/>
-            <PropertyColumn Property="x => x.IsFixedAsset" Title="@Localizer("IsFixedAsset")" />
+            <TemplateColumn Title="@Localizer("IsFixedAsset")">
+                <CellTemplate>
+                    @if (context.Item.IsFixedAsset)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">@Localizer("Yes")</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text">@Localizer("No")</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
         <PagerContent>
             <MudDataGridPager T="CategoryMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />

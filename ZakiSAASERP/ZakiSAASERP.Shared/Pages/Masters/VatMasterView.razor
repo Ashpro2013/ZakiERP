@@ -82,7 +82,14 @@
             <PropertyColumn Property="x => x.Code" Title=@Localizer("Code") />
             <PropertyColumn Property="x => x.Name" Title=@Localizer("Name") />
             <PropertyColumn Property="x => x.Percentage" Format="N2" Title=@Localizer("Percentage") />
-            <PropertyColumn Property="x => x.IsDefault" Title=@Localizer("Default") />
+            <TemplateColumn Title=@Localizer("Default")>
+                <CellTemplate>
+                    @if (context.Item.IsDefault)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Filled">@Localizer("Default")</MudChip>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
             
         <PagerContent>

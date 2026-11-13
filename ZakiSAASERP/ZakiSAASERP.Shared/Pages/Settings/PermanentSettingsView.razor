@@ -1569,13 +1569,13 @@
                                             <TitleContent>
                                                 <div class="d-flex align-center justify-space-between" style="width: 100%;">
                                                     <div class="d-flex align-center">
-                                                        <MudCheckBox @bind-Value="topMenu.IsVisible" 
-                                                                    @bind-Value:after="MarkMenuDirty"
-                                                                    Disabled="!topMenu.CanToggle"
-                                                                    Color="Color.Primary"
-                                                                    Dense="true"
-                                                                    @onclick:stopPropagation="true"
-                                                                    Class="mr-2" />
+                                                        <MudSwitch @bind-Value="topMenu.IsVisible" 
+                                                                   @bind-Value:after="MarkMenuDirty"
+                                                                   Disabled="!topMenu.CanToggle"
+                                                                   Color="Color.Primary"
+                                                                   Size="Size.Small"
+                                                                   @onclick:stopPropagation="true"
+                                                                   Class="mr-2" />
                                                         <MudIcon Icon="@GetMenuIcon(topMenu.Name)" Size="Size.Small" Class="mr-2" Color="Color.Primary" />
                                                         <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">
                                                             @(AppData.IsArabic ? topMenu.ArabicCaption : topMenu.MenuCaption)
@@ -1599,12 +1599,12 @@
                                                             <MudPaper Class="mb-2 pa-2" Outlined="true" Elevation="0">
                                                                 <div class="d-flex align-center justify-space-between">
                                                                     <div class="d-flex align-center">
-                                                                        <MudCheckBox @bind-Value="childGroup.IsVisible" 
-                                                                                    @bind-Value:after="MarkMenuDirty"
-                                                                                    Disabled="!childGroup.CanToggle || !topMenu.IsVisible"
-                                                                                    Color="Color.Secondary"
-                                                                                    Dense="true"
-                                                                                    Class="mr-2" />
+                                                                        <MudSwitch @bind-Value="childGroup.IsVisible" 
+                                                                                   @bind-Value:after="MarkMenuDirty"
+                                                                                   Disabled="!childGroup.CanToggle || !topMenu.IsVisible"
+                                                                                   Color="Color.Secondary"
+                                                                                   Size="Size.Small"
+                                                                                   Class="mr-2" />
                                                                         <MudIcon Icon="@Icons.Material.Filled.FolderOpen" Size="Size.Small" Class="mr-2" Color="Color.Secondary" />
                                                                         <MudText Typo="Typo.body1" Style="font-weight: 500;">
                                                                             @(AppData.IsArabic ? childGroup.ArabicCaption : childGroup.MenuCaption)
@@ -1620,13 +1620,12 @@
                                                                     @foreach (var childItem in grandChildren)
                                                                     {
                                                                         <div class="d-flex align-center">
-                                                                            <MudCheckBox @bind-Value="childItem.IsVisible" 
-                                                                                        @bind-Value:after="MarkMenuDirty"
-                                                                                        Disabled="!childItem.CanToggle || !childGroup.IsVisible || !topMenu.IsVisible"
-                                                                                        Color="Color.Tertiary"
-                                                                                        Dense="true"
-                                                                                        Size="Size.Small"
-                                                                                        Class="mr-1" />
+                                                                            <MudSwitch @bind-Value="childItem.IsVisible" 
+                                                                                       @bind-Value:after="MarkMenuDirty"
+                                                                                       Disabled="!childItem.CanToggle || !childGroup.IsVisible || !topMenu.IsVisible"
+                                                                                       Color="Color.Tertiary"
+                                                                                       Size="Size.Small"
+                                                                                       Class="mr-1" />
                                                                             <MudIcon Icon="@Icons.Material.Filled.Description" 
                                                                                     Size="Size.Small" 
                                                                                     Class="mr-2" 
@@ -1646,12 +1645,12 @@
                                                         {
                                                             <!-- Direct child item without sub-items -->
                                                             <div class="d-flex align-center mb-2 pa-1">
-                                                                <MudCheckBox @bind-Value="childGroup.IsVisible" 
-                                                                            @bind-Value:after="MarkMenuDirty"
-                                                                            Disabled="!childGroup.CanToggle || !topMenu.IsVisible"
-                                                                            Color="Color.Secondary"
-                                                                            Dense="true"
-                                                                            Class="mr-2" />
+                                                                <MudSwitch @bind-Value="childGroup.IsVisible" 
+                                                                           @bind-Value:after="MarkMenuDirty"
+                                                                           Disabled="!childGroup.CanToggle || !topMenu.IsVisible"
+                                                                           Color="Color.Secondary"
+                                                                           Size="Size.Small"
+                                                                           Class="mr-2" />
                                                                 <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Small" Class="mr-2" Color="Color.Secondary" />
                                                                 <MudText Typo="Typo.body2" 
                                                                         Color="@(!childGroup.IsVisible || !topMenu.IsVisible ? Color.Default : Color.Default)"
