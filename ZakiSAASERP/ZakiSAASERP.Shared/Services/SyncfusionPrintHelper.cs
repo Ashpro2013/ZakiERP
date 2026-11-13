@@ -39,6 +39,23 @@ public class SyncfusionPrintHelper
     private readonly Dictionary<(float size, PdfFontStyle style, bool isTrueType), PdfFont> fontCache = new();
     #endregion
 
+    #region Layout & Language Helpers
+    private static bool IsDetailsArea(string? location)
+    {
+        if (string.IsNullOrWhiteSpace(location)) return false;
+        string norm = location.Trim().Replace(" ", "_");
+        return norm.Equals(InvoiceLabelPosition.Details_Area.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsArabicItemField(string? fieldText)
+    {
+        if (string.IsNullOrWhiteSpace(fieldText)) return false;
+        string trimmed = fieldText.Trim();
+        return trimmed.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase);
+    }
+    #endregion
+
     #region Method
     void DrawFooter(PdfPage currentPage, PdfGraphics Graphics, int page, int total)
     {
@@ -229,10 +246,10 @@ public class SyncfusionPrintHelper
             if (data == null) { return null; }
             string strProperty = dSettings.FieldText;
             object? obj = null;
-            var item = data.GetType().GetProperties().FirstOrDefault(x => x.Name == strProperty);
-            if (item == null && strProperty == "ItemArabicName")
+            var item = data.GetType().GetProperties().FirstOrDefault(x => x.Name.Equals(strProperty, StringComparison.OrdinalIgnoreCase));
+            if (item == null && (strProperty.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase) || strProperty.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase)))
             {
-                item = data.GetType().GetProperties().FirstOrDefault(x => x.Name == "ItemNameArabic");
+                item = data.GetType().GetProperties().FirstOrDefault(x => x.Name.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase) || x.Name.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase));
             }
             if (item == null) { return null; }
             var underlyingType = Nullable.GetUnderlyingType(item.PropertyType) ?? item.PropertyType;
@@ -350,8 +367,7 @@ public class SyncfusionPrintHelper
         {
             if (item.ControlType == "ValueControle" || item.ControlType == "ValueControl")
             {
-                if (item.Location == InvoiceLabelPosition.Details_Area.ToString() &&
-                    item.FieldText == "ItemArabicName")
+                if (IsDetailsArea(item.Location) && IsArabicItemField(item.FieldText))
                 {
                     return;
                 }
@@ -578,7 +594,7 @@ public class SyncfusionPrintHelper
             float px(float v) => converter.ConvertFromPixels(v, PdfGraphicsUnit.Point);
             if (item.ControlType == "ValueControl" || item.ControlType == "ValueControle")
             {
-                if (item.Location == InvoiceLabelPosition.Details_Area.ToString() && item.FieldText == "ItemArabicName" )
+                if (IsDetailsArea(item.Location) && IsArabicItemField(item.FieldText))
                 {
                     return;
                 }
@@ -1029,7 +1045,7 @@ public class SyncfusionPrintHelper
                 if (hasDetails)
                 {
                     var detailsStart = detailSettings
-                        .Where(x => x.FieldText != "ItemArabicName" )
+                        .Where(x => !IsArabicItemField(x.FieldText))
                         .OrderBy(x => x.PositionY)
                         .FirstOrDefault() ?? detailSettings[0];
                     iTopMargin = detailsStart.PositionY;
@@ -1048,8 +1064,8 @@ public class SyncfusionPrintHelper
             {
                 var currentRow = entDetails[linesPrinted];
 
-                var firstLineItems = detailSettings.Where(x => x.FieldText != "ItemArabicabic").ToList();
-                var arabicItem = detailSettings.FirstOrDefault(x => x.FieldText == "ItemArabirabic");
+                var firstLineItems = detailSettings.Where(x => !IsArabicItemField(x.FieldText)).ToList();
+                var arabicItem = detailSettings.FirstOrDefault(x => IsArabicItemField(x.FieldText));
 
                 // Calculate dynamic row height based on text measurement across firstLine columns
                 float maxMeasuredHeightPx = 0f;
@@ -1110,7 +1126,11 @@ public class SyncfusionPrintHelper
                     if (!string.IsNullOrWhiteSpace(arabicVal))
                     {
                         ItemFontAndStringFormatFindMethod(arabicItem, false, arabicVal);
-                        float arabicWidthPt = px(arabicItem.Width > 0 ? arabicItem.Width : 140);
+                        var itemNameItem = firstLineItems.FirstOrDefault(x => x.FieldText?.Trim().Equals("ItemName", StringComparison.OrdinalIgnoreCase) == true);
+                        float targetX = arabicItem.PositionX > 0 ? arabicItem.PositionX : (itemNameItem?.PositionX ?? 0);
+                        float targetWidth = arabicItem.Width > 0 ? arabicItem.Width : (itemNameItem?.Width ?? 140);
+
+                        float arabicWidthPt = px(targetWidth);
                         if (arabicWidthPt > 0 && font != null)
                         {
                             PdfStringFormat measureFormat = new PdfStringFormat
@@ -1123,9 +1143,9 @@ public class SyncfusionPrintHelper
                             float measuredPx = ptToPx(measuredPt.Height);
                             arabicHeight = Math.Max(arabicItem.Height > 0 ? (float)arabicItem.Height : 16f, measuredPx + 2f);
 
-                            float arabicX = px(arabicItem.PositionX);
+                            float arabicX = px(targetX);
                             float arabicY = px(iTopMargin) + px(line1Height);
-                            float arabicWidth = px(arabicItem.Width > 0 ? arabicItem.Width : 140);
+                            float arabicWidth = px(targetWidth);
                             float arabicHeightPt = px(arabicHeight);
 
                             graphics.DrawString(arabicVal, font, new PdfSolidBrush(Color.Black),
@@ -1344,7 +1364,7 @@ public class SyncfusionPrintHelper
                         else { continue; }
                         #endregion
                         iTopMargin = Ypos + (int)entDMaster!.SpaceBtwnLines;
-                        var detailsStart = ds.Where(x => x.FieldText != "ItemArabicName" ).OrderBy(x => x.PositionY).FirstOrDefault();
+                        var detailsStart = ds.Where(x => !IsArabicItemField(x.FieldText)).OrderBy(x => x.PositionY).FirstOrDefault();
                         if (detailsStart != null)
                         {
                             iTopMargin = detailsStart.PositionY;
@@ -1355,8 +1375,8 @@ public class SyncfusionPrintHelper
                     #region Details Method
                     if (ds.Any())
                     {
-                        var firstLineItems = ds.Where(x => x.FieldText != "ItemArabicName").ToList();
-                        var arabicItem = ds.FirstOrDefault(x => x.FieldText == "ItemArabicName");
+                        var firstLineItems = ds.Where(x => !IsArabicItemField(x.FieldText)).ToList();
+                        var arabicItem = ds.FirstOrDefault(x => IsArabicItemField(x.FieldText));
                         var currentRow = entDetails[linesPrinted];
                         int itemHeight = 18;
 
@@ -1385,9 +1405,10 @@ public class SyncfusionPrintHelper
                             if (!string.IsNullOrWhiteSpace(arabicVal))
                             {
                                 ItemFontAndStringFormatFindMethod(arabicItem, false, arabicVal);
-                                int arabicX = arabicItem.PositionX;
+                                var itemNameItem = firstLineItems.FirstOrDefault(x => x.FieldText?.Trim().Equals("ItemName", StringComparison.OrdinalIgnoreCase) == true);
+                                int arabicX = arabicItem.PositionX > 0 ? arabicItem.PositionX : (itemNameItem?.PositionX ?? 0);
                                 int arabicY = iTopMargin + line1Height;
-                                int arabicWidth = arabicItem.Width > 0 ? arabicItem.Width : 140;
+                                int arabicWidth = arabicItem.Width > 0 ? arabicItem.Width : (itemNameItem?.Width ?? 140);
 
                                 SizeF size = font != null ? font.MeasureString(arabicVal, arabicWidth, stringFormat) : new SizeF(arabicWidth, 16);
                                 arabicHeight = Math.Max(arabicItem.Height > 0 ? arabicItem.Height : 16, (int)Math.Ceiling(size.Height));

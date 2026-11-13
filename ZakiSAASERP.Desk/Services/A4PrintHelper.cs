@@ -203,7 +203,12 @@ public class A4PrintHelper
         }
 
         // 2. Determine Details Starting Y in Points
-        if (detailSettings.Any())
+        var startItem = detailSettings.Where(x => !IsArabicItemField(x.FieldText)).OrderBy(x => x.PositionY).FirstOrDefault();
+        if (startItem != null)
+        {
+            iTopMarginPt = Pt(startItem.PositionY);
+        }
+        else if (detailSettings.Any())
         {
             iTopMarginPt = Pt(detailSettings.Min(x => x.PositionY));
         }
@@ -235,15 +240,18 @@ public class A4PrintHelper
 
         int linesOnThisPage = 0;
 
+        var firstLineItems = detailSettings.Where(x => !IsArabicItemField(x.FieldText)).ToList();
+        var arabicItem = detailSettings.FirstOrDefault(x => IsArabicItemField(x.FieldText));
+
         // 3. Print Details Line by Line
         while (linesPrinted < entDetails.Count)
         {
             var currentRow = entDetails[linesPrinted];
             bool isLastLine = (linesPrinted == entDetails.Count - 1);
 
-            // Dynamically measure row height based on all columns (for multi-line item names)
+            // Dynamically measure row height based on first-line columns (for multi-line item names)
             float maxMeasuredHeightPt = 0f;
-            foreach (var col in detailSettings)
+            foreach (var col in firstLineItems)
             {
                 if (col.ControlType == "ValueControl" || col.ControlType == "ValueControle")
                 {
@@ -265,7 +273,27 @@ public class A4PrintHelper
                 }
             }
 
-            float rowHeightPt = Math.Max(defaultRowHeightPt, maxMeasuredHeightPt + 2f);
+            float line1HeightPt = Math.Max(defaultRowHeightPt, maxMeasuredHeightPt + 2f);
+            float arabicHeightPt = 0f;
+            string? arabicVal = null;
+            if (arabicItem != null)
+            {
+                arabicVal = GetValueFromEntity(currentRow, arabicItem)?.ToString();
+                if (!string.IsNullOrWhiteSpace(arabicVal))
+                {
+                    using Font fArabic = BuildFont(arabicItem);
+                    using StringFormat sfArabic = BuildFormat(arabicItem);
+                    var itemNameItem = firstLineItems.FirstOrDefault(x => x.FieldText?.Trim().Equals("ItemName", StringComparison.OrdinalIgnoreCase) == true);
+                    float targetWidth = arabicItem.Width > 0 ? Pt(arabicItem.Width) : (itemNameItem != null ? Pt(itemNameItem.Width) : Pt(140));
+                    if (targetWidth > 0)
+                    {
+                        SizeF measuredArabic = g.MeasureString(arabicVal, fArabic, (int)Math.Ceiling(targetWidth), sfArabic);
+                        arabicHeightPt = Math.Max(Pt(arabicItem.Height > 0 ? arabicItem.Height : 16), measuredArabic.Height + 2f);
+                    }
+                }
+            }
+
+            float rowHeightPt = line1HeightPt + arabicHeightPt;
 
             // Check if row exceeds page space
             if (linesOnThisPage >= linesPerPage || (iTopMarginPt + rowHeightPt >= maxTableYPt && !isLastLine))
@@ -277,22 +305,35 @@ public class A4PrintHelper
                 return;
             }
 
-            // Draw current detail row
-            foreach (var col in detailSettings)
+            // Draw current detail row (first line items)
+            foreach (var col in firstLineItems)
             {
                 if (!string.IsNullOrEmpty(col.Spec) && col.Spec.Equals("M", StringComparison.OrdinalIgnoreCase))
                 {
                     string? value = GetValueFromEntity(currentRow, col)?.ToString();
                     if (!string.IsNullOrEmpty(value))
                     {
-                        iTopMarginPt += rowHeightPt;
-                        DrawItem(g, col, currentRow, isFixedY: false, customHeightPt: rowHeightPt);
+                        iTopMarginPt += line1HeightPt;
+                        DrawItem(g, col, currentRow, isFixedY: false, customHeightPt: line1HeightPt);
                     }
                 }
                 else
                 {
-                    DrawItem(g, col, currentRow, isFixedY: false, customHeightPt: rowHeightPt);
+                    DrawItem(g, col, currentRow, isFixedY: false, customHeightPt: line1HeightPt);
                 }
+            }
+
+            // Draw Arabic Item Name below ItemName
+            if (arabicItem != null && !string.IsNullOrWhiteSpace(arabicVal))
+            {
+                var itemNameItem = firstLineItems.FirstOrDefault(x => x.FieldText?.Trim().Equals("ItemName", StringComparison.OrdinalIgnoreCase) == true);
+                float targetX = arabicItem.PositionX > 0 ? Pt(arabicItem.PositionX) : (itemNameItem != null ? Pt(itemNameItem.PositionX) : 0f);
+                float targetWidth = arabicItem.Width > 0 ? Pt(arabicItem.Width) : (itemNameItem != null ? Pt(itemNameItem.Width) : Pt(140));
+                float targetY = iTopMarginPt + line1HeightPt;
+
+                using Font fArabic = BuildFont(arabicItem);
+                using StringFormat sfArabic = BuildFormat(arabicItem);
+                g.DrawString(arabicVal, fArabic, Brushes.Black, new RectangleF(targetX, targetY, targetWidth, arabicHeightPt), sfArabic);
             }
 
             iTopMarginPt += rowHeightPt;
@@ -313,8 +354,21 @@ public class A4PrintHelper
     #endregion
 
     #region Rendering Engine
+    private static bool IsArabicItemField(string? fieldText)
+    {
+        if (string.IsNullOrWhiteSpace(fieldText)) return false;
+        string trimmed = fieldText.Trim();
+        return trimmed.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase);
+    }
+
     private void DrawItem(Graphics g, PrintDesignDtls item, object? data, bool isFixedY = true, float? customHeightPt = null)
     {
+        if (!isFixedY && IsArabicItemField(item.FieldText))
+        {
+            return;
+        }
+
         float x = Pt(item.PositionX);
         float y = isFixedY ? Pt(item.PositionY) : iTopMarginPt;
         float w = Pt(item.Width);
@@ -532,6 +586,10 @@ public class A4PrintHelper
             }
 
             var prop = data.GetType().GetProperties().FirstOrDefault(x => x.Name.Equals(strProperty, StringComparison.OrdinalIgnoreCase));
+            if (prop == null && IsArabicItemField(strProperty))
+            {
+                prop = data.GetType().GetProperties().FirstOrDefault(x => x.Name.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase) || x.Name.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase));
+            }
             if (prop == null) return null;
 
             var val = prop.GetValue(data, null);

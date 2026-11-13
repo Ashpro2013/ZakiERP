@@ -39,6 +39,116 @@ public class SyncfusionPrintHelper
     Dictionary<string, object>? ReportHdr;
     Dictionary<string, object>? ReportDtls;
     int ItemHeigt = 0;
+    private static readonly Dictionary<(float size, PdfFontStyle style, bool isTtf), PdfFont> fontCache = new();
+    private static byte[]? s_ArabicFontBytes;
+    private static readonly object s_FontLock = new();
+    #endregion
+
+    #region Font & Layout Helpers
+    public static bool ContainsArabic(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return false;
+        foreach (char c in text)
+        {
+            if (c >= 0x0600 && c <= 0x06FF) return true; // Arabic
+            if (c >= 0x0750 && c <= 0x077F) return true; // Arabic Supplement
+            if (c >= 0x08A0 && c <= 0x08FF) return true; // Arabic Extended-A
+            if (c >= 0xFB50 && c <= 0xFDFF) return true; // Arabic Presentation Forms-A
+            if (c >= 0xFE70 && c <= 0xFEFF) return true; // Arabic Presentation Forms-B
+        }
+        return false;
+    }
+
+    public static byte[]? GetArabicFontBytes()
+    {
+        if (s_ArabicFontBytes != null && s_ArabicFontBytes.Length > 0)
+            return s_ArabicFontBytes;
+
+        lock (s_FontLock)
+        {
+            if (s_ArabicFontBytes != null && s_ArabicFontBytes.Length > 0)
+                return s_ArabicFontBytes;
+
+            // 1. Check embedded resource in this assembly
+            try
+            {
+                var asm = typeof(SyncfusionPrintHelper).Assembly;
+                var resName = asm.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith("arial.ttf", StringComparison.OrdinalIgnoreCase)
+                                      || n.EndsWith("tahoma.ttf", StringComparison.OrdinalIgnoreCase)
+                                      || n.EndsWith("NotoSansArabic-Regular.ttf", StringComparison.OrdinalIgnoreCase)
+                                      || n.EndsWith("Amiri-Regular.ttf", StringComparison.OrdinalIgnoreCase));
+                if (resName != null)
+                {
+                    using var stream = asm.GetManifestResourceStream(resName);
+                    if (stream != null)
+                    {
+                        using var ms = new MemoryStream();
+                        stream.CopyTo(ms);
+                        s_ArabicFontBytes = ms.ToArray();
+                        return s_ArabicFontBytes;
+                    }
+                }
+            }
+            catch { }
+
+            // 2. Check candidate font files on disk
+            try
+            {
+                string[] candidatePaths = new[]
+                {
+                    Path.Combine(AppContext.BaseDirectory, "Resources", "Fonts", "arial.ttf"),
+                    Path.Combine(AppContext.BaseDirectory, "Resources", "Fonts", "tahoma.ttf"),
+                    Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "arial.ttf"),
+                    Path.Combine(AppContext.BaseDirectory, "fonts", "arial.ttf"),
+                    Path.Combine(AppContext.BaseDirectory, "arial.ttf"),
+
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "tahoma.ttf"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "times.ttf"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "segoeui.ttf"),
+                    @"C:\Windows\Fonts\arial.ttf",
+                    @"C:\Windows\Fonts\tahoma.ttf",
+
+                    "/system/fonts/NotoNaskhArabic-Regular.ttf",
+                    "/system/fonts/NotoSansArabic-Regular.ttf",
+                    "/system/fonts/DroidSansArabic.ttf",
+                    "/system/fonts/Roboto-Regular.ttf",
+
+                    "/usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf",
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                    "/usr/share/fonts/truetype/msttcorefonts/arial.ttf"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                    {
+                        s_ArabicFontBytes = File.ReadAllBytes(path);
+                        return s_ArabicFontBytes;
+                    }
+                }
+            }
+            catch { }
+
+            return null;
+        }
+    }
+
+    private static bool IsDetailsArea(string? location)
+    {
+        if (string.IsNullOrWhiteSpace(location)) return false;
+        string norm = location.Trim().Replace(" ", "_");
+        return norm.Equals(InvoiceLabelPosition.Details_Area.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsArabicItemField(string? fieldText)
+    {
+        if (string.IsNullOrWhiteSpace(fieldText)) return false;
+        string trimmed = fieldText.Trim();
+        return trimmed.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase);
+    }
     #endregion
 
     #region Method
@@ -49,24 +159,10 @@ public class SyncfusionPrintHelper
         Graphics.DrawString($"Page {page}/{total}", font,
             PdfBrushes.Black, new RectangleF(25, y, 200, 20));
     }
-    private void ItemFontAndStringFormatFindMethod(PrintDesignDtls item, bool isBold = false)
+    private void ItemFontAndStringFormatFindMethod(PrintDesignDtls item, bool isBold = false, string? textToRender = null)
     {
         try
         {
-            var fontfamily = new PdfFontFamily();
-            switch (item.Font)
-            {
-                case "Helvetica":
-                    fontfamily = PdfFontFamily.Helvetica; break;
-                case "ZapfDingbats":
-                    fontfamily = PdfFontFamily.ZapfDingbats; break;
-                case "Courier":
-                    fontfamily = PdfFontFamily.Courier; break;
-                case "Symbol":
-                    fontfamily = PdfFontFamily.Symbol; break;
-                default:
-                    fontfamily = PdfFontFamily.TimesRoman; break;
-            }
             PdfFontStyle pdfFontStyle = item.FStyle switch
             {
                 "Bold" => PdfFontStyle.Bold,
@@ -79,16 +175,68 @@ public class SyncfusionPrintHelper
             {
                 pdfFontStyle = PdfFontStyle.Bold;
             }
-            font = new PdfStandardFont(fontfamily, (int)item.FontSize, pdfFontStyle);
+
+            float fontSize = item.FontSize > 0 ? item.FontSize : 9f;
+            string fontName = (item.Font ?? "").ToLowerInvariant();
+            bool isSpecialSymbol = fontName == "symbol" || fontName == "zapfdingbats";
+            bool hasArabic = ContainsArabic(textToRender) || ContainsArabic(item.FieldText);
+
+            byte[]? ttfBytes = GetArabicFontBytes();
+            font = null;
+
+            if (ttfBytes != null && ttfBytes.Length > 0 && (hasArabic || !isSpecialSymbol))
+            {
+                var cacheKey = (fontSize, pdfFontStyle, true);
+                if (fontCache.TryGetValue(cacheKey, out var cachedTtf))
+                {
+                    font = cachedTtf;
+                }
+                else
+                {
+                    try
+                    {
+                        var ttf = new PdfTrueTypeFont(new MemoryStream(ttfBytes), fontSize, pdfFontStyle);
+                        fontCache[cacheKey] = ttf;
+                        font = ttf;
+                    }
+                    catch
+                    {
+                        // Fall back to standard font
+                    }
+                }
+            }
+
+            if (font == null)
+            {
+                var stdKey = (fontSize, pdfFontStyle, false);
+                if (fontCache.TryGetValue(stdKey, out var cachedStd))
+                {
+                    font = cachedStd;
+                }
+                else
+                {
+                    var fontfamily = fontName switch
+                    {
+                        "helvetica" => PdfFontFamily.Helvetica,
+                        "zapfdingbats" => PdfFontFamily.ZapfDingbats,
+                        "courier" => PdfFontFamily.Courier,
+                        "symbol" => PdfFontFamily.Symbol,
+                        _ => PdfFontFamily.TimesRoman
+                    };
+                    font = new PdfStandardFont(fontfamily, (int)fontSize, pdfFontStyle);
+                    fontCache[stdKey] = font;
+                }
+            }
 
             stringFormat = new PdfStringFormat();
-            stringFormat.Alignment = (item.Alignment ?? "") switch
+            stringFormat.Alignment = (item.Alignment ?? "").ToLowerInvariant() switch
             {
-                "Right" => PdfTextAlignment.Right,
-                "Center" => PdfTextAlignment.Center,
+                "right" => PdfTextAlignment.Right,
+                "center" => PdfTextAlignment.Center,
                 _ => PdfTextAlignment.Left
             };
             stringFormat.WordWrap = PdfWordWrapType.Word;
+            stringFormat.ComplexScript = true;
         }
         catch (Exception)
         {
@@ -187,9 +335,13 @@ public class SyncfusionPrintHelper
         try
         {
             if (data == null) { return null; }
-            string strProperty = dSettings.FieldText;
+            string strProperty = dSettings.FieldText?.Trim() ?? "";
             object? obj = null;
-            var item = data.GetType().GetProperties().FirstOrDefault(x => x.Name == strProperty);
+            var item = data.GetType().GetProperties().FirstOrDefault(x => x.Name.Equals(strProperty, StringComparison.OrdinalIgnoreCase));
+            if (item == null && IsArabicItemField(strProperty))
+            {
+                item = data.GetType().GetProperties().FirstOrDefault(x => x.Name.Equals("ItemArabicName", StringComparison.OrdinalIgnoreCase) || x.Name.Equals("ItemNameArabic", StringComparison.OrdinalIgnoreCase));
+            }
             if (item == null) { return null; }
             switch (item.PropertyType.Name)
             {
@@ -299,7 +451,13 @@ public class SyncfusionPrintHelper
         {
             if (item.ControlType == "ValueControle" || item.ControlType == "ValueControl")
             {
-                ItemFontAndStringFormatFindMethod(item);
+                if (IsDetailsArea(item.Location) && IsArabicItemField(item.FieldText))
+                {
+                    return;
+                }
+                object? sValObj = getValueFromEntity(obj, item);
+                string? sValStr = sValObj?.ToString();
+                ItemFontAndStringFormatFindMethod(item, false, sValStr);
                 if (item.Location != InvoiceLabelPosition.Details_Area.ToString() && item.Location != InvoiceLabelPosition.Footer_Section.ToString() && item.Location != InvoiceLabelPosition.Footer_Details.ToString() && item.Location != InvoiceLabelPosition.Footer_Bottom.ToString())
                 {
                     if (item.FieldText == "Logo")
@@ -501,7 +659,13 @@ public class SyncfusionPrintHelper
             float px(float v) => converter.ConvertFromPixels(v, PdfGraphicsUnit.Point);
             if (item.ControlType == "ValueControl" || item.ControlType == "ValueControle")
             {
-                ItemFontAndStringFormatFindMethod(item);
+                if (IsDetailsArea(item.Location) && IsArabicItemField(item.FieldText))
+                {
+                    return;
+                }
+                object? rawVal = getValueFromEntity(obj, item);
+                string? sText = rawVal?.ToString();
+                ItemFontAndStringFormatFindMethod(item, false, sText);
                 if (item.Location != InvoiceLabelPosition.Details_Area.ToString() && item.Location != InvoiceLabelPosition.Footer_Section.ToString() && item.Location != InvoiceLabelPosition.Footer_Details.ToString() && item.Location != InvoiceLabelPosition.Footer_Bottom.ToString())
                 {
                     if (item.FieldText == "Image" || item.FieldText == "HeaderImage" || item.FieldText == "FooterImage")
@@ -609,8 +773,6 @@ public class SyncfusionPrintHelper
                             }
                             else
                             {
-                                object? rawVal = getValueFromEntity(obj, item);
-                                string? sText = rawVal?.ToString();
                                 if (!string.IsNullOrEmpty(sText))
                                 {
                                     float cellH = (customHeight.HasValue && customHeight.Value > item.Height) ? customHeight.Value : item.Height;
@@ -908,7 +1070,8 @@ public class SyncfusionPrintHelper
 
                 if (hasDetails)
                 {
-                    iTopMargin = detailSettings[0].PositionY;
+                    var detailsStart = detailSettings.Where(x => !IsArabicItemField(x.FieldText)).OrderBy(x => x.PositionY).FirstOrDefault();
+                    iTopMargin = detailsStart != null ? detailsStart.PositionY : detailSettings[0].PositionY;
                 }
 
                 isPrinted = true;
@@ -924,24 +1087,28 @@ public class SyncfusionPrintHelper
             {
                 var currentRow = entDetails[linesPrinted];
 
-                // Calculate dynamic row height based on text measurement across all columns
+                var firstLineItems = detailSettings.Where(x => !IsArabicItemField(x.FieldText)).ToList();
+                var arabicItem = detailSettings.FirstOrDefault(x => IsArabicItemField(x.FieldText));
+
+                // Calculate dynamic row height based on text measurement across firstLine columns
                 float maxMeasuredHeightPx = 0f;
 
-                foreach (var item in detailSettings)
+                foreach (var item in firstLineItems)
                 {
                     if (item.ControlType == "ValueControl" || item.ControlType == "ValueControle")
                     {
                         string? val = getValueFromEntity(currentRow, item)?.ToString();
                         if (!string.IsNullOrEmpty(val))
                         {
-                            ItemFontAndStringFormatFindMethod(item);
+                            ItemFontAndStringFormatFindMethod(item, false, val);
                             float colWidthPt = px(item.Width);
                             if (colWidthPt > 0 && font != null)
                             {
                                 PdfStringFormat measureFormat = new PdfStringFormat
                                 {
                                     Alignment = stringFormat?.Alignment ?? PdfTextAlignment.Left,
-                                    WordWrap = PdfWordWrapType.Word
+                                    WordWrap = PdfWordWrapType.Word,
+                                    ComplexScript = true
                                 };
                                 SizeF measuredPt = font.MeasureString(val, colWidthPt, measureFormat);
                                 float measuredPx = ptToPx(measuredPt.Height);
@@ -954,9 +1121,9 @@ public class SyncfusionPrintHelper
                     }
                 }
 
-                rowHeight = Math.Max(defaultRowHeight, maxMeasuredHeightPx + 4f);
+                float line1Height = Math.Max(defaultRowHeight, maxMeasuredHeightPx + 4f);
 
-                foreach (var item in detailSettings)
+                foreach (var item in firstLineItems)
                 {
                     if (!string.IsNullOrEmpty(item.Spec) &&
                         item.Spec.Equals("M", StringComparison.OrdinalIgnoreCase))
@@ -965,15 +1132,52 @@ public class SyncfusionPrintHelper
 
                         if (!string.IsNullOrEmpty(value))
                         {
-                            iTopMargin += (int)Math.Ceiling(rowHeight);
-                            WritingMethod(item, currentRow, graphics, currentPage, customHeight: rowHeight);
+                            iTopMargin += (int)Math.Ceiling(line1Height);
+                            WritingMethod(item, currentRow, graphics, currentPage, customHeight: line1Height);
                         }
                     }
                     else
                     {
-                        WritingMethod(item, currentRow, graphics, currentPage, customHeight: rowHeight);
+                        WritingMethod(item, currentRow, graphics, currentPage, customHeight: line1Height);
                     }
                 }
+
+                float arabicHeight = 0f;
+                if (arabicItem != null)
+                {
+                    string? arabicVal = getValueFromEntity(currentRow, arabicItem)?.ToString();
+                    if (!string.IsNullOrWhiteSpace(arabicVal))
+                    {
+                        ItemFontAndStringFormatFindMethod(arabicItem, false, arabicVal);
+                        var itemNameItem = firstLineItems.FirstOrDefault(x => x.FieldText?.Trim().Equals("ItemName", StringComparison.OrdinalIgnoreCase) == true);
+                        float targetX = arabicItem.PositionX > 0 ? arabicItem.PositionX : (itemNameItem?.PositionX ?? 0);
+                        float targetWidth = arabicItem.Width > 0 ? arabicItem.Width : (itemNameItem?.Width ?? 140);
+
+                        float arabicWidthPt = px(targetWidth);
+                        if (arabicWidthPt > 0 && font != null)
+                        {
+                            PdfStringFormat measureFormat = new PdfStringFormat
+                            {
+                                Alignment = stringFormat?.Alignment ?? PdfTextAlignment.Left,
+                                WordWrap = PdfWordWrapType.Word,
+                                ComplexScript = true
+                            };
+                            SizeF measuredPt = font.MeasureString(arabicVal, arabicWidthPt, measureFormat);
+                            float measuredPx = ptToPx(measuredPt.Height);
+                            arabicHeight = Math.Max(arabicItem.Height > 0 ? (float)arabicItem.Height : 16f, measuredPx + 2f);
+
+                            float arabicX = px(targetX);
+                            float arabicY = px(iTopMargin) + px(line1Height);
+                            float arabicWidth = px(targetWidth);
+                            float arabicHeightPt = px(arabicHeight);
+
+                            graphics.DrawString(arabicVal, font, new PdfSolidBrush(Color.Black),
+                                new RectangleF(arabicX, arabicY, arabicWidth, arabicHeightPt), stringFormat);
+                        }
+                    }
+                }
+
+                rowHeight = line1Height + arabicHeight;
             }
 
             // ===========================
@@ -1182,40 +1386,73 @@ public class SyncfusionPrintHelper
                         else { continue; }
                         #endregion
                         iTopMargin = Ypos + (int)entDMaster!.SpaceBtwnLines;
+                        var detailsStart = ds.Where(x => !IsArabicItemField(x.FieldText)).OrderBy(x => x.PositionY).FirstOrDefault();
+                        if (detailsStart != null)
+                        {
+                            iTopMargin = detailsStart.PositionY;
+                        }
                     }
                     isPrinted = true;
 
                     #region Details Method
                     if (ds.Any())
                     {
-                        foreach (var item in ds)
+                        var firstLineItems = ds.Where(x => !IsArabicItemField(x.FieldText)).ToList();
+                        var arabicItem = ds.FirstOrDefault(x => IsArabicItemField(x.FieldText));
+                        var currentRow = entDetails[linesPrinted];
+                        int itemHeight = 18;
+
+                        foreach (var item in firstLineItems)
                         {
                             if (item.Spec == null || item.Spec != "M")
                             {
-                                NormalWritingMethod(item, entDetails[linesPrinted], graphics, currentPage);
+                                NormalWritingMethod(item, currentRow, graphics, currentPage);
                             }
                             else
                             {
-                                string? sValue = getValueFromEntity(entDetails[linesPrinted], item)!.ToString();
-                                if (sValue != null && sValue != string.Empty)
+                                string? sValue = getValueFromEntity(currentRow, item)!.ToString();
+                                if (sValue is not null && sValue != string.Empty)
                                 {
-                                    NormalWritingMethod(item, entDetails[linesPrinted], graphics, currentPage);
+                                    NormalWritingMethod(item, currentRow, graphics, currentPage);
                                 }
-                                iTopMargin = iTopMargin + item.FontSize + (int)entDMaster!.SpaceBtwnLines;
-
-                                //
-                                iIndex++;
-                                linesPrinted++;
-                                if (linesPrinted == entDetails.Count)
-                                {
-                                    isLast = true;
-                                }
-                                InMethodnextPage(document, ref section, ref currentPage, ref clientSize, ref graphics);
-                                //
                             }
-
                         }
 
+                        int line1Height = Math.Max(itemHeight, 18);
+                        int arabicHeight = 0;
+
+                        if (arabicItem != null)
+                        {
+                            string? arabicVal = getValueFromEntity(currentRow, arabicItem)?.ToString();
+                            if (!string.IsNullOrWhiteSpace(arabicVal))
+                            {
+                                ItemFontAndStringFormatFindMethod(arabicItem, false, arabicVal);
+                                var itemNameItem = firstLineItems.FirstOrDefault(x => x.FieldText?.Trim().Equals("ItemName", StringComparison.OrdinalIgnoreCase) == true);
+                                int arabicX = arabicItem.PositionX > 0 ? arabicItem.PositionX : (itemNameItem?.PositionX ?? 0);
+                                int arabicY = iTopMargin + line1Height;
+                                int arabicWidth = arabicItem.Width > 0 ? arabicItem.Width : (itemNameItem?.Width ?? 140);
+
+                                SizeF size = font != null ? font.MeasureString(arabicVal, arabicWidth, stringFormat) : new SizeF(arabicWidth, 16);
+                                arabicHeight = Math.Max(arabicItem.Height > 0 ? arabicItem.Height : 16, (int)Math.Ceiling(size.Height));
+
+                                if (font != null)
+                                {
+                                    graphics.DrawString(arabicVal, font, new PdfSolidBrush(Color.Black),
+                                        new RectangleF(arabicX, arabicY, arabicWidth, arabicHeight), stringFormat);
+                                }
+                            }
+                        }
+
+                        int rowTotalHeight = line1Height + arabicHeight;
+                        iTopMargin = iTopMargin + rowTotalHeight + (int)entDMaster!.SpaceBtwnLines;
+
+                        iIndex++;
+                        linesPrinted++;
+                        if (linesPrinted == entDetails.Count)
+                        {
+                            isLast = true;
+                        }
+                        InMethodnextPage(document, ref section, ref currentPage, ref clientSize, ref graphics);
                     }
                     #endregion
                 }

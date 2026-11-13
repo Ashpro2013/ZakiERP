@@ -413,7 +413,18 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
             case "Details_Area":
             case "Report_Details_Area":
                 ControlTypeList = ["ValueControl"];
+                sControleType = "ValueControl";
                 break;
+        }
+
+        if (sPosition == "Details_Area" || sPosition == "Report_Details_Area")
+        {
+            sControleType = "ValueControl";
+        }
+
+        if (!string.IsNullOrEmpty(sControleType))
+        {
+            OnControlTypeChanged(sControleType);
         }
     }
     private void OnControlTypeChanged(string cType)
@@ -442,6 +453,8 @@ public partial class PrintDesignerView : ITabAware, IAsyncDisposable
                     case "Details_Area":
                         var trans = new TransactionDtls();
                         listControl = trans.GetProperties();
+                        if (!listControl.Contains("ItemArabicName")) listControl.Add("ItemArabicName");
+                        if (!listControl.Contains("ItemNameArabic")) listControl.Add("ItemNameArabic");
                         break;
                     case "Footer_Details":
                         var fDetails = new FooterDetails();

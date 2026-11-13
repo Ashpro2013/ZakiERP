@@ -44,6 +44,12 @@ public class TransactionDtls : INotifyPropertyChanged
         set { if (_itemArabicName != value) { _itemArabicName = value; OnPropertyChanged(); } }
     }
 
+    public string? ItemNameArabic
+    {
+        get => _itemArabicName;
+        set { if (_itemArabicName != value) { _itemArabicName = value; OnPropertyChanged(); } }
+    }
+
     private string? _barcode;
     public string? Barcode
     {

@@ -432,6 +432,14 @@ public static class PrintDesignSampleData
             FK_BranchId = hdr.FK_BranchId
         };
 
+        foreach (var c in controls)
+        {
+            if (!string.IsNullOrEmpty(c.Location))
+            {
+                c.Location = c.Location.Replace(' ', '_');
+            }
+        }
+
         return new PrintParameterDTO(printHdr, controls, tranHdr, details, party, company, footerDetails);
     }
 }
