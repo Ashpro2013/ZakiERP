@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -65,53 +65,40 @@ namespace ZakiSAASERP.MySQL.Migrations.TenantDB
                 nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateTable(
-                name: "ShiftClosingRecords",
-                columns: table => new
-                {
-                    ShiftClosingRecordId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ShiftCode = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    UserName = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Terminal = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    FK_BranchId = table.Column<int>(type: "int", nullable: true),
-                    DateFrom = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DateTo = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    OpeningBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalSale = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalSalesReturn = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    NetSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCashSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCardSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCreditSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalPayment = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCashReceipt = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCardReceipt = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ExpectedCash = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ActualCash = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Difference = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    NewOpeningBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Remarks = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ShiftClosingRecords", x => x.ShiftClosingRecordId);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.Sql(@"
+                CREATE TABLE IF NOT EXISTS `ShiftClosingRecords` (
+                    `ShiftClosingRecordId` int NOT NULL AUTO_INCREMENT,
+                    `ShiftCode` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+                    `UserName` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+                    `Terminal` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+                    `FK_BranchId` int NULL,
+                    `DateFrom` datetime(6) NULL,
+                    `DateTo` datetime(6) NULL,
+                    `OpeningBalance` decimal(18,2) NOT NULL,
+                    `TotalSale` decimal(18,2) NOT NULL,
+                    `TotalSalesReturn` decimal(18,2) NOT NULL,
+                    `NetSales` decimal(18,2) NOT NULL,
+                    `TotalCashSales` decimal(18,2) NOT NULL,
+                    `TotalCardSales` decimal(18,2) NOT NULL,
+                    `TotalCreditSales` decimal(18,2) NOT NULL,
+                    `TotalPayment` decimal(18,2) NOT NULL,
+                    `TotalCashReceipt` decimal(18,2) NOT NULL,
+                    `TotalCardReceipt` decimal(18,2) NOT NULL,
+                    `ExpectedCash` decimal(18,2) NOT NULL,
+                    `ActualCash` decimal(18,2) NOT NULL,
+                    `Difference` decimal(18,2) NOT NULL,
+                    `NewOpeningBalance` decimal(18,2) NOT NULL,
+                    `Status` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+                    `Remarks` varchar(500) CHARACTER SET utf8mb4 NULL,
+                    `CreatedAt` datetime(6) NOT NULL,
+                    CONSTRAINT `PK_ShiftClosingRecords` PRIMARY KEY (`ShiftClosingRecordId`)
+                ) CHARACTER SET=utf8mb4;");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ShiftClosingRecords");
+            migrationBuilder.Sql(@"DROP TABLE IF EXISTS `ShiftClosingRecords`;");
 
             migrationBuilder.DropColumn(
                 name: "VoucherNo",

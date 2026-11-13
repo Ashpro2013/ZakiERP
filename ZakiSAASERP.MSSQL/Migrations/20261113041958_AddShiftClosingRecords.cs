@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -49,47 +49,54 @@ namespace ZakiSAASERP.MSSQL.Migrations
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
-            migrationBuilder.CreateTable(
-                name: "ShiftClosingRecords",
-                columns: table => new
-                {
-                    ShiftClosingRecordId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ShiftCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Terminal = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    FK_BranchId = table.Column<int>(type: "int", nullable: true),
-                    DateFrom = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DateTo = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    OpeningBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalSale = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalSalesReturn = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    NetSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCashSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCardSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCreditSales = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalPayment = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCashReceipt = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalCardReceipt = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ExpectedCash = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ActualCash = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Difference = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    NewOpeningBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Remarks = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ShiftClosingRecords", x => x.ShiftClosingRecordId);
-                });
+            migrationBuilder.Sql(@"
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'ShiftClosingRecord') AND NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ShiftClosingRecords')
+BEGIN
+    EXEC sp_rename 'ShiftClosingRecord', 'ShiftClosingRecords';
+END
+
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ShiftClosingRecords')
+BEGIN
+    CREATE TABLE [ShiftClosingRecords] (
+        [ShiftClosingRecordId] int NOT NULL IDENTITY(1, 1),
+        [ShiftCode] nvarchar(50) NOT NULL,
+        [UserName] nvarchar(100) NOT NULL,
+        [Terminal] nvarchar(100) NOT NULL,
+        [FK_BranchId] int NULL,
+        [DateFrom] datetime2 NULL,
+        [DateTo] datetime2 NULL,
+        [OpeningBalance] decimal(18,2) NOT NULL,
+        [TotalSale] decimal(18,2) NOT NULL,
+        [TotalSalesReturn] decimal(18,2) NOT NULL,
+        [NetSales] decimal(18,2) NOT NULL,
+        [TotalCashSales] decimal(18,2) NOT NULL,
+        [TotalCardSales] decimal(18,2) NOT NULL,
+        [TotalCreditSales] decimal(18,2) NOT NULL,
+        [TotalPayment] decimal(18,2) NOT NULL,
+        [TotalCashReceipt] decimal(18,2) NOT NULL,
+        [TotalCardReceipt] decimal(18,2) NOT NULL,
+        [ExpectedCash] decimal(18,2) NOT NULL,
+        [ActualCash] decimal(18,2) NOT NULL,
+        [Difference] decimal(18,2) NOT NULL,
+        [NewOpeningBalance] decimal(18,2) NOT NULL,
+        [Status] nvarchar(50) NOT NULL,
+        [Remarks] nvarchar(500) NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        CONSTRAINT [PK_ShiftClosingRecords] PRIMARY KEY ([ShiftClosingRecordId])
+    );
+END
+");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ShiftClosingRecords");
+            migrationBuilder.Sql(@"
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'ShiftClosingRecords')
+BEGIN
+    DROP TABLE [ShiftClosingRecords];
+END
+");
 
             migrationBuilder.AlterColumn<string>(
                 name: "ItemNameArabic",
