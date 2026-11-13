@@ -295,7 +295,7 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
             hdr.QuotationNo = await db.SalesQuotationHdrs.AsNoTracking().Where(x => x.SalesQuotationId == hdr.QuotationId).Select(x => x.SalesQuotationNo).FirstOrDefaultAsync();
         }
         var dtls = await db.SalesInvoiceDtls
-            .AsNoTracking()
+            .AsNoTracking().Include(x=> x.Unit)
             .Where(x => x.FK_SalesInvoiceHdrId == Id)
             .ToListAsync();
         var mapped = dtls.Select(d => new TransactionDtls
@@ -322,7 +322,8 @@ public class SalesInvoiceRepo : ISalesInvoiceRepo
             RefDtlsId = d.FK_DeliveryNoteDtlsId,
             RefType = d.FK_DeliveryNoteDtlsId.HasValue ? "DeliveryNote" : null,
             FK_DeliveryNoteDtlsId = d.FK_DeliveryNoteDtlsId,
-            DeliveredQty = d.DeliveredQty
+            DeliveredQty = d.DeliveredQty,
+            UnitName = d.Unit?.Name ?? string.Empty
         }).ToList();
         return new SalesInvoiceDTO(hdr, mapped, null);
     }

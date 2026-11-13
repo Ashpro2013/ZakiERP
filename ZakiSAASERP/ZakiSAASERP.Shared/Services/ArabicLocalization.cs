@@ -986,6 +986,9 @@ public static class ArabicLocalization
             "ProductNotAvailable" => AppData.IsArabic ? "الصنف غير متوفر" : "Product Not Available",
             "ProductInBarcodeNotAvailable" => AppData.IsArabic ? "الصنف بالباركود المعطى غير متوفر" : "The Product in the given Barcode is not available",
             "DoYouWantNewProduct" => AppData.IsArabic ? "هل تريد إضافة صنف جديد؟" : "Do you want new product?",
+            "ValidateWithZatca" => AppData.IsArabic ? "التحقق عبر زاتكا" : "Validate with ZATCA",
+            "ZatcaTaxpayerLookup" => AppData.IsArabic ? "التحقق من المكلفين لدى هيئة الزكاة والضريبة والجمارك" : "ZATCA Taxpayer Lookup",
+            "ValidateVatNo" => AppData.IsArabic ? "التحقق من الرقم الضريبي" : "Validate VAT No",
             _ => key,
         };
     }
