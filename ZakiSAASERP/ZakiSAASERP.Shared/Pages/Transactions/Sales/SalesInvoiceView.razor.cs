@@ -11,6 +11,7 @@ public partial class SalesInvoiceView : ITabAware
 
     #region Variables
     [Parameter] public int TabId { get; set; }
+    [Parameter] public bool IsFromZatcaReport { get; set; } = false;
     [Inject] IBrowserViewportService ResizeService { get; set; }
     List<TransactionDtls> entTransactions = new();
     private string _searchString;
@@ -770,6 +771,11 @@ public partial class SalesInvoiceView : ITabAware
             }
             else
             {
+                if (PermanentSettingsData.ZatcaPhase == 2 && !IsFromZatcaReport)
+                {
+                    snackbar.Add("You cannot edit or delete this transaction as it has been e-Invoiced.", Severity.Warning);
+                    return;
+                }
                 var result = await api.UpdateSalesInvoice(new SalesInvoiceDTO(salesInvoice, entTransactions, AppData.CompanyDetails!));
                 if (result.IsSuccess)
                 {
@@ -794,6 +800,12 @@ public partial class SalesInvoiceView : ITabAware
     }
     async Task Cancel()
     {
+        if (PermanentSettingsData.ZatcaPhase == 2 && !IsFromZatcaReport)
+        {
+            snackbar.Add("You cannot edit or delete this transaction as it has been e-Invoiced.", Severity.Warning);
+            return;
+        }
+
         if (!gridSettings.EnableCancel)
         {
             await Dialog.DialogMethod(Localizer("CancelDisabledInSettings"));

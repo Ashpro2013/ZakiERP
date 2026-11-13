@@ -8,6 +8,7 @@ public partial class SalesInvoiceRtnView : ITabAware
 {
     #region Variables
     [Parameter] public int TabId { get; set; }
+    [Parameter] public bool IsFromZatcaReport { get; set; } = false;
     [Inject] IBrowserViewportService ResizeService { get; set; }
     List<TransactionDtls> entTransactions = new();
     private string _searchString;
@@ -572,6 +573,11 @@ public partial class SalesInvoiceRtnView : ITabAware
             }
             else
             {
+                if (PermanentSettingsData.ZatcaPhase == 2 && !IsFromZatcaReport)
+                {
+                    snackbar.Add("You cannot edit or delete this transaction as it has been e-Invoiced.", Severity.Warning);
+                    return;
+                }
                 var result = await api.UpdateSalesInvoiceRtn(new SalesInvoiceRtnDTO(salesInvoiceRtn, entTransactions, PermanentSettingsData.ZatcaPhase, AppData.CompanyDetails!));
                 if (!result.IsSuccess)
                 {
@@ -634,6 +640,11 @@ public partial class SalesInvoiceRtnView : ITabAware
         if (privilege is not null && !privilege.DeleteData)
         {
             await Dialog.DialogMethod(Localizer("No...Privilege"));
+            return;
+        }
+        if (PermanentSettingsData.ZatcaPhase == 2 && !IsFromZatcaReport)
+        {
+            snackbar.Add("You cannot edit or delete this transaction as it has been e-Invoiced.", Severity.Warning);
             return;
         }
         if (salesInvoiceRtn.SalesInvoiceRtnId == 0 || !entTransactions.Any()) { return; }

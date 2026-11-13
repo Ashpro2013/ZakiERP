@@ -406,6 +406,7 @@ public static class ArabicLocalization
             "RowEmptyError" => AppData.IsArabic ? "الصف لا يمكن أن يكون فارغًا" : "Row cannot be empty / Select Item",
             "QtyPerUnit" => AppData.IsArabic ? "الكمية لكل وحدة" : "Qty/Unit",
             "CreateItem" => AppData.IsArabic ? "إنشاء عنصر" : "Create Item",
+            "OpenItemMasterTab" => AppData.IsArabic ? "فتح في تبويب جديد" : "Open in Tab",
 
             //Sales Quotation 
             "Header" => AppData.IsArabic ? "رأس" : "Header",

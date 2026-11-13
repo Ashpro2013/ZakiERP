@@ -11,7 +11,10 @@
         <MudStack Row="true">
             <MudText Typo="Typo.h5">@Localizer("SupplierMaster")</MudText>
             <MudSpacer />
-            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            @if (!IsDialog)
+            {
+                <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            }
         </MudStack>
         
         <EditForm EditContext="editContext">
@@ -23,21 +26,21 @@
                 <MudGrid>
                     <MudItem xs="12" sm="2">
                         <MudText>@Localizer("Code")</MudText>
-                        <MudTextField @bind-Value="supplier.Code" 
-                                     Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtCode" 
-                                     ReadOnly="IsAutoCode && supplier.SupplierId == 0"
-                                     Adornment="IsAutoCode ? Adornment.End : Adornment.None"
-                                     AdornmentIcon="@Icons.Material.Filled.AutoAwesome"
-                                     AdornmentColor="Color.Secondary" />
+                        <MudTextField @bind-Value="supplier.Code"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtCode"
+                                      ReadOnly="IsAutoCode && supplier.SupplierId == 0"
+                                      Adornment="IsAutoCode ? Adornment.End : Adornment.None"
+                                      AdornmentIcon="@Icons.Material.Filled.AutoAwesome"
+                                      AdornmentColor="Color.Secondary" />
                         <ValidationMessage For="@(() => supplier.Code)" />
                     </MudItem>
                     
                     <MudItem xs="12" sm="5">
-                         <MudText>@Localizer("Name")</MudText>
-                         <MudStack Row="true">
+                        <MudText>@Localizer("Name")</MudText>
+                        <MudStack Row="true">
                             <MudTextField @bind-Value="supplier.Name" Variant="Variant.Outlined" Margin="Margin.Dense" @ref="txtName" />
                             <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("Name"))" />
-                         </MudStack>
+                        </MudStack>
                         <ValidationMessage For="@(() => supplier.Name)" />
                     </MudItem>
                     <MudItem xs="12" sm="5">
@@ -54,7 +57,7 @@
                 <MudTabPanel Text="@Localizer("GeneralInfo")">
                     <MudGrid>
                         <!-- Bill Type -->
-                         <MudItem xs="12" sm="4">
+                        <MudItem xs="12" sm="4">
                             <MudText>@Localizer("SuppBillType")</MudText>
                             <MudSelect @bind-Value="supplier.SuppBillType" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
                                 <MudSelectItem Value="@("Cash")">@Localizer("Cash")</MudSelectItem>
@@ -68,13 +71,13 @@
                         <!-- Purchaser Moved Here -->
                         <MudItem xs="12" sm="4">
                             <MudText>@Localizer("Purchaser")</MudText>
-                             <MudStack Row="true" Spacing="1">
+                            <MudStack Row="true" Spacing="1">
                                 <MudTextField @bind-Value="strPurchaserName" Variant="Variant.Outlined" Margin="Margin.Dense" OnKeyDown="OnPurchaserKeyDown" ReadOnly="true" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Search" Color="Color.Info" Size="Size.Small" OnClick="OpenPurchaserDialog" />
                             </MudStack>
                         </MudItem>
 
-                         <MudItem xs="12" sm="12" Class="d-flex align-center gap-4">
+                        <MudItem xs="12" sm="12" Class="d-flex align-center gap-4">
                             <MudSwitch @bind-Value="supplier.IsCustomer" Label="@Localizer("IsCustomer")" Color="Color.Primary" />
                             <MudSwitch @bind-Value="supplier.NeedsFill" Label="@Localizer("NeedsFill")" Color="Color.Warning" />
                             <MudSwitch @bind-Value="supplier.IsActive" Label="@Localizer("IsActive")" Color="Color.Success" />
@@ -85,7 +88,7 @@
 
                 <!-- Tab 2: Address & ZATCA -->
                 <MudTabPanel Text="@Localizer("Address")">
-                     <MudGrid Class="mb-3">
+                    <MudGrid Class="mb-3">
                         <!-- Country -->
                         <MudItem xs="12" sm="4">
                             <MudText>@Localizer("Country")</MudText>
@@ -98,8 +101,8 @@
 
                         <!-- Identification Moved Here -->
                         <MudItem xs="12" sm="4">
-                             <MudText>@Localizer("Identification")</MudText>
-                             <MudSelect @bind-Value="supplier.Identification" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                            <MudText>@Localizer("Identification")</MudText>
+                            <MudSelect @bind-Value="supplier.Identification" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
                                 <MudSelectItem Value="@("CRN")">@Localizer("CRN")</MudSelectItem>
                                 <MudSelectItem Value="@("TIN")">@Localizer("TIN")</MudSelectItem>
                                 <MudSelectItem Value="@("MOM")">@Localizer("MOM")</MudSelectItem>
@@ -120,25 +123,25 @@
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("IdentificationNo"))" />
                             </MudStack>
                         </MudItem>
-                         <MudItem xs="12" sm="4">
+                        <MudItem xs="12" sm="4">
                             <MudText>@Localizer("IdentificationNoArabic")</MudText>
                             <MudTextField @bind-Value="supplier.IdentificationNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                         <!-- VAT Details Moved Here -->
-                         <MudItem xs="12" sm="3">
-                             <MudText>@Localizer("VatNo")</MudText>
+                        <MudItem xs="12" sm="3">
+                            <MudText>@Localizer("VatNo")</MudText>
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.VatNo" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("VatNo"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="12" sm="3">
-                             <MudText>@Localizer("VatNoArabic")</MudText>
+                            <MudText>@Localizer("VatNoArabic")</MudText>
                             <MudTextField @bind-Value="supplier.VatNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
-                         <MudItem xs="12" sm="3">
-                             <MudText>@Localizer("GroupVat")</MudText>
+                        <MudItem xs="12" sm="3">
+                            <MudText>@Localizer("GroupVat")</MudText>
                             <MudTextField @bind-Value="supplier.GroupVat" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
                         <MudItem xs="12" sm="3"></MudItem>
@@ -151,100 +154,100 @@
                     <MudGrid>
                         <!-- Building No -->
                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("BuildingNo")</MudText>
+                            <MudText Typo="Typo.caption">@Localizer("BuildingNo")</MudText>
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.BuildingNo" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("BuildingNo"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("BuildingNoArabic")</MudText>
+                            <MudText Typo="Typo.caption">@Localizer("BuildingNoArabic")</MudText>
                             <MudTextField @bind-Value="supplier.BuildingNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                         <!-- Street Name -->
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("StreetName")</MudText>
-                             <MudStack Row="true">
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("StreetName")</MudText>
+                            <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.StreetName" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("StreetName"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("StreetNameArabic")</MudText>
-                             <MudTextField @bind-Value="supplier.StreetNameArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            <MudText Typo="Typo.caption">@Localizer("StreetNameArabic")</MudText>
+                            <MudTextField @bind-Value="supplier.StreetNameArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                         <!-- District -->
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("District")</MudText>
-                             <MudStack Row="true">
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("District")</MudText>
+                            <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.District" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("District"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("DistrictArabic")</MudText>
-                             <MudTextField @bind-Value="supplier.DistrictArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            <MudText Typo="Typo.caption">@Localizer("DistrictArabic")</MudText>
+                            <MudTextField @bind-Value="supplier.DistrictArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                         <!-- City -->
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("City")</MudText>
-                             <MudStack Row="true">
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("City")</MudText>
+                            <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.City" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("City"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("CityArabic")</MudText>
-                             <MudTextField @bind-Value="supplier.CityArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            <MudText Typo="Typo.caption">@Localizer("CityArabic")</MudText>
+                            <MudTextField @bind-Value="supplier.CityArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
                         
                         <!-- Postal Code -->
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("PostalCode")</MudText>
-                             <MudStack Row="true">
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("PostalCode")</MudText>
+                            <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.PostalCode" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("PostalCode"))" />
                             </MudStack>
                         </MudItem>
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("PostalCodeArabic")</MudText>
-                             <MudTextField @bind-Value="supplier.PostalCodeArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("PostalCodeArabic")</MudText>
+                            <MudTextField @bind-Value="supplier.PostalCodeArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
         
                         <!-- Additional No -->
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("AdditionalNo")</MudText>
-                             <MudStack Row="true">
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("AdditionalNo")</MudText>
+                            <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.AdditionalNo" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("AdditionalNo"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("AdditionalNoArabic")</MudText>
-                             <MudTextField @bind-Value="supplier.AdditionalNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                            <MudText Typo="Typo.caption">@Localizer("AdditionalNoArabic")</MudText>
+                            <MudTextField @bind-Value="supplier.AdditionalNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                         <!-- Other Seller -->
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("OtherSellerNo")</MudText>
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("OtherSellerNo")</MudText>
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.OtherSellerNo" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("OtherSellerNo"))" />
                             </MudStack>
                         </MudItem>
-                         <MudItem xs="6" sm="3">
-                             <MudText Typo="Typo.caption">@Localizer("OtherSellerNoArabic")</MudText>
+                        <MudItem xs="6" sm="3">
+                            <MudText Typo="Typo.caption">@Localizer("OtherSellerNoArabic")</MudText>
                             <MudTextField @bind-Value="supplier.OtherSellerNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                     </MudGrid>
                     
-                     <MudDivider Class="my-2" />
+                    <MudDivider Class="my-2" />
                      
-                     <MudGrid>
+                    <MudGrid>
                         <!-- Address Row -->
                         <MudItem xs="12" sm="5">
                             <MudText>@Localizer("Address")</MudText>
@@ -252,14 +255,14 @@
                                 <MudTextField @bind-Value="supplier.Address" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("Address"))" />
                             </MudStack>
-                             <ValidationMessage For="@(() => supplier.Address)" />
+                            <ValidationMessage For="@(() => supplier.Address)" />
                         </MudItem>
                         <MudItem xs="12" sm="5">
                             <MudText>@Localizer("AddressArabic")</MudText>
                             <MudTextField @bind-Value="supplier.AddressArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
                         </MudItem>
                         
-                         <!-- Neighbourhood Row -->
+                        <!-- Neighbourhood Row -->
                         <MudItem xs="12" sm="5">
                             <MudText>@Localizer("Neighbourhood")</MudText>
                             <MudStack Row="true">
@@ -271,53 +274,53 @@
                             <MudText>@Localizer("NeighbourhoodArabic")</MudText>
                             <MudTextField @bind-Value="supplier.NeighbourhoodArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
-                     </MudGrid>
+                    </MudGrid>
                 </MudTabPanel>
 
                 <!-- Tab 3: Contact Info -->
                 <MudTabPanel Text="@Localizer("ContactInfo")">
-                     <MudGrid>
-                         <!-- Contact Person -->
+                    <MudGrid>
+                        <!-- Contact Person -->
                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("ContactPerson")</MudText>
-                             <MudStack Row="true">
+                            <MudText>@Localizer("ContactPerson")</MudText>
+                            <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.Contact" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("Contact"))" />
                             </MudStack>
                         </MudItem>
                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("ContactArabic")</MudText>
+                            <MudText>@Localizer("ContactArabic")</MudText>
                             <MudTextField @bind-Value="supplier.ContactArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
                         <!-- Telephone -->
                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("Telephone")</MudText>
+                            <MudText>@Localizer("Telephone")</MudText>
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.Telephone" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("Telephone"))" />
                             </MudStack>
                         </MudItem>
-                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("PhoneArabic")</MudText>
+                        <MudItem xs="12" sm="5">
+                            <MudText>@Localizer("PhoneArabic")</MudText>
                             <MudTextField @bind-Value="supplier.PhoneArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
-                         <!-- Mobile -->
+                        <!-- Mobile -->
                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("Mobile")</MudText>
+                            <MudText>@Localizer("Mobile")</MudText>
                             <MudStack Row="true">
                                 <MudTextField @bind-Value="supplier.Mobile" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                 <MudFab StartIcon="@Icons.Material.Rounded.Translate" Color="Color.Info" Size="Size.Small" OnClick="@(() => Translate("Mobile"))" />
                             </MudStack>
                         </MudItem>
-                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("MobileArabic")</MudText>
+                        <MudItem xs="12" sm="5">
+                            <MudText>@Localizer("MobileArabic")</MudText>
                             <MudTextField @bind-Value="supplier.MobileArabic" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
-                         <MudItem xs="12" sm="5">
-                             <MudText>@Localizer("Email")</MudText>
+                        <MudItem xs="12" sm="5">
+                            <MudText>@Localizer("Email")</MudText>
                             <MudTextField @bind-Value="supplier.Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
                         </MudItem>
 
@@ -328,11 +331,11 @@
                 <MudTabPanel Text="@Localizer("Financials")">
                     <MudGrid>
                         <MudItem xs="6" sm="2">
-                             <MudText>@Localizer("CreditLimit")</MudText>
+                            <MudText>@Localizer("CreditLimit")</MudText>
                             <MudNumericField @bind-Value="supplier.CreditLimit" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Min="0" Format="@PermanentSettingsData.CurrencyFormat" />
                         </MudItem>
-                         <MudItem xs="6" sm="2">
-                             <MudText>@Localizer("CreditDays")</MudText>
+                        <MudItem xs="6" sm="2">
+                            <MudText>@Localizer("CreditDays")</MudText>
                             <MudNumericField @bind-Value="supplier.CreditDays" Variant="Variant.Outlined" Margin="Margin.Dense" HideSpinButtons="true" Min="0" />
                         </MudItem>
                     </MudGrid>
@@ -345,7 +348,7 @@
                 <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="@(supplier.SupplierId == 0 ? Color.Success : Color.Info)" StartIcon="@(supplier.SupplierId == 0 ? Icons.Material.Filled.Save : Icons.Material.Filled.Update)" OnClick="SaveOrUpdate" Disabled="@_isSaving">
                     @if (_isSaving)
                     {
-                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
                         <MudText Class="ms-2">@Localizer("Processing")</MudText>
                     }
                     else
@@ -367,20 +370,20 @@
 <!-- List Grid (hidden in dialog mode) -->
 @if (!IsDialog)
 {
-<MudDataGrid T="SupplierMaster" @ref="grid" ServerData="LoadServerData" RowClick="@RowClicked" Dense="true" Bordered="true" Class="ma-2" Elevation="3" SortMode="SortMode.Multiple">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">@Localizer("SupplierList")</MudText>
-        <MudSpacer />
-        <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Class="mx-3" />
-    </ToolBarContent>
-    <Columns>
-        <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
-        <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
-        <PropertyColumn Property="x => x.Mobile" Title="@Localizer("Mobile")" />
-        <PropertyColumn Property="x => x.VatNo" Title="@Localizer("VatNo")" />
-    </Columns>
-    <PagerContent>
-        <MudDataGridPager T="SupplierMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
-    </PagerContent>
-</MudDataGrid>
+    <MudDataGrid T="SupplierMaster" @ref="grid" ServerData="LoadServerData" RowClick="@RowClicked" Dense="true" Bordered="true" Class="ma-2" Elevation="3" SortMode="SortMode.Multiple">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer("SupplierList")</MudText>
+            <MudSpacer />
+            <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Class="mx-3" />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Code" Title="@Localizer("Code")" />
+            <PropertyColumn Property="x => x.Name" Title="@Localizer("Name")" />
+            <PropertyColumn Property="x => x.Mobile" Title="@Localizer("Mobile")" />
+            <PropertyColumn Property="x => x.VatNo" Title="@Localizer("VatNo")" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="SupplierMaster" PageSizeOptions="new int[] { 5, 10, 20 }" />
+        </PagerContent>
+    </MudDataGrid>
 }

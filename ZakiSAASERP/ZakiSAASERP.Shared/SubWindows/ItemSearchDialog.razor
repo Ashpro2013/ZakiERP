@@ -1,6 +1,9 @@
 @using ZakiSAASERP.Models.Masters
 @using ZakiSAASERP.Models.DTO
 @inject IViewService api
+@inject ModelService Dialog
+@inject TabService TabService
+@inject ISnackbar Snackbar
 @using ZakiSAASERP.Shared.Services
 
 <MudDialog>
@@ -59,7 +62,8 @@
     </DialogContent>
 
     <DialogActions>
-        <MudButton OnClick="NavigateToItemMaster" Variant="Variant.Filled" Color="Color.Tertiary" Class="mr-auto">@Localizer("CreateItem")</MudButton>
+        <MudButton OnClick="NavigateToItemMaster" Variant="Variant.Filled" Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.Add" Class="mr-auto">@Localizer("CreateItem")</MudButton>
+        <MudButton OnClick="OpenItemMasterTab" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.OpenInNew" Class="mr-2">@Localizer("OpenItemMasterTab")</MudButton>
         <MudButton OnClick="CloseDialog" Color="Color.Secondary">@Localizer("Close")</MudButton>
         <MudButton OnClick="Submit" Color="Color.Primary">@Localizer("Ok")</MudButton>
     </DialogActions>
@@ -142,16 +146,60 @@
         MudDialog.Cancel();
     }
 
-    [CascadingParameter] public MainLayout Layout { get; set; }
-
     async Task NavigateToItemMaster()
     {
-        if (Layout is not null)
+        try
         {
-            // ID=5 for ItemMaster as per NavMenu
-            await Layout.AddTab(5, Localizer("ItemMaster"), "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView");
+            var extraParams = new Dictionary<string, object?>
+            {
+                { "InitialBarcode", strSearch },
+                { "CloseOnSave", true }
+            };
+
+            var result = await Dialog.MasterCreationDialogMethod<ZakiSAASERP.Shared.Pages.Masters.ItemMasterView>(extraParams, MaxWidth.ExtraLarge);
+            if (result != null && !result.Canceled && (result.Data is CommonModel || AppData.PassingValue != null))
+            {
+                var createdModel = result.Data as CommonModel ?? AppData.PassingValue;
+                if (createdModel != null && createdModel.Id > 0)
+                {
+                    var createdItem = await api.GetItemById(createdModel.Id);
+                    if (createdItem != null)
+                    {
+                        MudDialog.Close(DialogResult.Ok(createdItem));
+                        return;
+                    }
+                }
+                await grid.ReloadServerData();
+            }
         }
-        MudDialog.Cancel();
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Opening Item Master: {ex.Message}", Severity.Info);
+            await OpenItemMasterTab();
+        }
+    }
+
+    async Task OpenItemMasterTab()
+    {
+        try
+        {
+            MudDialog.Cancel();
+            var menu = AppData.menuList?.FirstOrDefault(m => m.AssemblyName == "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView" || m.Name == "ItemMaster");
+            int menuId = menu?.Id ?? 421;
+            string menuName = menu != null ? (AppData.IsArabic ? menu.ArabicCaption : menu.MenuCaption) : Localizer("ItemMaster");
+            string menuView = menu?.AssemblyName ?? "ZakiSAASERP.Shared.Pages.Masters.ItemMasterView";
+
+            await TabService.OpenTabAsync(new TabRequest
+            {
+                Id = menuId,
+                Name = menuName,
+                View = menuView
+            });
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error navigating to Item Master: {ex.Message}", Severity.Error);
+        }
     }
 
     void Submit()

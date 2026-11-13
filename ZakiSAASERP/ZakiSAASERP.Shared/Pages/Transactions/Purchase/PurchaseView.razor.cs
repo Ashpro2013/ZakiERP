@@ -189,7 +189,6 @@ public partial class PurchaseView : ComponentBase, ITabAware
             await Dialog.DialogMethod(ex.Message);
         }
     }
-
     async Task Cancel()
     {
         var existingId = purchase.PurchaseId;
@@ -202,15 +201,18 @@ public partial class PurchaseView : ComponentBase, ITabAware
             }
             try
             {
-                var result = await api.DeletePurchase(existingId);
-                if (result.Id > 0)
+                if (await Dialog.DeleteDialogMethod(Localizer("CancelDialog")))
                 {
-                    Snackbar.Add(Localizer("DeletedSuccessfully"), Severity.Success);
-                    await NewClick();
-                }
-                else
-                {
-                    Snackbar.Add(result.Message, Severity.Error);
+                    var result = await api.DeletePurchase(existingId);
+                    if (result.Id > 0)
+                    {
+                        Snackbar.Add(Localizer("DeletedSuccessfully"), Severity.Success);
+                        await NewClick();
+                    }
+                    else
+                    {
+                        Snackbar.Add(result.Message, Severity.Error);
+                    }
                 }
             }
             catch (Exception ex)
