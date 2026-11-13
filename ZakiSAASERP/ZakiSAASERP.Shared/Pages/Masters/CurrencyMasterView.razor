@@ -11,7 +11,7 @@
     <MudStack Row="true">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("CurrencyMaster")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
 
     <EditForm Model="currencyMaster" OnValidSubmit="SaveOrUpdate">
@@ -38,7 +38,7 @@
 
             <MudItem xs="12" sm="4">
                 <MudText>@Localizer("Rate")</MudText>
-                <MudTextField TValue="string"
+                <MudTextField T="string"
                               @bind-Value="rateText"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"

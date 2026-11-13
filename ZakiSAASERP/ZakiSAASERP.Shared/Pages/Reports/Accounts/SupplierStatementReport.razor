@@ -18,7 +18,7 @@
             <MudStack Row="true">
                 <MudText Typo="Typo.h6">@Localizer("Supplier Statement")</MudText>
                 <MudSpacer />
-                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+                <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
             </MudStack>
         </CardHeaderContent>
     </MudCardHeader>
@@ -104,7 +104,7 @@
         <MudTd DataLabel="Balance" Style="font-weight:bold">@PermanentSettingsData.FormatCurrency(context.Balance)</MudTd>
     </RowTemplate>
     <FooterContent>
-        <MudTd ColSpan="7" Style="font-weight:bold; text-align:right">@Localizer("Total")</MudTd>
+        <MudTd colspan="7" Style="font-weight:bold; text-align:right">@Localizer("Total")</MudTd>
         <MudTd Style="font-weight:bold; color:green">@PermanentSettingsData.FormatCurrency(reportData.Sum(x => x.Debit))</MudTd>
         <MudTd Style="font-weight:bold; color:red">@PermanentSettingsData.FormatCurrency(reportData.Sum(x => x.Credit))</MudTd>
         <MudTd Style="font-weight:bold">@PermanentSettingsData.FormatCurrency(reportData.LastOrDefault()?.Balance)</MudTd>

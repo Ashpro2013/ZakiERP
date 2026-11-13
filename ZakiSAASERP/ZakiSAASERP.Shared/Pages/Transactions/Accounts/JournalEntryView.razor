@@ -13,7 +13,7 @@
         <MudStack Row="true">
             <MudText Typo="Typo.h5">@Localizer("JournalEntry")</MudText>
             <MudSpacer />
-            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
         </MudStack>
         <MudOverlay Visible="_isLoading" DarkBackground="true" Absolute="true" ZIndex="9999">
             <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
@@ -88,7 +88,7 @@
                         
                         <TemplateColumn Title="@Localizer("AccountType")" Sortable="false" Style="width: 150px;">
                             <CellTemplate Context="det">
-                                <MudSelect T="int" @bind-Value="det.Item.FilterAccountTypeId" Margin="Margin.Dense" Variant="Variant.Text" DisableUnderLine="true" FullWidth="true" Dense="true" Style="font-size: 12px">
+                                <MudSelect T="int" @bind-Value="det.Item.FilterAccountTypeId" Margin="Margin.Dense" Variant="Variant.Text" Underline="false" FullWidth="true" Dense="true" Style="font-size: 12px">
                                     <MudSelectItem Value="0">@Localizer("All")</MudSelectItem>
                                     <MudSelectItem Value="1">@Localizer("Customer")</MudSelectItem>
                                     <MudSelectItem Value="2">@Localizer("Supplier")</MudSelectItem>
@@ -105,7 +105,7 @@
                         
                          <TemplateColumn Title="@Localizer("VAT %")" Sortable="false">
                             <CellTemplate Context="det">
-                                <MudSelect T="int?" Value="det.Item.VatId" ValueChanged="@((int? v) => { det.Item.VatId = v; CalculateVat(det.Item); })" Margin="Margin.Dense" Variant="Variant.Text" DisableUnderLine="true">
+                                <MudSelect T="int?" Value="det.Item.VatId" ValueChanged="@((int? v) => { det.Item.VatId = v; CalculateVat(det.Item); })" Margin="Margin.Dense" Variant="Variant.Text" Underline="false">
                                     <MudSelectItem T="int?" Value="@(null)">@Localizer("None")</MudSelectItem>
                                     @if(vats is not null)
                                     {
@@ -186,7 +186,7 @@
 
                         <TemplateColumn CellClass="d-flex justify-end" Sortable="false">
                             <CellTemplate Context="det">
-                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveRow(det.Item))" Color="Color.Error" Title="@Localizer("Delete")" />
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveRow(det.Item))" Color="Color.Error" title="@Localizer("Delete")" />
                             </CellTemplate>
                         </TemplateColumn>
                     </Columns>
@@ -266,7 +266,7 @@
         <ToolBarContent>
             <MudText Typo="Typo.h6">@Localizer("JournalEntryList")</MudText>
             <MudSpacer />
-            <MudTextField T="string" Value="@searchText" ValueChanged="OnSearch" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+            <MudTextField Margin="Margin.Dense" T="string" Value="@searchText" ValueChanged="OnSearch" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Class="mx-3" />
         </ToolBarContent>
         <Columns>
             <PropertyColumn Property="x => x.JournalNo" Title="@Localizer("JournalNo")" />

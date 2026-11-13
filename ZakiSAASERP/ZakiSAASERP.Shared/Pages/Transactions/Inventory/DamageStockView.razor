@@ -13,7 +13,7 @@
     <MudStack Row="true" Class="pa-2 ma-2">
         <MudText Typo="Typo.h5">@Localizer("Damage Stock")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
     <EditForm Model="@hdr" OnValidSubmit="@(async (context) => await SaveOrUpdate())">
         <DataAnnotationsValidator />
@@ -91,7 +91,7 @@
                         </MudItem>
                         <div class="d-flex justify-end">
                             <MudItem Class="fixed">
-                                <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="@(() => AddLineItem())">Add</MudFab>
+                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="@(() => AddLineItem())" Label="Add" />
                             </MudItem>
                         </div>
                     </MudGrid>
@@ -104,7 +104,7 @@
             <MudGrid>
                 <MudItem xs="6" sm="2">
                     <MudText>@Localizer("TotalValue")</MudText>
-                    <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@PermanentSettingsData.FormatCurrency(hdr.TotalValue)</MudText>
+                    <MudText>@PermanentSettingsData.FormatCurrency(hdr.TotalValue)</MudText>
                 </MudItem>
             </MudGrid>
 

@@ -18,6 +18,7 @@
   <Project Path="ZakiSAASERP.PSQL/ZakiSAASERP.PSQL.csproj" Id="9fa73c4d-398d-4e6e-bbe5-4fd329de624e" />
   <Project Path="ZakiSAASERP.Repo/ZakiSAASERP.Repo.csproj" />
   <Project Path="ZakiSAASERP.SQlite/ZakiSAASERP.SQlite.csproj" />
+  <Project Path="ZakiSAASERP.Tests/ZakiSAASERP.Tests.csproj" />
   <Project Path="ZakiSAASERP.ZatcaEngine/ZakiSAASERP.ZatcaEngine.csproj" />
   <Project Path="ZakiSAASERP/ZakiSAASERP.Shared/ZakiSAASERP.Shared.csproj" />
   <Project Path="ZakiSAASERP/ZakiSAASERP.Web.Client/ZakiSAASERP.Web.Client.csproj" />

@@ -13,7 +13,7 @@
         <MudStack Row="true">
             <MudText Typo="Typo.h5">@Localizer("VehicleMaster")</MudText>
             <MudSpacer />
-            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
         </MudStack>
 
         <EditForm Model="vehicle" OnValidSubmit="SaveOrUpdate" @ref="form">
@@ -92,7 +92,7 @@
         <ToolBarContent>
             <MudText Typo="Typo.h6">@Localizer("VehicleList")</MudText>
             <MudSpacer />
-            <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+            <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Class="mx-3" />
         </ToolBarContent>
         <Columns>
             <PropertyColumn Property="x => x.PlateNo" Title="@Localizer("PlateNo")" />

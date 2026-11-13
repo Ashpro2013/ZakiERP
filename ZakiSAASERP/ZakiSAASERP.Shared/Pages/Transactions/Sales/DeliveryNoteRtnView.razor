@@ -12,7 +12,7 @@
     <MudStack Row="true">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("Delivery Note Return")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
 
     <EditForm Model="@dnRturn" OnValidSubmit="SaveOrUpdate">
@@ -116,7 +116,7 @@
                         </MudItem>
                         <div class="d-flex justify-end">
                             <MudItem Class="fixed">
-                                <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem">Add</MudFab>
+                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem" Label="Add" />
                             </MudItem>
                         </div>
                         <MudItem xs="12">
@@ -170,23 +170,23 @@
         <MudGrid>
             <MudItem xs="6" sm="2">
                 <MudText>@Localizer("GrossAmount")</MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@dnRturn.GrossAmount.ToString(strCurencyFormat)</MudText>
+                <MudText>@dnRturn.GrossAmount.ToString(strCurencyFormat)</MudText>
             </MudItem>
             <MudItem xs="6" sm="2">
                 <MudText>@Localizer("DiscountAmount") </MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@dnRturn.LineDsicount.ToString(strCurencyFormat)</MudText>
+                <MudText>@dnRturn.LineDsicount.ToString(strCurencyFormat)</MudText>
             </MudItem>
             <MudItem xs="6" sm="2">
                 <MudText>@Localizer("TaxAmount") </MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@dnRturn.TaxTotal.ToString(strCurencyFormat) </MudText>
+                <MudText>@dnRturn.TaxTotal.ToString(strCurencyFormat) </MudText>
             </MudItem>
             <MudItem xs="6" sm="2">
                 <MudText>@Localizer("NetAmount") </MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@dnRturn.NetAmount.ToString(strCurencyFormat) </MudText>
+                <MudText>@dnRturn.NetAmount.ToString(strCurencyFormat) </MudText>
             </MudItem>
             <MudItem xs="6" sm="2">
                 <MudText>@Localizer("GrandTotal") </MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@dnRturn.GrandTotal.ToString(strCurencyFormat) </MudText>
+                <MudText>@dnRturn.GrandTotal.ToString(strCurencyFormat) </MudText>
             </MudItem>
         </MudGrid>
         <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">

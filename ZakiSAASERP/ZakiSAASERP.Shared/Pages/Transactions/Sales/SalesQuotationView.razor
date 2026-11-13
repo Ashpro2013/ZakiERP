@@ -16,7 +16,7 @@
         <MudIcon Icon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Large" />
         <MudText Typo="Typo.h4" Class="ms-2">@Localizer("SalesQuotTitle")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
     <MudDivider Class="my-2" />
     <MudPaper Class="pa-3" Elevation="0">
@@ -139,7 +139,7 @@
                         }
                         <div class="d-flex justify-end">
                             <MudItem Class="fixed">
-                                <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem">Add</MudFab>
+                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem" Label="Add" />
                             </MudItem>
                         </div>
                         @if (gridSettings.ShowGross)

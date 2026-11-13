@@ -265,7 +265,7 @@
                                         @if (settings.AutoSalesOrderNo)
                                         {
                                             <MudItem xs="4">
-                                                <MudTextField @bind-Value="settings.SalesOrderNoPrefix" @ bind-Value:after="MarkDirty" Label="@Localizer("Prefix")" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                                <MudTextField @bind-Value="settings.SalesOrderNoPrefix" @bind-Value:after="MarkDirty" Label="@Localizer("Prefix")" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                             </MudItem>
                                             <MudItem xs="4">
                                                 <MudNumericField @bind-Value="settings.SalesOrderNoStartNumber" @bind-Value:after="MarkDirty" Label="@Localizer("StartNo")" Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" HideSpinButtons="true" />
@@ -1197,7 +1197,7 @@
                                             <MudIcon Icon="@Icons.Material.Filled.Print" Size="Size.Small" Class="mr-1" />
                                             @Localizer("PrinterSettings")
                                         </MudText>
-                                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" Color="Color.Info" OnClick="RefreshPrinters" Title="Reload Printers" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" Color="Color.Info" OnClick="RefreshPrinters" title="Reload Printers" />
                                     </MudStack>
                                     <MudGrid Spacing="2">
                                         <MudItem xs="12">
@@ -1512,8 +1512,7 @@
                                     <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
                                                   Color="Color.Default" 
                                                   Class="ml-2"
-                                                  OnClick="ReloadMenuConfiguration"
-                                                  Title="Cancel and Reload" />
+                                                  OnClick="ReloadMenuConfiguration" title="Cancel and Reload" />
                                 }
                             </MudItem>
                         </MudGrid>

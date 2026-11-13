@@ -3,7 +3,7 @@
 @using MudBlazor
 @inject IViewService Api
 
-<MudDialog MaxWidth="MaxWidth.False" Style="width: 90vw; height: 80vh; overflow-y: scroll;">
+<MudDialog Style="width: 90vw; height: 80vh; overflow-y: scroll;">
     <DialogContent>
         <MudTable Items="@enquiries" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<RFQHdr,bool>(FilterFunc)">
             <ToolBarContent>

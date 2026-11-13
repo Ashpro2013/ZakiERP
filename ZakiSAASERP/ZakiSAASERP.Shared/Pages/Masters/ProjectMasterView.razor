@@ -12,7 +12,7 @@
         <MudStack Row="true">
             <MudText Typo="Typo.h6" Class="mb-4">@Localizer("ProjectMaster")</MudText>
             <MudSpacer />
-            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
         </MudStack>
          <EditForm Model="project" OnValidSubmit="SaveOrUpdate">
         <DataAnnotationsValidator />

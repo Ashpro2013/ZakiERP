@@ -16,7 +16,7 @@
         <MudStack Row="true" Class="mb-4">
             <MudText Typo="Typo.h5" GutterBottom="true">@ArabicLocalization.Localizer("MaterialTransferApproval")</MudText>
             <MudSpacer />
-            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
         </MudStack>
         <MudGrid>
             <MudItem xs="12" md="4">
@@ -35,7 +35,7 @@
                               Placeholder="Voucher No, Reference, Amount..."
                               Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
                               Variant="Variant.Outlined" Margin="Margin.Dense" Class="flex-grow-1" />
-                <MudIconButton OnClick="LoadRequests" Icon="@Icons.Material.Filled.Refresh" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" Title="@ArabicLocalization.Localizer("Refresh")" />
+                <MudIconButton OnClick="LoadRequests" Icon="@Icons.Material.Filled.Refresh" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" title="@ArabicLocalization.Localizer("Refresh")" />
             </MudItem>
         </MudGrid>
         <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-2" ActivePanelIndexChanged="OnTabChanged">
@@ -68,7 +68,7 @@
                 </MudTd>
                 <MudTd DataLabel="TotalQty">@context.TotalQty</MudTd>
                 <MudTd DataLabel="Action">
-                    <MudButton Frozen="true" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                    <MudButton  Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
                                OnClick="@(() => OpenDetailsDialog(context.MatTransReqId))">
                         @(context.Status == "Opened" ? ArabicLocalization.Localizer("Action") : ArabicLocalization.Localizer("View"))
                     </MudButton>

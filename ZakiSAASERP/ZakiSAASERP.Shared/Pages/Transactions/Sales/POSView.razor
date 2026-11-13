@@ -80,7 +80,7 @@
                 <button class="icon-circle-btn @(_isFullScreen ? "fullscreen-active" : "")" title="@(_isFullScreen ? "Exit Full Screen" : "Fill Full Screen")" @onclick="ToggleFullScreen">
                     <MudIcon Icon="@(_isFullScreen ? Icons.Material.Filled.FullscreenExit : Icons.Material.Filled.Fullscreen)" Size="Size.Small" />
                 </button>
-                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
+                <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
             </div>
         </div>
 
@@ -585,7 +585,7 @@
                         <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" />
                     </button>
                 </div>
-                <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
+                <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => tabService.CloseTab(TabId)" Size="Size.Small" />
             </div>
 
             @* Small group / category buttons at the top *@

@@ -21,7 +21,7 @@
             <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-1" />
             <MudText Typo="Typo.h6">@Localizer("Company Details")</MudText>
             <MudSpacer />
-            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
         </MudStack>
 
         <EditForm Model="@companyDetail" OnValidSubmit="SaveAsync">
@@ -71,8 +71,7 @@
             <div class="form-row mb-2">
                 <div class="form-field-group full-width">
                     <label class="field-label">@Localizer("Company Name") **</label>
-                    <MudTextField @bind-Value="companyDetail.Name" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)"
+                    <MudTextField @bind-Value="companyDetail.Name" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)"
                                 Required="true" For="@(() => companyDetail.Name)" 
                                 Placeholder="@Localizer("Company Name")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
@@ -80,8 +79,7 @@
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.NameArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.NameArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="اسم الشركة" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -90,31 +88,27 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Contact")</label>
-                    <MudTextField @bind-Value="companyDetail.Contact" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.Contact" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Contact")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.Contact)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.ContactArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.ContactArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="جهة الاتصال" Class="flex-input rtl-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("VAT No")</label>
-                    <MudTextField @bind-Value="companyDetail.VatNo" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.VatNo" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("VAT No")" For="@(() => companyDetail.VatNo)" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.VatNo)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.VatNoArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.VatNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="الرقم الضريبي" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -123,31 +117,27 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Telephone")</label>
-                    <MudTextField @bind-Value="companyDetail.Telephone" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.Telephone" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Telephone")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.Telephone)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.TelephoneArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.TelephoneArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="هاتف" Class="flex-input rtl-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Street Name")</label>
-                    <MudTextField @bind-Value="companyDetail.StreetName" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.StreetName" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Street Name")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.StreetName)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.StreetNameArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.StreetNameArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="اسم الشارع" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -156,31 +146,27 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Fax")</label>
-                    <MudTextField @bind-Value="companyDetail.Fax" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.Fax" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Fax")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.Fax)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.FaxArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.FaxArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="فاكس" Class="flex-input rtl-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("District")</label>
-                    <MudTextField @bind-Value="companyDetail.District" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.District" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("District")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.District)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.DistrictArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.DistrictArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="الحي" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -189,31 +175,27 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Mobile")</label>
-                    <MudTextField @bind-Value="companyDetail.Mobile" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.Mobile" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Mobile")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.Mobile)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.MobileArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.MobileArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="موبايل" Class="flex-input rtl-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("City")</label>
-                    <MudTextField @bind-Value="companyDetail.City" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.City" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("City")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.City)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.CityArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.CityArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="المدينة" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -222,24 +204,21 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Email")</label>
-                    <MudTextField @bind-Value="companyDetail.Email" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.Email" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 InputType="InputType.Email" For="@(() => companyDetail.Email)" 
                                 Placeholder="@Localizer("Email")" Class="flex-input full-width-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Postal Code")</label>
-                    <MudTextField @bind-Value="companyDetail.PostalCode" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.PostalCode" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Postal Code")" For="@(() => companyDetail.PostalCode)" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.PostalCode)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.PostalCodeArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.PostalCodeArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="الرمز البريدي" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -248,31 +227,27 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Identification No")</label>
-                    <MudTextField @bind-Value="companyDetail.IdentificationNo" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.IdentificationNo" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Identification No")" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.IdentificationNo)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.IdentificationNoArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.IdentificationNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="رقم التعريف" Class="flex-input rtl-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Building No")</label>
-                    <MudTextField @bind-Value="companyDetail.BuildingNo" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.BuildingNo" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Building No")" For="@(() => companyDetail.BuildingNo)" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.BuildingNo)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.BuildingNoArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.BuildingNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="رقم المبنى" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -281,31 +256,27 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Add No/Sec No")</label>
-                    <MudTextField @bind-Value="companyDetail.AdditionalNo" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.AdditionalNo" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Additional No/Secondary No")" For="@(() => companyDetail.AdditionalNo)" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.AdditionalNo)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.AdditionalNoArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.AdditionalNoArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="رقم إضافي" Class="flex-input rtl-input" />
                 </div>
                 
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Other Seller ID")</label>
-                    <MudTextField @bind-Value="companyDetail.OtherSellerId" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.OtherSellerId" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Other Seller ID")" For="@(() => companyDetail.OtherSellerId)" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" 
                               Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.OtherSellerId)))"
                               Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.OtherSellerIdArabic" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.OtherSellerIdArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="معرف البائع الآخر" Class="flex-input rtl-input" />
                 </div>
             </div>
@@ -314,16 +285,14 @@
             <div class="form-row mb-2">
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Region")</label>
-                    <MudTextField @bind-Value="companyDetail.CountrySubentity" Variant="Variant.Outlined"
-                                  Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)"
+                    <MudTextField @bind-Value="companyDetail.CountrySubentity" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)"
                                   Placeholder="@Localizer("Region")" For="@(() => companyDetail.CountrySubentity)" Class="flex-input" />
                     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                Size="Size.Small" OnClick="@(() => TranslateToArabic(nameof(companyDetail.OtherSellerId)))"
                                Disabled="@(!isEditMode)" Class="ar-button">
                         <MudIcon Icon="@Icons.Material.Filled.Translate" Size="Size.Small" />
                     </MudButton>
-                    <MudTextField @bind-Value="companyDetail.CountrySubentityArabic" Variant="Variant.Outlined"
-                                  Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)"
+                    <MudTextField @bind-Value="companyDetail.CountrySubentityArabic" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)"
                                   Placeholder="معرف المنطقة" Class="flex-input rtl-input" />
                 </div>
                 <div class="form-field-group">
@@ -366,8 +335,7 @@
                 </div>
                 <div class="form-field-group">
                     <label class="field-label">@Localizer("Group VAT")</label>
-                    <MudTextField @bind-Value="companyDetail.GroupVat" Variant="Variant.Outlined" 
-                                Dense="true" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
+                    <MudTextField @bind-Value="companyDetail.GroupVat" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(!isEditMode)" 
                                 Placeholder="@Localizer("Group VAT")" Class="flex-input full-width-input" />
                 </div>
             </div>

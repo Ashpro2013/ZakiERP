@@ -13,7 +13,7 @@
 <MudStack Row="true">
     <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("EnquiryRegistration")</MudText>
     <MudSpacer />
-    <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+    <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
 </MudStack>
 <EditForm Model="hdr" OnValidSubmit="Save">
     <DataAnnotationsValidator />
@@ -96,7 +96,7 @@
                         </MudItem>
                         <div class="d-flex justify-end">
                             <MudItem Class="fixed">
-                                <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem"/>
+                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="AddLineItem"/>
                             </MudItem>
                         </div>
                         <MudItem xs="12">

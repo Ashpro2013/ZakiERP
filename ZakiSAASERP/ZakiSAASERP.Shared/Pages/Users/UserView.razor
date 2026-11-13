@@ -12,7 +12,7 @@
     <MudStack Row="true">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("UserTitle")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
     <EditForm Model="userDetails" OnValidSubmit="SaveOrUpdate">
         <DataAnnotationsValidator />
@@ -104,7 +104,7 @@
                                                Size="Size.Small" 
                                                Color="@(item.Zone == "selected" ? Color.Error : Color.Primary)" 
                                                OnClick="@(() => ToggleBranch(item))"
-                                               Title="@(item.Zone == "selected" ? "Remove from selected" : "Add to selected")" />
+                                               title="@(item.Zone == "selected" ? "Remove from selected" : "Add to selected")" />
                             </div>
                         </MudStack>
                     </MudCardContent>

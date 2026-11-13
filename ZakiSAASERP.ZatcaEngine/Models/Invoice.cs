@@ -6,7 +6,7 @@ public class Invoice
     public string InvoiceNumber { get; set; } = "";
     public DateTime IssueDate { get; set; }
     public int InvoiceTypeCode { get; set; } = 388;
-    public string InvoiceSubType { get; set; } = "0100000";
+    public string? InvoiceSubType { get; set; }
 
     public Party Seller { get; set; } = new();
     public Party Buyer { get; set; } = new();

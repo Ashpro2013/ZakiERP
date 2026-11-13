@@ -1,4 +1,4 @@
-﻿@page "/vat"
+@page "/vat"
 @inject IViewService api
 @inject IDialogService DialogService
 @inject ModelService Dialog
@@ -11,7 +11,7 @@
     <MudStack Row="true">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("VatMaster")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
 
     <EditForm Model="vatMaster" OnValidSubmit="SaveOrUpdate">
@@ -37,7 +37,7 @@
     <MudItem xs="12" sm="6">
         <MudText>@Localizer("Percentage")</MudText>
         <MudNumericField @bind-Value="vatMaster.Percentage" Format="N2" Variant="Variant.Outlined"
-                         Margin="Margin.Dense" DecimalPlaces="2" @ref="numPercentage" OnKeyDown="@(e => KeyDown(e, 3))" />
+                         Margin="Margin.Dense" @ref="numPercentage" OnKeyDown="@(e => KeyDown(e, 3))" />
         <ValidationMessage For="@(() => vatMaster.Percentage)" />
     </MudItem>
 

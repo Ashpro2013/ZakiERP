@@ -12,7 +12,7 @@
     <MudStack Row="true" Class="pa-2 ma-2">
         <MudText Typo="Typo.h5">@Localizer("GoodsReceiptTitle")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
 
     <EditForm Model="@goodsReceipt" OnValidSubmit="SaveOrUpdate">
@@ -142,23 +142,23 @@
             <MudGrid Spacing="1" Class="mt-1">
                 <MudItem xs="6" sm="2">
                     <MudText Typo="Typo.caption">@Localizer("GrossAmount")</MudText>
-                    <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@goodsReceipt.GrossAmount.ToString(strCurencyFormat)</MudText>
+                    <MudText>@goodsReceipt.GrossAmount.ToString(strCurencyFormat)</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="2">
                     <MudText Typo="Typo.caption">@Localizer("DiscountAmount")</MudText>
-                    <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@goodsReceipt.LineDsicount.ToString(strCurencyFormat)</MudText>
+                    <MudText>@goodsReceipt.LineDsicount.ToString(strCurencyFormat)</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="2">
                     <MudText Typo="Typo.caption">@Localizer("TaxAmount")</MudText>
-                    <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@goodsReceipt.TaxTotal.ToString(strCurencyFormat)</MudText>
+                    <MudText>@goodsReceipt.TaxTotal.ToString(strCurencyFormat)</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="2">
                     <MudText Typo="Typo.caption">@Localizer("NetAmount")</MudText>
-                    <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@goodsReceipt.NetAmount.ToString(strCurencyFormat)</MudText>
+                    <MudText>@goodsReceipt.NetAmount.ToString(strCurencyFormat)</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="2">
                     <MudText Typo="Typo.caption" Style="font-weight:bold">@Localizer("GrandTotal")</MudText>
-                    <MudText Variant="Variant.Outlined" Margin="Margin.Dense" Style="font-weight:bold">@goodsReceipt.GrandTotal.ToString(strCurencyFormat)</MudText>
+                    <MudText Style="font-weight:bold">@goodsReceipt.GrandTotal.ToString(strCurencyFormat)</MudText>
                 </MudItem>
             </MudGrid>
 

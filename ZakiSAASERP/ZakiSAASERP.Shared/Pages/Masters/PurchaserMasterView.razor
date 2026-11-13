@@ -11,7 +11,7 @@
     <MudStack Row="true">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("Purchaser")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
 
     <EditForm Model="purchaserMaster" OnValidSubmit="SaveOrUpdate">
@@ -60,7 +60,7 @@
 
             <MudItem xs="12" sm="4">
                 <MudText>@Localizer("CreditLimit")</MudText>
-                <MudTextField TValue="string"
+                <MudTextField T="string"
                               @bind-Value="creditLimitText"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
@@ -70,7 +70,6 @@
             <MudItem xs="12">
                 <MudText>@Localizer("Description")</MudText>
                 <MudTextField @bind-Value="purchaserMaster.Description"
-                              TextArea="true"
                               Lines="3"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense" @ref="txtDescription" OnKeyDown="@(e => KeyDown(e, 6))" />
@@ -123,7 +122,7 @@
     <ToolBarContent>
         <MudText Typo="Typo.h6">@Localizer("PurchaserList")</MudText>
         <MudSpacer />
-        <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Dense="true" Class="mx-3" />
+        <MudTextField Value="searchText" ValueChanged="@(async (string s) => { searchText = s; if (grid is not null) await grid.ReloadServerData(); })" Placeholder="@Localizer("Search")" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Class="mx-3" />
     </ToolBarContent>
 
     <Columns>

@@ -9,7 +9,7 @@
     <MudStack Row="true">
         <MudText Class="pa-2 ma-2" Typo="Typo.h5">@Localizer("Zatca Pending Invoices")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
     <MudDataGrid Class="ma-2" Elevation="3" T="ZatcaInvoices" ServerData="LoadServerData" Bordered="true" Dense="true" SortMode="SortMode.Multiple">
         <ToolBarContent>

@@ -137,18 +137,7 @@ public class UblInvoiceBuilder
                     new XElement(cbc + "TaxAmount",
                         new XAttribute("currencyID", "SAR"),
                         invoice.VatAmount.ToString("0.00")),
-                    new XElement(cac + "TaxSubtotal",
-                        new XElement(cbc + "TaxableAmount",
-                            new XAttribute("currencyID", "SAR"),
-                            taxExclusiveAmount.ToString("0.00")),
-                        new XElement(cbc + "TaxAmount",
-                            new XAttribute("currencyID", "SAR"),
-                            invoice.VatAmount.ToString("0.00")),
-                        new XElement(cac + "TaxCategory",
-                            new XElement(cbc + "ID", "S"),
-                            new XElement(cbc + "Percent", "15.00"),
-                            new XElement(cac + "TaxScheme",
-                                new XElement(cbc + "ID", "VAT"))))),
+                    BuildTaxSubtotals(invoice, taxExclusiveAmount, cac, cbc)),
 
                 // =============================
                 // Legal Monetary Total
@@ -301,5 +290,55 @@ public class UblInvoiceBuilder
         }
 
         return BuildParty(party, isSupplier: false);
+    }
+
+    private IEnumerable<XElement> BuildTaxSubtotals(Invoice invoice, decimal fallbackTaxExclusiveAmount, XNamespace cac, XNamespace cbc)
+    {
+        if (invoice.Lines == null || invoice.Lines.Count == 0)
+        {
+            yield return new XElement(cac + "TaxSubtotal",
+                new XElement(cbc + "TaxableAmount",
+                    new XAttribute("currencyID", "SAR"),
+                    fallbackTaxExclusiveAmount.ToString("0.00")),
+                new XElement(cbc + "TaxAmount",
+                    new XAttribute("currencyID", "SAR"),
+                    invoice.VatAmount.ToString("0.00")),
+                new XElement(cac + "TaxCategory",
+                    new XElement(cbc + "ID", "S"),
+                    new XElement(cbc + "Percent", "15.00"),
+                    new XElement(cac + "TaxScheme",
+                        new XElement(cbc + "ID", "VAT"))));
+            yield break;
+        }
+
+        var groups = invoice.Lines
+            .GroupBy(l => new
+            {
+                TaxCategory = string.IsNullOrWhiteSpace(l.TaxCategory) ? "S" : l.TaxCategory.Trim(),
+                l.VatRate,
+                l.TaxExemptionReasonCode,
+                l.TaxExemptionReason
+            });
+
+        foreach (var g in groups)
+        {
+            decimal taxableAmount = g.Sum(l => l.LineTotal);
+            decimal taxAmount = g.Sum(l => l.VatAmount);
+
+            yield return new XElement(cac + "TaxSubtotal",
+                new XElement(cbc + "TaxableAmount",
+                    new XAttribute("currencyID", "SAR"),
+                    taxableAmount.ToString("0.00")),
+                new XElement(cbc + "TaxAmount",
+                    new XAttribute("currencyID", "SAR"),
+                    taxAmount.ToString("0.00")),
+                new XElement(cac + "TaxCategory",
+                    new XElement(cbc + "ID", g.Key.TaxCategory),
+                    new XElement(cbc + "Percent", g.Key.VatRate.ToString("0.00")),
+                    !string.IsNullOrEmpty(g.Key.TaxExemptionReasonCode) ? new XElement(cbc + "TaxExemptionReasonCode", g.Key.TaxExemptionReasonCode) : null,
+                    !string.IsNullOrEmpty(g.Key.TaxExemptionReason) ? new XElement(cbc + "TaxExemptionReason", g.Key.TaxExemptionReason) : null,
+                    new XElement(cac + "TaxScheme",
+                        new XElement(cbc + "ID", "VAT"))));
+        }
     }
 }

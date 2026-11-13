@@ -42,12 +42,12 @@
                 </MudText>
             </div>
             <MudSpacer />
-            <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+            <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
         </MudStack>
 
         <!-- Configuration Bar: Barcode Design Selection & Global Actions -->
         <MudPaper Elevation="1" Class="pa-3 mb-3" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
-            <MudGrid AlignItems="Center">
+            <MudGrid>
                 <MudItem xs="12" sm="6" md="4">
                     <MudSelect T="int"
                                Label="@(AppData.IsArabic ? "تصميم الباركود" : "Barcode Design Name")"
@@ -95,7 +95,6 @@
                                      @bind-Value="defaultAddQty"
                                      Min="1"
                                      Max="9999"
-                                     Dense="true"
                                      Margin="Margin.Dense"
                                      Variant="Variant.Outlined" />
                 </MudItem>
@@ -154,7 +153,7 @@
                         </MudSelect>
 
                         <!-- Search & Quick Filters -->
-                        <MudGrid Spacing="1" AlignItems="Center">
+                        <MudGrid Spacing="1">
                             <MudItem xs="12" sm="8">
                                 <MudTextField T="string"
                                               Value="@searchString"
@@ -164,7 +163,6 @@
                                               AdornmentIcon="@Icons.Material.Filled.Search"
                                               Immediate="true"
                                               DebounceInterval="300"
-                                              Dense="true"
                                               Margin="Margin.Dense"
                                               Variant="Variant.Outlined"
                                               Clearable="true" />
@@ -270,7 +268,7 @@
                                                    Color="Color.Primary"
                                                    Size="Size.Small"
                                                    OnClick="@(() => AddToSelectedAsync(context))"
-                                                   Title="@(AppData.IsArabic ? "إضافة لقائمة الطباعة مع تحديد الكمية" : "Add to print list with quantity")" />
+                                                   title="@(AppData.IsArabic ? "إضافة لقائمة الطباعة مع تحديد الكمية" : "Add to print list with quantity")" />
                                 </MudTd>
                             </RowTemplate>
                             <NoRecordsContent>
@@ -306,14 +304,13 @@
                         </MudStack>
 
                         <!-- Batch Quantity Setter & Clear Toolbar -->
-                        <MudGrid Spacing="1" AlignItems="Center">
+                        <MudGrid Spacing="1">
                             <MudItem xs="12" sm="5">
                                 <MudNumericField T="int"
                                                  Label="@(AppData.IsArabic ? "تحديد كمية موحدة للكل" : "Set All Quantities To")"
                                                  @bind-Value="batchSetQty"
                                                  Min="1"
                                                  Max="9999"
-                                                 Dense="true"
                                                  Margin="Margin.Dense"
                                                  Variant="Variant.Outlined" />
                             </MudItem>
@@ -388,7 +385,6 @@
                                                      Min="1"
                                                      Max="9999"
                                                      Step="1"
-                                                     Dense="true"
                                                      Margin="Margin.Dense"
                                                      Variant="Variant.Outlined"
                                                      Style="text-align: center; max-width: 110px;" />
@@ -403,7 +399,7 @@
                                                    Color="Color.Error"
                                                    Size="Size.Small"
                                                    OnClick="@(() => RemoveFromSelected(context))"
-                                                   Title="@(AppData.IsArabic ? "حذف من القائمة" : "Remove")" />
+                                                   title="@(AppData.IsArabic ? "حذف من القائمة" : "Remove")" />
                                 </MudTd>
                             </RowTemplate>
                             <NoRecordsContent>

@@ -13,7 +13,7 @@
     <MudStack Row="true" Class="pa-2 ma-2">
         <MudText Typo="Typo.h5">@Localizer("JobCard")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
 
     <style>
@@ -216,15 +216,15 @@
         <MudGrid>
              <MudItem xs="6" sm="4">
                 <MudText>@Localizer("GrossAmount")</MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@PermanentSettingsData.FormatCurrency(jobCard.TotalAmount)</MudText>
+                <MudText>@PermanentSettingsData.FormatCurrency(jobCard.TotalAmount)</MudText>
             </MudItem>
             <MudItem xs="6" sm="4">
                 <MudText>@Localizer("VatAmount") </MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@PermanentSettingsData.FormatCurrency(jobCard.TotalVat) </MudText>
+                <MudText>@PermanentSettingsData.FormatCurrency(jobCard.TotalVat) </MudText>
             </MudItem>
             <MudItem xs="6" sm="4">
                 <MudText>@Localizer("NetAmount") </MudText>
-                <MudText Variant="Variant.Outlined" Margin="Margin.Dense">@PermanentSettingsData.FormatCurrency(jobCard.GrandTotal) </MudText>
+                <MudText>@PermanentSettingsData.FormatCurrency(jobCard.GrandTotal) </MudText>
             </MudItem>
         </MudGrid>
         
@@ -344,7 +344,7 @@
                     <MudTd DataLabel="Action"><MudIconButton OnClick="@(() => RemoveRow(context))" Color="@Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" /></MudTd>
                 </RowTemplate>
                 <FooterContent>
-                    <MudTd ColSpan="10" />
+                    <MudTd colspan="10" />
                     <MudTd>
                         <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCircle" OnClick="AddRow" Size="Size.Small" Style="white-space: nowrap;">
                             @Localizer("AddRow")

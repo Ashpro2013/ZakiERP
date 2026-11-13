@@ -21,9 +21,9 @@
 
         <HeaderContent>
             <MudTh>Item</MudTh>
-            <MudTh Align="Align.Center">Qty</MudTh>
-            <MudTh Align="Align.Right">Price</MudTh>
-            <MudTh Align="Align.Right">Total</MudTh>
+            <MudTh Style="text-align: center">Qty</MudTh>
+            <MudTh Style="text-align: right">Price</MudTh>
+            <MudTh Style="text-align: right">Total</MudTh>
         </HeaderContent>
 
         <RowTemplate>
@@ -32,15 +32,15 @@
                 @context.ItemName
             </MudTd>
 
-            <MudTd DataLabel="Qty" Align="Align.Center">
+            <MudTd DataLabel="Qty" Style="text-align: center">
                 @PermanentSettingsData.FormatQuantity(context.Qty)
             </MudTd>
 
-            <MudTd DataLabel="Price" Align="Align.Right">
+            <MudTd DataLabel="Price" Style="text-align: right">
                 @PermanentSettingsData.FormatCurrency(context.Rate)
             </MudTd>
 
-            <MudTd DataLabel="Total" Align="Align.Right">
+            <MudTd DataLabel="Total" Style="text-align: right">
                 @PermanentSettingsData.FormatCurrency(context.Total)
             </MudTd>
 

@@ -14,7 +14,7 @@
     <MudStack Row="true" Class="pa-2 ma-2">
         <MudText Typo="Typo.h5">@Localizer("MaterialTransferOUT")</MudText>
         <MudSpacer />
-        <MudFab Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
+        <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Close" OnClick="() => TabService.CloseTab(TabId)" Size="Size.Small" />
     </MudStack>
     <EditForm Model="@hdr" OnValidSubmit="SaveOrUpdate">
         <DataAnnotationsValidator />
@@ -130,7 +130,7 @@
                                              OnBlur="@(() => OnBlurQtEvent(transaction))" HideSpinButtons="true" ReadOnly="@IsLocked" />
                         </MudItem>
                         <MudItem xs="12" Class="d-flex justify-end mt-2">
-                             <MudFab Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="@(() => AddLineItem())" Disabled="@IsLocked">Add</MudFab>
+                             <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Size="Size.Large" OnClick="@(() => AddLineItem())" Disabled="@IsLocked" Label="Add" />
                         </MudItem>
                     </MudGrid>
                 </MudTabPanel>
@@ -141,13 +141,13 @@
              <MudGrid>
                 <MudItem xs="6" sm="3">
                     <MudText>@Localizer("TotalAmount")</MudText>
-                    <MudText Variant="Text" Margin="Margin.Dense">
+                    <MudText>
                         <b>@hdr.TotalAmount.ToString(strCurencyFormat)</b>
                     </MudText>
                 </MudItem>
                 <MudItem xs="6" sm="3">
                     <MudText>@Localizer("TotalQty")</MudText>
-                    <MudText Variant="Text" Margin="Margin.Dense">
+                    <MudText>
                         <b>@TotalQty.ToString(strQuantityFormat)</b>
                     </MudText>
                 </MudItem>
@@ -258,7 +258,7 @@
                     }
                     else
                     {
-                        <MudTextField Value="@context.UnitName" ReadOnly="true" Margin="Margin.Dense" DisableUnderLine="true" />
+                        <MudTextField Value="@context.UnitName" ReadOnly="true" Margin="Margin.Dense" Underline="false" />
                     }
                 </MudTd>
                 <MudTd DataLabel="QtyPerUnit">
@@ -292,7 +292,7 @@
                 </MudTd>
             </RowTemplate>
             <FooterContent>
-                <MudTd ColSpan="12" Class="text-right"></MudTd>
+                <MudTd colspan="12" Class="text-right"></MudTd>
                 <MudTd>
                     <MudButton Disabled="@IsLocked" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.AddCircle" OnClick="AddNewRow" Size="Size.Small" Style="white-space: nowrap;">
                         @Localizer("AddRow")
