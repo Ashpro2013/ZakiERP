@@ -1,6 +1,7 @@
 using ZakiSAASERP.Desk.Services;
 using ZakiSAASERP.Interface;
 using ZakiSAASERP.Interface.Others;
+using ZakiSAASERP.Interface.Services;
 using ZakiSAASERP.Repo;
 using ZakiSAASERP.Shared.Services;
 using FileDownloader;
@@ -129,6 +130,7 @@ public static class MauiProgram
         builder.Services.AddScoped<TabService>();
         builder.Services.AddScoped<POSSettingsService>();
         builder.Services.AddScoped<ShiftService>();
+        builder.Services.AddScoped<IInvoiceOcrService, InvoiceOcrService>();
         Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBMAY9C3t2VlhhQlJCfV5AQmBIYVp/TGpJfl96cVxMZVVBJAtUQF1hSn9SdkZiW35bdHFRTmle;Mjc5NTc5OUAzMjMzMmUzMDJlMzBScFAxZ2RFR29seXNsM3J5UnlhZlhCRDFSRnZzNVJVSjRaUkJ6QWhkaVY0PQ==");
         builder.Services.AddSingleton<ZakiSAASERP.Shared.Services.DashboardState>();
 

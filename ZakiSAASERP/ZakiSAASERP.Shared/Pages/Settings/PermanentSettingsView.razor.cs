@@ -417,6 +417,12 @@ public partial class PermanentSettingsView
             settings.ZatcaConnection = GetValue("ZatcaConnection", "Simulation");
             settings.UploadSimplifiedXMLRealtime = GetBool("UploadSimplifiedXMLRealtime", true);
 
+            // AI & OCR Settings
+            settings.ShowAIInvoiceOCR = GetBool("ShowAIInvoiceOCR", true);
+            settings.AiProvider = GetValue("AiProvider", "Gemini");
+            settings.AiApiKey = GetValue("AiApiKey", string.Empty);
+            settings.AiModelName = GetValue("AiModelName", "gemini-2.5-flash");
+
             // Transaction Grid Settings
             LoadGridSettings("SalesInvoice", settings.SalesInvoiceSettings);
             LoadGridSettings("SalesOrder", settings.SalesOrderSettings);
@@ -701,6 +707,12 @@ public partial class PermanentSettingsView
             SetValue("ZatcaPhase", settings.ZatcaPhase ?? "1");
             SetValue("ZatcaConnection", settings.ZatcaConnection ?? "Simulation");
             SetValue("UploadSimplifiedXMLRealtime", settings.UploadSimplifiedXMLRealtime ? "1" : "0");
+
+            // AI & OCR Settings
+            SetValue("ShowAIInvoiceOCR", settings.ShowAIInvoiceOCR ? "1" : "0");
+            SetValue("AiProvider", settings.AiProvider ?? "Gemini");
+            SetValue("AiApiKey", settings.AiApiKey ?? string.Empty);
+            SetValue("AiModelName", settings.AiModelName ?? "gemini-2.5-flash");
 
             // Transaction Grid Settings
             SaveGridSettings("SalesInvoice", settings.SalesInvoiceSettings);

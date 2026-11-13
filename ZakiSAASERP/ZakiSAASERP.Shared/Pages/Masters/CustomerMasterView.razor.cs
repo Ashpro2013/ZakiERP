@@ -381,12 +381,11 @@ public partial class CustomerMasterView : ITabAware
     /// </summary>
     private async Task<bool> ValidateZatcaCustomerFieldsAsync()
     {
-        if (!IsZatcaPhase2)
+        if (!IsZatcaPhase2 || string.IsNullOrEmpty(customer.VatNo))
             return true;
 
         (bool isMissing, string promptKey, string fieldKey, Func<Task> focusField)[] requiredFields =
         [
-            (string.IsNullOrWhiteSpace(customer.VatNo), "PleaseEnter", "VatNo", async () => { if (txtVatNo is not null) await txtVatNo.FocusAsync(); }),
             (string.IsNullOrWhiteSpace(customer.IdentificationNo), "PleaseEnter", "IdentificationNo", async () => { if (txtIdNo is not null) await txtIdNo.FocusAsync(); }),
             (string.IsNullOrWhiteSpace(customer.Identification), "PleaseSelect", "Identification", async () => { if (cmbIdentification is not null) await cmbIdentification.FocusAsync(); }),
             (string.IsNullOrWhiteSpace(customer.StreetName), "PleaseEnter", "StreetName", async () => { if (txtStreet is not null) await txtStreet.FocusAsync(); }),

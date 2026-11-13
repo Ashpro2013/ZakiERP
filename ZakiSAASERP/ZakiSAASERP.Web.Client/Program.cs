@@ -1,4 +1,5 @@
 using ZakiSAASERP.Shared.Services;
+using ZakiSAASERP.Interface.Services;
 using ZakiSAASERP.Web.Client.Components;
 using ZakiSAASERP.Web.Client.Services;
 using FileDownloader;
@@ -50,6 +51,7 @@ builder.Services.AddScoped<IndexDBHelper>();
 builder.Services.AddScoped<TabService>();
 builder.Services.AddScoped<POSSettingsService>();
 builder.Services.AddScoped<ShiftService>();
+builder.Services.AddScoped<IInvoiceOcrService, InvoiceOcrService>();
 builder.Services.AddSingleton<ZakiSAASERP.Shared.Services.DashboardState>();
 AppData.IsMaui = false;
 AppData.IsMauiApi = false;

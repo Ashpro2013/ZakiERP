@@ -216,6 +216,12 @@ public static class PermanentSettingsData
     public static bool UploadSimplifiedXMLRealtime { get; set; } = true;
     public static bool BlockInvoiceOnCreditLimitExceeded { get; set; } = false;
 
+    // ============ AI & OCR Settings ============
+    public static bool ShowAIInvoiceOCR { get; set; } = false;
+    public static string AiProvider { get; set; } = "Gemini";
+    public static string AiApiKey { get; set; } = string.Empty;
+    public static string AiModelName { get; set; } = "gemini-2.5-flash";
+
     // ============ Transaction Grid Settings ============
     public static TransactionGridSettings SalesInvoiceSettings { get; set; } = new();
     public static TransactionGridSettings SalesOrderSettings { get; set; } = new();
@@ -472,6 +478,12 @@ public static class PermanentSettingsData
                 // Database Backup Settings
                 case "BackupWhenClosing": BackupWhenClosing = IsTrue(s.SettingValue); break;
                 case "BackupFolder": BackupFolder = s.SettingValue ?? string.Empty; break;
+
+                // AI & OCR Settings
+                case "ShowAIInvoiceOCR": ShowAIInvoiceOCR = IsTrue(s.SettingValue); break;
+                case "AiProvider": AiProvider = s.SettingValue ?? "Gemini"; break;
+                case "AiApiKey": AiApiKey = s.SettingValue ?? string.Empty; break;
+                case "AiModelName": AiModelName = s.SettingValue ?? "gemini-2.5-flash"; break;
             }
         }
 
@@ -666,6 +678,11 @@ public static class PermanentSettingsData
 
         BackupWhenClosing = false;
         BackupFolder = string.Empty;
+
+        ShowAIInvoiceOCR = true;
+        AiProvider = "Gemini";
+        AiApiKey = string.Empty;
+        AiModelName = "gemini-2.5-flash";
 
         IsLoaded = false;
 

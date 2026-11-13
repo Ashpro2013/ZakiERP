@@ -1,0 +1,651 @@
+@using ZakiSAASERP.Models.DTO
+@using ZakiSAASERP.Models.Masters
+@using ZakiSAASERP.Models.ViewModel
+@using ZakiSAASERP.Interface.Services
+@using ZakiSAASERP.Models.Services
+@inject IInvoiceOcrService OcrService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Color="Color.Tertiary" Size="Size.Large" />
+            <div>
+                <MudText Typo="Typo.h6">@Localizer("AiPurchaseInvoiceOcr")</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer("AiPurchaseInvoiceOcrSubtitle")</MudText>
+            </div>
+            <MudSpacer />
+            <MudTooltip Text="AI Settings">
+                <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" OnClick="() => _showSettings = !_showSettings" />
+            </MudTooltip>
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        @if (_showSettings)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-3" ShowCloseIcon="true" CloseIconClicked="() => _showSettings = false">
+                <MudText Typo="Typo.subtitle2" Class="mb-2 font-weight-bold">Google Gemini AI Configuration</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="12" sm="7">
+                        <MudTextField @bind-Value="_apiKeyInput"
+                                      Label="Gemini API Key"
+                                      InputType="InputType.Password"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Placeholder="AIzaSy..."
+                                      HelperText="Your Google AI Studio API key. Saved locally for future scans." />
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudSelect T="string" @bind-Value="_modelInput" Label="AI Model" Variant="Variant.Outlined" Margin="Margin.Dense">
+                            <MudSelectItem Value="@("gemini-2.5-flash")">gemini-2.5-flash (Recommended)</MudSelectItem>
+                            <MudSelectItem Value="@("gemini-2.0-flash")">gemini-2.0-flash</MudSelectItem>
+                            <MudSelectItem Value="@("gemini-1.5-flash")">gemini-1.5-flash</MudSelectItem>
+                            <MudSelectItem Value="@("gemini-1.5-pro")">gemini-1.5-pro</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="2" Class="d-flex align-center">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAiSettings" Size="Size.Small">
+                            Save Key
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudAlert>
+        }
+
+        @* Upload & Action Bar *@
+        <MudPaper Elevation="1" Class="pa-3 mb-3" Style="background: var(--mud-palette-background-grey);">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="5">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="OnInputFileChanged" Accept=".pdf,.jpg,.jpeg,.png,.webp">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.CloudUpload"
+                                       FullWidth="true"
+                                       Disabled="@_isProcessing">
+                                @if (string.IsNullOrEmpty(_fileName))
+                                {
+                                    <span>Upload Vendor Invoice (PDF / Image)</span>
+                                }
+                                else
+                                {
+                                    <span style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @_fileName
+                                    </span>
+                                }
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                </MudItem>
+                <MudItem xs="12" sm="7" Class="d-flex gap-2 justify-sm-end flex-wrap">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Tertiary"
+                               StartIcon="@Icons.Material.Filled.AutoAwesome"
+                               Disabled="@(_fileBytes == null || _isProcessing)"
+                               OnClick="ScanInvoiceAsync">
+                        @if (_isProcessing)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                            <MudText Class="ms-2">Analyzing with AI...</MudText>
+                        }
+                        else
+                        {
+                            <span>Scan Invoice with AI</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               StartIcon="@Icons.Material.Filled.FactCheck"
+                               Disabled="@_isProcessing"
+                               OnClick="LoadSampleData">
+                        Load Sample Bill
+                    </MudButton>
+                    @if (_ocrResult != null)
+                    {
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Clear"
+                                   OnClick="ClearAll">
+                            Clear
+                        </MudButton>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        @if (_ocrResult != null)
+        {
+            <MudGrid Spacing="3">
+                @* Left: Document Preview (if image) *@
+                @if (!string.IsNullOrEmpty(_imagePreviewUrl))
+                {
+                    <MudItem xs="12" md="4">
+                        <MudCard Elevation="2" Style="height: 100%;">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.subtitle2">Invoice Document Preview</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent Class="d-flex justify-center align-center pa-2" Style="max-height: 460px; overflow: auto; background-color: #f7f7f7;">
+                                <img src="@_imagePreviewUrl" alt="Uploaded Invoice" style="max-width: 100%; max-height: 440px; object-fit: contain; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" />
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                }
+
+                @* Right: Extracted Header & Line Items *@
+                <MudItem xs="12" md="@(!string.IsNullOrEmpty(_imagePreviewUrl) ? 8 : 12)">
+                    @* Header Cards *@
+                    <MudCard Elevation="2" Class="mb-3">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.subtitle2">Extracted Header Information</MudText>
+                                    <MudSpacer />
+                                    @if (_ocrResult.IsSupplierMatched)
+                                    {
+                                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">
+                                            Matched: @_ocrResult.MatchedSupplierName
+                                        </MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Color="Color.Warning" Size="Size.Small" Icon="@Icons.Material.Filled.Info">
+                                            New / Unmatched Supplier
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent Class="py-2">
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" sm="5">
+                                    <MudTextField @bind-Value="_ocrResult.SupplierName"
+                                                  Label="Supplier Name"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense" />
+                                </MudItem>
+                                <MudItem xs="12" sm="4">
+                                    <MudTextField @bind-Value="_ocrResult.SupplierVatNo"
+                                                  Label="VAT / Tax Number"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense" />
+                                </MudItem>
+                                <MudItem xs="12" sm="3">
+                                    <MudSelect T="int?" Value="_ocrResult.MatchedSupplierId" ValueChanged="OnSupplierChanged" Label="Map to ERP Supplier" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                                        <MudSelectItem T="int?" Value="@((int?)null)">-- New / Unmapped --</MudSelectItem>
+                                        @foreach (var s in SupplierList)
+                                        {
+                                            <MudSelectItem T="int?" Value="@s.Id">@s.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </MudItem>
+                                <MudItem xs="6" sm="3">
+                                    <MudTextField @bind-Value="_ocrResult.InvoiceNo"
+                                                  Label="Invoice Number"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense" />
+                                </MudItem>
+                                <MudItem xs="6" sm="3">
+                                    <MudDatePicker @bind-Date="_ocrResult.InvoiceDate"
+                                                   Label="Invoice Date"
+                                                   DateFormat="dd-MM-yyyy"
+                                                   Variant="Variant.Outlined"
+                                                   Margin="Margin.Dense" />
+                                </MudItem>
+                                <MudItem xs="6" sm="3">
+                                    <MudSelect T="string" @bind-Value="_ocrResult.BillType" Label="Bill Type" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter">
+                                        <MudSelectItem Value="@("Credit")">Credit</MudSelectItem>
+                                        <MudSelectItem Value="@("Cash")">Cash</MudSelectItem>
+                                    </MudSelect>
+                                </MudItem>
+                                <MudItem xs="6" sm="3">
+                                    <MudNumericField Value="_ocrResult.GrandTotal"
+                                                     Label="Grand Total"
+                                                     Format="N2"
+                                                     Variant="Variant.Outlined"
+                                                     Margin="Margin.Dense"
+                                                     ReadOnly="true"
+                                                     Adornment="Adornment.End"
+                                                     AdornmentText="@_ocrResult.Currency" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+
+                    @* Line Items Grid *@
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudStack Row="true" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.subtitle2">Line Items (@_ocrResult.LineItems.Count(x => x.IsSelected) / @_ocrResult.LineItems.Count Selected)</MudText>
+                                    <MudSpacer />
+                                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" OnClick="SelectAllLines">Select All</MudButton>
+                                    <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Secondary" OnClick="DeselectAllLines">Deselect All</MudButton>
+                                </MudStack>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent Class="pa-0">
+                            <MudTable Items="_ocrResult.LineItems" Dense="true" Hover="true" Striped="true" Elevation="0" Height="280px" FixedHeader="true">
+                                <HeaderContent>
+                                    <MudTh Style="width: 40px;">Use</MudTh>
+                                    <MudTh>Extracted Item</MudTh>
+                                    <MudTh>ERP Product Mapping</MudTh>
+                                    <MudTh Style="width: 80px;">Qty</MudTh>
+                                    <MudTh Style="width: 90px;">Unit</MudTh>
+                                    <MudTh Style="width: 100px;">Rate (Ex)</MudTh>
+                                    <MudTh Style="width: 70px;">VAT %</MudTh>
+                                    <MudTh Style="width: 100px; text-align: right;">Total</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>
+                                        <MudCheckBox @bind-Value="@context.IsSelected" Color="Color.Primary" Dense="true" />
+                                    </MudTd>
+                                    <MudTd>
+                                        <div style="max-width: 200px;">
+                                            <MudText Typo="Typo.body2" Class="font-weight-medium">@context.ItemName</MudText>
+                                            @if (!string.IsNullOrEmpty(context.ItemArabicName))
+                                            {
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">@context.ItemArabicName</MudText>
+                                            }
+                                        </div>
+                                    </MudTd>
+                                    <MudTd>
+                                        <div style="min-width: 170px;">
+                                            <MudSelect T="int?"
+                                                       Value="@context.MatchedItemId"
+                                                       ValueChanged="@((int? id) => OnItemMapped(context, id))"
+                                                       Dense="true"
+                                                       Margin="Margin.Dense"
+                                                       Variant="Variant.Outlined"
+                                                       AnchorOrigin="Origin.BottomCenter">
+                                                <MudSelectItem T="int?" Value="@((int?)null)">-- Select Product --</MudSelectItem>
+                                                @foreach (var p in Products)
+                                                {
+                                                    <MudSelectItem T="int?" Value="@p.Id">@p.Name</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </div>
+                                    </MudTd>
+                                    <MudTd>
+                                        <MudNumericField @bind-Value="@context.Quantity"
+                                                         HideSpinButtons="true"
+                                                         Format="N2"
+                                                         Margin="Margin.Dense"
+                                                         Variant="Variant.Outlined"
+                                                         OnBlur="@(() => RecalculateLine(context))" />
+                                    </MudTd>
+                                    <MudTd>
+                                        <MudSelect T="int?"
+                                                   Value="@context.MatchedUnitId"
+                                                   ValueChanged="@((int? uId) => OnUnitMapped(context, uId))"
+                                                   Dense="true"
+                                                   Margin="Margin.Dense"
+                                                   Variant="Variant.Outlined"
+                                                   AnchorOrigin="Origin.BottomCenter">
+                                            @foreach (var u in UnitList)
+                                            {
+                                                <MudSelectItem T="int?" Value="@u.Id">@u.Name</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudTd>
+                                    <MudTd>
+                                        <MudNumericField @bind-Value="@context.UnitPrice"
+                                                         HideSpinButtons="true"
+                                                         Format="N2"
+                                                         Margin="Margin.Dense"
+                                                         Variant="Variant.Outlined"
+                                                         OnBlur="@(() => RecalculateLine(context))" />
+                                    </MudTd>
+                                    <MudTd>
+                                        <MudNumericField @bind-Value="@context.TaxPerc"
+                                                         HideSpinButtons="true"
+                                                         Format="N0"
+                                                         Margin="Margin.Dense"
+                                                         Variant="Variant.Outlined"
+                                                         OnBlur="@(() => RecalculateLine(context))" />
+                                    </MudTd>
+                                    <MudTd Style="text-align: right;">
+                                        <MudText Typo="Typo.body2" Class="font-weight-bold">
+                                            @context.LineTotal.ToString("N2")
+                                        </MudText>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudPaper Outlined="true" Class="pa-8 d-flex flex-column align-center justify-center my-4" Style="border: 2px dashed var(--mud-palette-lines-default); border-radius: 12px; background: #fafafa;">
+                <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Large" Color="Color.Primary" Class="mb-2" Style="font-size: 56px;" />
+                <MudText Typo="Typo.h6" Align="Align.Center">Upload a Vendor Purchase Invoice or Receipt</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="mb-4">
+                    Supports Saudi ZATCA Tax Invoices, standard vendor bills, cash receipts, and thermal slips (PDF, PNG, JPG).
+                </MudText>
+                <MudStack Row="true" Spacing="2">
+                    <MudFileUpload T="IBrowserFile" FilesChanged="OnInputFileChanged" Accept=".pdf,.jpg,.jpeg,.png,.webp">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                                Select Invoice File
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.PlayArrow" OnClick="LoadSampleData">
+                        Load Sample Bill (No Key Needed)
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Success"
+                   StartIcon="@Icons.Material.Filled.DoneAll"
+                   Disabled="@(_ocrResult == null || !_ocrResult.LineItems.Any(x => x.IsSelected))"
+                   OnClick="FillPurchaseGrid">
+            Fill Purchase Grid (@_ocrResult?.LineItems.Count(x => x.IsSelected) Items)
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public List<CommonModel> SupplierList { get; set; } = new();
+    [Parameter] public List<ExMasters> Products { get; set; } = new();
+    [Parameter] public List<CommonModel> UnitList { get; set; } = new();
+    [Parameter] public List<StoreMaster> StoreList { get; set; } = new();
+
+    private bool _isProcessing = false;
+    private bool _showSettings = false;
+    private string _apiKeyInput = string.Empty;
+    private string _modelInput = "gemini-2.5-flash";
+
+    private IBrowserFile? _uploadedFile;
+    private byte[]? _fileBytes;
+    private string? _fileName;
+    private string? _imagePreviewUrl;
+    private PurchaseInvoiceOcrResult? _ocrResult;
+
+    protected override void OnInitialized()
+    {
+        _apiKeyInput = PermanentSettingsData.AiApiKey;
+        if (!string.IsNullOrWhiteSpace(PermanentSettingsData.AiModelName))
+        {
+            _modelInput = PermanentSettingsData.AiModelName;
+        }
+
+        if (string.IsNullOrWhiteSpace(_apiKeyInput))
+        {
+            var envKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? Environment.GetEnvironmentVariable("AI_API_KEY");
+            if (!string.IsNullOrWhiteSpace(envKey))
+            {
+                _apiKeyInput = envKey;
+            }
+        }
+    }
+
+    private void SaveAiSettings()
+    {
+        PermanentSettingsData.AiApiKey = _apiKeyInput?.Trim() ?? string.Empty;
+        PermanentSettingsData.AiModelName = _modelInput;
+        _showSettings = false;
+        Snackbar.Add("AI Settings updated successfully.", Severity.Success);
+    }
+
+    private async Task OnInputFileChanged(IBrowserFile file)
+    {
+        if (file == null) return;
+
+        try
+        {
+            _uploadedFile = file;
+            _fileName = file.Name;
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024); // 20 MB max
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            _fileBytes = ms.ToArray();
+
+            // Generate preview URL for images
+            string ext = Path.GetExtension(file.Name).ToLowerInvariant();
+            if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".webp")
+            {
+                string mime = ext == ".png" ? "image/png" : (ext == ".webp" ? "image/webp" : "image/jpeg");
+                _imagePreviewUrl = $"data:{mime};base64,{Convert.ToBase64String(_fileBytes)}";
+            }
+            else
+            {
+                _imagePreviewUrl = null;
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"File loading failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ScanInvoiceAsync()
+    {
+        if (_fileBytes == null || _fileBytes.Length == 0 || string.IsNullOrEmpty(_fileName))
+        {
+            Snackbar.Add("Please upload an invoice file first.", Severity.Warning);
+            return;
+        }
+
+        _isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await OcrService.ParseInvoiceAsync(
+                _fileBytes,
+                _fileName,
+                customApiKey: _apiKeyInput,
+                modelName: _modelInput);
+
+            MatchExtractedData(result);
+            _ocrResult = result;
+            Snackbar.Add("Invoice scanned and parsed successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            if (ex.Message.Contains("API Key", StringComparison.OrdinalIgnoreCase))
+            {
+                _showSettings = true;
+            }
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void LoadSampleData()
+    {
+        var sample = OcrService.GetSampleInvoiceData();
+        MatchExtractedData(sample);
+        _ocrResult = sample;
+        _fileName = "Sample_Vendor_Tax_Invoice.pdf";
+        Snackbar.Add("Sample invoice loaded for demonstration.", Severity.Info);
+        StateHasChanged();
+    }
+
+    private void ClearAll()
+    {
+        _ocrResult = null;
+        _fileBytes = null;
+        _fileName = null;
+        _imagePreviewUrl = null;
+        StateHasChanged();
+    }
+
+    private void MatchExtractedData(PurchaseInvoiceOcrResult result)
+    {
+        // 1. Match Supplier
+        if (!string.IsNullOrWhiteSpace(result.SupplierVatNo))
+        {
+            var cleanVat = new string(result.SupplierVatNo.Where(char.IsDigit).ToArray());
+            var matched = SupplierList.FirstOrDefault(s => s.Code == cleanVat);
+            if (matched != null)
+            {
+                result.MatchedSupplierId = matched.Id;
+                result.MatchedSupplierName = matched.Name;
+            }
+        }
+
+        if (!result.IsSupplierMatched && !string.IsNullOrWhiteSpace(result.SupplierName))
+        {
+            var matched = SupplierList.FirstOrDefault(s => s.Name.Contains(result.SupplierName, StringComparison.OrdinalIgnoreCase)
+                                                        || result.SupplierName.Contains(s.Name, StringComparison.OrdinalIgnoreCase));
+            if (matched != null)
+            {
+                result.MatchedSupplierId = matched.Id;
+                result.MatchedSupplierName = matched.Name;
+            }
+        }
+
+        // 2. Match Line Items
+        int defaultStoreId = StoreList.FirstOrDefault(s => s.FK_BranchId == AppData.BranchId)?.StoreId ?? (StoreList.FirstOrDefault()?.StoreId ?? 1);
+        int defaultUnitId = UnitList.FirstOrDefault()?.Id ?? 1;
+        string defaultUnitName = UnitList.FirstOrDefault()?.Name ?? "PCS";
+
+        foreach (var line in result.LineItems)
+        {
+            line.MatchedStoreId = defaultStoreId;
+
+            // Match ERP Product
+            ExMasters? matchedProd = null;
+            if (!string.IsNullOrWhiteSpace(line.Barcode))
+            {
+                matchedProd = Products.FirstOrDefault(p => !string.IsNullOrEmpty(p.Code) && p.Code.Equals(line.Barcode, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (matchedProd == null && !string.IsNullOrWhiteSpace(line.ItemName))
+            {
+                matchedProd = Products.FirstOrDefault(p => p.Name.Equals(line.ItemName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (matchedProd == null && !string.IsNullOrWhiteSpace(line.ItemArabicName))
+            {
+                matchedProd = Products.FirstOrDefault(p => p.Name.Equals(line.ItemArabicName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (matchedProd == null && !string.IsNullOrWhiteSpace(line.ItemName))
+            {
+                matchedProd = Products.FirstOrDefault(p => p.Name.Contains(line.ItemName, StringComparison.OrdinalIgnoreCase)
+                                                        || line.ItemName.Contains(p.Name, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (matchedProd != null)
+            {
+                line.MatchedItemId = matchedProd.Id;
+                line.MatchedItemName = matchedProd.Name;
+                line.MatchedBarcode = matchedProd.Code;
+            }
+
+            // Match Unit
+            var matchedUnit = UnitList.FirstOrDefault(u => u.Name.Equals(line.UnitName, StringComparison.OrdinalIgnoreCase));
+            if (matchedUnit != null)
+            {
+                line.MatchedUnitId = matchedUnit.Id;
+                line.MatchedUnitName = matchedUnit.Name;
+            }
+            else
+            {
+                line.MatchedUnitId = defaultUnitId;
+                line.MatchedUnitName = defaultUnitName;
+            }
+        }
+    }
+
+    private void OnSupplierChanged(int? newSupplierId)
+    {
+        if (_ocrResult == null) return;
+        _ocrResult.MatchedSupplierId = newSupplierId;
+        if (newSupplierId.HasValue && newSupplierId.Value > 0)
+        {
+            var sup = SupplierList.FirstOrDefault(s => s.Id == newSupplierId.Value);
+            _ocrResult.MatchedSupplierName = sup?.Name;
+            if (string.IsNullOrEmpty(_ocrResult.SupplierName))
+            {
+                _ocrResult.SupplierName = sup?.Name;
+            }
+        }
+        else
+        {
+            _ocrResult.MatchedSupplierName = null;
+        }
+    }
+
+    private void OnItemMapped(PurchaseInvoiceOcrLineItem line, int? itemId)
+    {
+        line.MatchedItemId = itemId;
+        if (itemId.HasValue && itemId.Value > 0)
+        {
+            var p = Products.FirstOrDefault(x => x.Id == itemId.Value);
+            line.MatchedItemName = p?.Name;
+            line.MatchedBarcode = p?.Code;
+        }
+        else
+        {
+            line.MatchedItemName = null;
+            line.MatchedBarcode = null;
+        }
+    }
+
+    private void OnUnitMapped(PurchaseInvoiceOcrLineItem line, int? unitId)
+    {
+        line.MatchedUnitId = unitId;
+        if (unitId.HasValue)
+        {
+            line.MatchedUnitName = UnitList.FirstOrDefault(u => u.Id == unitId.Value)?.Name;
+        }
+    }
+
+    private void RecalculateLine(PurchaseInvoiceOcrLineItem line)
+    {
+        decimal qty = line.Quantity > 0 ? line.Quantity : 1;
+        decimal rate = line.UnitPrice >= 0 ? line.UnitPrice : 0;
+        decimal discAmt = line.DiscountAmount > 0 ? line.DiscountAmount : (qty * rate * line.DiscountPerc / 100);
+        decimal taxable = Math.Max(0, (qty * rate) - discAmt);
+        line.TaxAmount = (taxable * line.TaxPerc) / 100;
+        line.LineTotal = taxable + line.TaxAmount;
+
+        if (_ocrResult != null)
+        {
+            _ocrResult.GrossAmount = _ocrResult.LineItems.Where(x => x.IsSelected).Sum(x => x.Quantity * x.UnitPrice);
+            _ocrResult.TaxAmount = _ocrResult.LineItems.Where(x => x.IsSelected).Sum(x => x.TaxAmount);
+            _ocrResult.GrandTotal = _ocrResult.LineItems.Where(x => x.IsSelected).Sum(x => x.LineTotal);
+        }
+    }
+
+    private void SelectAllLines()
+    {
+        if (_ocrResult == null) return;
+        foreach (var l in _ocrResult.LineItems) l.IsSelected = true;
+    }
+
+    private void DeselectAllLines()
+    {
+        if (_ocrResult == null) return;
+        foreach (var l in _ocrResult.LineItems) l.IsSelected = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void FillPurchaseGrid()
+    {
+        if (_ocrResult == null) return;
+        MudDialog.Close(DialogResult.Ok(_ocrResult));
+    }
+}
+

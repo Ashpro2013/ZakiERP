@@ -1244,6 +1244,19 @@ public static class ArabicLocalization
             "PleaseSelect" => AppData.IsArabic ? "الرجاء اختيار" : "Please select",
             "RequiredField" => AppData.IsArabic ? "حقل إلزامي" : "Required field",
 
+            // AI Purchase Invoice / Receipt OCR
+            "AiPurchaseInvoiceOcr" => AppData.IsArabic ? "التعرف الذكي على فاتورة الشراء بالذكاء الاصطناعي" : "AI Purchase Invoice / Receipt OCR",
+            "AiPurchaseInvoiceOcrSubtitle" => AppData.IsArabic ? "قم برفع صورة أو مستند فاتورة الشراء لاستخراج بيانات المورد والأصناف تلقائياً" : "Upload an invoice or receipt image/PDF to automatically extract vendor data and line items",
+            "AiInvoiceOcr" => AppData.IsArabic ? "مسح الفاتورة بالذكاء الاصطناعي" : "AI Invoice OCR",
+
+            // AI Settings in PermanentSettingsView
+            "AiAndOcr" => AppData.IsArabic ? "الذكاء الاصطناعي والمسح الضوئي" : "AI & OCR",
+            "ShowAIInvoiceOCR" => AppData.IsArabic ? "إظهار زر مسح الفاتورة الذكي (AI Invoice OCR)" : "Show AI Invoice OCR Button",
+            "AiInvoiceOcrSettings" => AppData.IsArabic ? "إعدادات المسح الذكي لفواتير الشراء بالذكاء الاصطناعي" : "AI Purchase Invoice OCR Settings",
+            "AiInvoiceOcrSettingsDesc" => AppData.IsArabic ? "تفعيل أو تعطيل استخراج بيانات الفواتير والإيصالات بالذكاء الاصطناعي في شاشة المشتريات وتكوين مفتاح الربط." : "Enable or disable AI-powered invoice and receipt OCR extraction in Purchase Invoice, and configure API credentials.",
+            "AiConfigurationTitle" => AppData.IsArabic ? "تكوين الذكاء الاصطناعي" : "Artificial Intelligence Configuration",
+            "AiConfigurationDesc" => AppData.IsArabic ? "إدارة خدمات الذكاء الاصطناعي المدمجة وتوليد البيانات الآلية" : "Manage built-in AI models, multimodal OCR extraction, and automated data processing.",
+
             _ => tableName // Fallback to technical name
         };
     }

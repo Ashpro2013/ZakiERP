@@ -1411,6 +1411,44 @@
                             </MudTabPanel>
 
                             <MudTabPanel Text="Purchase Invoice" Icon="@Icons.Material.Filled.LocalMall">
+                                <MudPaper Class="pa-4 mb-3" Outlined="true" Style="border-radius: 8px; background: #ffffff;">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" Color="Color.Tertiary" Class="mr-1" />
+                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 700; color: #0f172a;">
+                                            @Localizer("AiInvoiceOcrSettings")
+                                        </MudText>
+                                    </MudStack>
+                                    <MudText Typo="Typo.caption" Style="color: #64748b;" Class="d-block mb-3">
+                                        @Localizer("AiInvoiceOcrSettingsDesc")
+                                    </MudText>
+                                    <MudGrid Spacing="2">
+                                        <MudItem xs="12" sm="4" Class="d-flex align-center">
+                                            <MudSwitch @bind-Value="settings.ShowAIInvoiceOCR" @bind-Value:after="MarkDirty"
+                                                       Color="Color.Primary" Label="@Localizer("ShowAIInvoiceOCR")" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="5">
+                                            <MudTextField @bind-Value="settings.AiApiKey" @bind-Value:after="MarkDirty"
+                                                          Label="Gemini API Key"
+                                                          InputType="InputType.Password"
+                                                          Variant="Variant.Outlined"
+                                                          Margin="Margin.Dense"
+                                                          Placeholder="AIzaSy..."
+                                                          Disabled="@(!settings.ShowAIInvoiceOCR)" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudSelect T="string" @bind-Value="settings.AiModelName" @bind-Value:after="MarkDirty"
+                                                       Label="AI Model"
+                                                       Variant="Variant.Outlined"
+                                                       Margin="Margin.Dense"
+                                                       Disabled="@(!settings.ShowAIInvoiceOCR)">
+                                                <MudSelectItem Value="@("gemini-2.5-flash")">gemini-2.5-flash</MudSelectItem>
+                                                <MudSelectItem Value="@("gemini-2.0-flash")">gemini-2.0-flash</MudSelectItem>
+                                                <MudSelectItem Value="@("gemini-1.5-flash")">gemini-1.5-flash</MudSelectItem>
+                                                <MudSelectItem Value="@("gemini-1.5-pro")">gemini-1.5-pro</MudSelectItem>
+                                            </MudSelect>
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
                                 <TransactionGridSettingsEditor Model="@settings.PurchaseSettings"
                                                                TransactionTitle="Purchase Invoice"
                                                                ShowApplyToAll="true"
@@ -1865,6 +1903,85 @@
                         </MudGrid>
                     </MudPaper>
 
+                </div>
+            </MudTabPanel>
+
+            <!-- AI & OCR Configuration Tab -->
+            <MudTabPanel Text="@Localizer("AiAndOcr")" Icon="@Icons.Material.Filled.AutoAwesome">
+                <div class="pa-4" style="height: 100%; overflow-y: auto;">
+                    <MudPaper Class="pa-4 mb-4" Outlined="true" Style="border-radius: 8px;">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Medium" Color="Color.Tertiary" />
+                            <div>
+                                <MudText Typo="Typo.h6" Style="font-weight: 700;">@Localizer("AiConfigurationTitle")</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@Localizer("AiConfigurationDesc")</MudText>
+                            </div>
+                        </MudStack>
+
+                        <MudDivider Class="my-3" />
+
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" md="6">
+                                <MudPaper Class="pa-4" Elevation="0" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                                        <div>
+                                            <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@Localizer("AiPurchaseInvoiceOcr")</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                @Localizer("AiInvoiceOcrSettingsDesc")
+                                            </MudText>
+                                        </div>
+                                        <MudSwitch @bind-Value="settings.ShowAIInvoiceOCR" @bind-Value:after="MarkDirty"
+                                                   Color="Color.Primary" />
+                                    </MudStack>
+                                    <MudText Typo="Typo.body2" Class="mt-2">
+                                        Status: @(settings.ShowAIInvoiceOCR ? "Enabled (Visible in Purchase Invoice)" : "Disabled (Hidden in Purchase Invoice)")
+                                    </MudText>
+                                </MudPaper>
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudPaper Class="pa-4" Elevation="0" Style="background: var(--mud-palette-background-grey); border-radius: 8px;">
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;" Class="mb-2">AI Engine & Model</MudText>
+                                    <MudGrid Spacing="2">
+                                        <MudItem xs="12" sm="5">
+                                            <MudSelect T="string" @bind-Value="settings.AiProvider" @bind-Value:after="MarkDirty"
+                                                       Label="AI Provider" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                       Disabled="@(!settings.ShowAIInvoiceOCR)">
+                                                <MudSelectItem Value="@("Gemini")">Google Gemini</MudSelectItem>
+                                            </MudSelect>
+                                        </MudItem>
+                                        <MudItem xs="12" sm="7">
+                                            <MudSelect T="string" @bind-Value="settings.AiModelName" @bind-Value:after="MarkDirty"
+                                                       Label="Model" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                       Disabled="@(!settings.ShowAIInvoiceOCR)">
+                                                <MudSelectItem Value="@("gemini-2.5-flash")">gemini-2.5-flash (Recommended)</MudSelectItem>
+                                                <MudSelectItem Value="@("gemini-2.0-flash")">gemini-2.0-flash</MudSelectItem>
+                                                <MudSelectItem Value="@("gemini-1.5-flash")">gemini-1.5-flash</MudSelectItem>
+                                                <MudSelectItem Value="@("gemini-1.5-pro")">gemini-1.5-pro</MudSelectItem>
+                                            </MudSelect>
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="settings.AiApiKey" @bind-Value:after="MarkDirty"
+                                              Label="Google Gemini API Key"
+                                              InputType="InputType.Password"
+                                              Variant="Variant.Outlined"
+                                              Margin="Margin.Dense"
+                                              Placeholder="AIzaSy..."
+                                              HelperText="API Key from Google AI Studio (aistudio.google.com). Stored securely in ERP permanent settings."
+                                              Disabled="@(!settings.ShowAIInvoiceOCR)" />
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
+                                    <strong>Multimodal OCR Features:</strong> Scans PDF documents and image files (JPEG, PNG, WEBP), accurately parses vendor VAT registration numbers, item descriptions in Arabic and English, quantities, unit prices, discounts, 15% ZATCA tax, and auto-matches products against ERP inventory masters.
+                                </MudAlert>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
                 </div>
             </MudTabPanel>
         </MudTabs>

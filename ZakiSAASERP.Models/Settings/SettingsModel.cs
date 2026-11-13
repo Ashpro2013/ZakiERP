@@ -244,6 +244,12 @@ public class SettingsModel
     public bool BackupWhenClosing { get; set; } = false;
     public string BackupFolder { get; set; } = string.Empty;
 
+    // AI & OCR Settings
+    public bool ShowAIInvoiceOCR { get; set; } = true;
+    public string AiProvider { get; set; } = "Gemini";
+    public string AiApiKey { get; set; } = string.Empty;
+    public string AiModelName { get; set; } = "gemini-2.5-flash";
+
     // Transaction Grid Settings (Column Visibility & Inline Editing)
     public TransactionGridSettings SalesInvoiceSettings { get; set; } = new();
     public TransactionGridSettings SalesOrderSettings { get; set; } = new();

@@ -1,5 +1,7 @@
 using ZakiSAASERP.Models.Transactions.Purchase;
 using ZakiSAASERP.Shared.Pages.Masters;
+using ZakiSAASERP.Shared.SubWindows;
+using ZakiSAASERP.Models.DTO;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace ZakiSAASERP.Shared.Pages.Transactions.Purchase;
@@ -974,5 +976,141 @@ public partial class PurchaseView : ComponentBase, ITabAware
             Snackbar.Add($"Error loading Purchase No: {ex.Message}", Severity.Error);
         }
     }
+
+    #region AI Invoice OCR
+    async Task OpenAiInvoiceOcrDialog()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["SupplierList"] = supplierList,
+            ["Products"] = products,
+            ["UnitList"] = unitlist,
+            ["StoreList"] = storeList
+        };
+
+        var dialog = await DialogService.ShowAsync<PurchaseOcrDialog>("AI Purchase Invoice / Receipt Scanner", parameters, options);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled && result.Data is PurchaseInvoiceOcrResult ocrData)
+        {
+            await ApplyOcrResultToPurchase(ocrData);
+        }
+    }
+
+    async Task ApplyOcrResultToPurchase(PurchaseInvoiceOcrResult ocrData)
+    {
+        try
+        {
+            // 1. Supplier Auto-fill
+            if (ocrData.MatchedSupplierId.HasValue && ocrData.MatchedSupplierId.Value > 0)
+            {
+                purchase.FK_SupplierId = ocrData.MatchedSupplierId.Value;
+                purchase.SupplierName = ocrData.MatchedSupplierName ?? ocrData.SupplierName;
+                await AutoFillFromSupplier(ocrData.MatchedSupplierId.Value);
+            }
+            else if (!string.IsNullOrWhiteSpace(ocrData.SupplierName))
+            {
+                purchase.SupplierName = ocrData.SupplierName;
+                if (CashSupplierId > 0 && (purchase.FK_SupplierId == 0 || purchase.FK_SupplierId == null))
+                {
+                    purchase.FK_SupplierId = CashSupplierId;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(ocrData.SupplierVatNo))
+            {
+                purchase.SupplierVatNo = ocrData.SupplierVatNo;
+            }
+
+            // 2. Invoice Meta Auto-fill
+            if (!string.IsNullOrWhiteSpace(ocrData.InvoiceNo))
+            {
+                purchase.InvoiceNo = ocrData.InvoiceNo;
+            }
+
+            if (ocrData.InvoiceDate.HasValue)
+            {
+                purchase.PurchaseDate = ocrData.InvoiceDate.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(ocrData.BillType))
+            {
+                purchase.BillType = ocrData.BillType;
+            }
+
+            if (!string.IsNullOrWhiteSpace(ocrData.Remarks))
+            {
+                purchase.Remarks = ocrData.Remarks;
+            }
+
+            // 3. Grid Line Items Auto-fill
+            // Remove any trailing empty placeholder rows
+            entTransactions.RemoveAll(x => x.FK_ItemId == 0 && string.IsNullOrWhiteSpace(x.ItemName));
+
+            int defaultStoreId = storeList.FirstOrDefault(s => s.FK_BranchId == AppData.BranchId)?.StoreId 
+                               ?? (storeList.FirstOrDefault()?.StoreId ?? 1);
+            int defaultUnitId = unitlist.FirstOrDefault()?.Id ?? 1;
+            string defaultUnitName = unitlist.FirstOrDefault()?.Name ?? "PCS";
+
+            foreach (var line in ocrData.LineItems.Where(x => x.IsSelected))
+            {
+                int unitId = line.MatchedUnitId ?? defaultUnitId;
+                string uName = line.MatchedUnitName ?? unitlist.FirstOrDefault(u => u.Id == unitId)?.Name ?? defaultUnitName;
+
+                var newTx = new TransactionDtls
+                {
+                    SL = entTransactions.Count + 1,
+                    FK_ItemId = line.MatchedItemId ?? 0,
+                    ItemName = !string.IsNullOrWhiteSpace(line.MatchedItemName) ? line.MatchedItemName : line.ItemName,
+                    ItemArabicName = line.ItemArabicName,
+                    Barcode = line.MatchedBarcode ?? line.Barcode ?? string.Empty,
+                    Quantity = line.Quantity > 0 ? line.Quantity : 1,
+                    FK_UnitId = unitId,
+                    UnitName = uName,
+                    FK_StoreId = line.MatchedStoreId ?? defaultStoreId,
+                    ExRate = line.UnitPrice,
+                    DiscountPerc = line.DiscountPerc,
+                    DiscountAmnt = line.DiscountAmount,
+                    TaxPerc = line.TaxPerc > 0 ? line.TaxPerc : defaultVatPerc,
+                    QtyPerUnit = 1
+                };
+
+                // Fetch multi-units if matched to system product
+                if (newTx.FK_ItemId > 0)
+                {
+                    try
+                    {
+                        var allUnits = await api.GetCombofill("munit", newTx.FK_ItemId);
+                        newTx.AvailableUnits = allUnits ?? new List<CommonModel>();
+                    }
+                    catch { }
+                }
+
+                RecalculateLineTotals(newTx);
+                entTransactions.Add(newTx);
+            }
+
+            // Always ensure an empty row at the bottom for easy manual addition
+            AddNewRow();
+
+            TotalFindMethod();
+            IsEditing = true;
+            StateHasChanged();
+
+            Snackbar.Add($"Imported {ocrData.LineItems.Count(x => x.IsSelected)} line items from AI OCR successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to apply OCR data: {ex.Message}", Severity.Error);
+        }
+    }
+    #endregion
 
 }

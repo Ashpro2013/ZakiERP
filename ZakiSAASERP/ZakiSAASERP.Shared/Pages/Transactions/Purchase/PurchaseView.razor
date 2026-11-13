@@ -324,6 +324,10 @@
                     </MudButton>
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Error" OnClick="Cancel" Disabled="@(purchase.PurchaseId == 0)">@Localizer("Cancel") </MudButton>
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New") </MudButton>
+                    @if (PermanentSettingsData.ShowAIInvoiceOCR)
+                    {
+                        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.AutoAwesome" Color="Color.Tertiary" OnClick="OpenAiInvoiceOcrDialog">@Localizer("AiInvoiceOcr")</MudButton>
+                    }
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Primary" Disabled="@DisablePrintButton" OnClick="PrintMethod">@Localizer("Print") </MudButton>
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.DocumentScanner" Color="Color.Warning" Disabled="@DisablePrintButton" OnClick="PrintPrviewMethod">@Localizer("Preview") </MudButton>
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Search" Color="Color.Secondary" OnClick="SearchClickAsync">@Localizer("Search") </MudButton>
@@ -344,6 +348,10 @@
                     </MudButton>
                     <MudButton Style="display:none" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Cancel">@Localizer("Delete") </MudButton>
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Info" OnClick="NewClick">@Localizer("New") </MudButton>
+                    @if (PermanentSettingsData.ShowAIInvoiceOCR)
+                    {
+                        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.AutoAwesome" Color="Color.Tertiary" OnClick="OpenAiInvoiceOcrDialog">@Localizer("AiInvoiceOcr")</MudButton>
+                    }
                 </MudStack>
                 <MudStack Row="true" Spacing="1" Class=" ma-2">
                     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Primary" Disabled="@DisablePrintButton" OnClick="PrintMethod">@Localizer("Print") </MudButton>
