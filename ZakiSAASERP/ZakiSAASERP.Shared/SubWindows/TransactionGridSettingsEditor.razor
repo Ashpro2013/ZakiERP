@@ -85,6 +85,16 @@
                 <span class="tx-card-caption">Secondary Arabic item title</span>
             </div>
 
+            <!-- Store / Warehouse -->
+            <div class="tx-column-card @(Model.ShowStore ? "card-active" : "")">
+                <MudSwitch @bind-Value="Model.ShowStore"
+                           @bind-Value:after="OnFieldChanged"
+                           Color="Color.Primary"
+                           Label="@Localizer("Store")"
+                           T="bool" />
+                <span class="tx-card-caption">Store / warehouse dropdown</span>
+            </div>
+
             <!-- Measurement Unit -->
             <div class="tx-column-card @(Model.ShowUnit ? "card-active" : "")">
                 <MudSwitch @bind-Value="Model.ShowUnit"

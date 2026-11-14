@@ -529,6 +529,14 @@
                                 </div>
 
                                 <div class="pref-item">
+                                    <MudSwitch @bind-Value="Model.BeepOnBarcodeNotFound"
+                                               Color="Color.Primary"
+                                               Label="Beep on Unrecognized Barcode"
+                                               T="bool" />
+                                    <span class="helper-text">Play a warning beep sound when a searched barcode is not found in the database</span>
+                                </div>
+
+                                <div class="pref-item">
                                     <MudSwitch @bind-Value="Model.AllowEditExcRate"
                                                Color="Color.Success"
                                                Label="Allow Editing Exclusive Rate (ExcRate)"

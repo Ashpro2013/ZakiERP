@@ -908,6 +908,7 @@ public partial class PermanentSettingsView
         s.ShowBarcode = GetBool($"{prefix}_ShowBarcode", true);
         s.ShowItemName = GetBool($"{prefix}_ShowItemName", true);
         s.ShowArabicName = GetBool($"{prefix}_ShowArabicName", false);
+        s.ShowStore = GetBool($"{prefix}_ShowStore", false);
         s.ShowUnit = GetBool($"{prefix}_ShowUnit", true);
         s.ShowExRate = GetBool($"{prefix}_ShowExRate", true);
         s.ShowIncRate = GetBool($"{prefix}_ShowIncRate", false);
@@ -934,6 +935,7 @@ public partial class PermanentSettingsView
         SetValue($"{prefix}_ShowBarcode", s.ShowBarcode ? "1" : "0");
         SetValue($"{prefix}_ShowItemName", s.ShowItemName ? "1" : "0");
         SetValue($"{prefix}_ShowArabicName", s.ShowArabicName ? "1" : "0");
+        SetValue($"{prefix}_ShowStore", s.ShowStore ? "1" : "0");
         SetValue($"{prefix}_ShowUnit", s.ShowUnit ? "1" : "0");
         SetValue($"{prefix}_ShowExRate", s.ShowExRate ? "1" : "0");
         SetValue($"{prefix}_ShowIncRate", s.ShowIncRate ? "1" : "0");

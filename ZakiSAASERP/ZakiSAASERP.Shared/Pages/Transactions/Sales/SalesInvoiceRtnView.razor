@@ -305,7 +305,7 @@
     <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">
         <MudTable Class="ma-2" Elevation="3" Items="@entTransactions" Hover="true" Striped="true" Dense="true" FixedHeader="true" Height="400PX" OnRowClick="RowClickEvent" T="TransactionDtls">
             <HeaderContent>
-                <MudTh Style="width: 45px;">@Localizer("SL")</MudTh>
+                <MudTh Style="width: 40px; min-width: 40px; max-width: 45px; text-align: center;">@Localizer("SL")</MudTh>
                 @if (gridSettings.ShowItemCode)
                 {
                     <MudTh>@Localizer("ItemCode")</MudTh>
@@ -322,7 +322,10 @@
                 {
                     <MudTh>@Localizer("ArabicName")</MudTh>
                 }
-                <MudTh>@Localizer("Store")</MudTh>
+                @if (gridSettings.ShowStore)
+                {
+                    <MudTh>@Localizer("Store")</MudTh>
+                }
                 <MudTh>@Localizer("Quantity")</MudTh>
                 @if (gridSettings.ShowUnit)
                 {
@@ -367,7 +370,7 @@
                 <MudTh Style="width: 50px;">@Localizer("Action")</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="SL"><MudTextField @bind-Value="@context.SL" Disabled="true" Margin="Margin.Dense" /></MudTd>
+                <MudTd Style="width: 40px; min-width: 40px; max-width: 45px; text-align: center;" DataLabel="SL"><MudTextField @bind-Value="@context.SL" Disabled="true" Margin="Margin.Dense" Style="width: 35px; text-align: center;" /></MudTd>
                 @if (gridSettings.ShowItemCode)
                 {
                     <MudTd DataLabel="Item Code"><MudTextField @bind-Value="@context.ItemCode" ReadOnly="true" Margin="Margin.Dense" /></MudTd>
@@ -388,14 +391,17 @@
                 {
                     <MudTd DataLabel="Arabic Name"><MudTextField Immediate="true" @bind-Value="@context.ItemArabicName" Margin="Margin.Dense" /></MudTd>
                 }
-                <MudTd DataLabel="Store">
-                    <MudSelect T="int" Value="@context.FK_StoreId" ValueChanged="@((int s) => context.FK_StoreId = s)" Margin="Margin.Dense" Dense="true" AnchorOrigin="Origin.BottomCenter">
-                        @foreach (var store in storeList.Where(x => x.FK_BranchId == AppData.BranchId || x.FK_BranchId == null))
-                        {
-                            <MudSelectItem Value="@store.StoreId">@store.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudTd>
+                @if (gridSettings.ShowStore)
+                {
+                    <MudTd DataLabel="Store">
+                        <MudSelect T="int" Value="@context.FK_StoreId" ValueChanged="@((int s) => context.FK_StoreId = s)" Margin="Margin.Dense" Dense="true" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var store in storeList.Where(x => x.FK_BranchId == AppData.BranchId || x.FK_BranchId == null))
+                            {
+                                <MudSelectItem Value="@store.StoreId">@store.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                }
                 <MudTd DataLabel="Quantity">
                     <MudNumericField HideSpinButtons="true" Format="@strQuantityFormat" @ref="txtQuantity" @bind-Value="@context.Quantity"
                                      Margin="Margin.Dense" OnBlur="@(() => OnRowQuantityChanged(context))" OnKeyDown="@(e => TaskOnEnterMethod(e, 2))" />

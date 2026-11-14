@@ -710,6 +710,7 @@ public static class PermanentSettingsData
         s.ShowBarcode = GetBool("ShowBarcode", true);
         s.ShowItemName = GetBool("ShowItemName", true);
         s.ShowArabicName = GetBool("ShowArabicName", false);
+        s.ShowStore = GetBool("ShowStore", false);
         s.ShowUnit = GetBool("ShowUnit", true);
         s.ShowExRate = GetBool("ShowExRate", true);
         s.ShowIncRate = GetBool("ShowIncRate", false);

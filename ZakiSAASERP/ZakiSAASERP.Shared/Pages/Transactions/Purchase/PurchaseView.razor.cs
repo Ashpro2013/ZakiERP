@@ -58,6 +58,7 @@ public partial class PurchaseView : ComponentBase, ITabAware
     private int _activeTabIndex = 0;
     string strQuantityFormat => PermanentSettingsData.QuantityFormat;
     string strCurencyFormat => PermanentSettingsData.CurrencyFormat;
+    TransactionGridSettings gridSettings => PermanentSettingsData.PurchaseSettings;
     public int Width { get; set; }
 
 

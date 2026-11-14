@@ -555,3 +555,40 @@ window.unregisterPosShortcuts = function () {
         window._posKeyHandler = null;
     }
 };
+
+// POS Audio Beep (Web Audio API Synthesizer)
+window.playPosBeepSound = function () {
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        if (!window._posAudioCtx) {
+            window._posAudioCtx = new AudioContextClass();
+        }
+        const ctx = window._posAudioCtx;
+
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+
+        const playTone = (freq, startTime, duration, type = 'square') => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(0.3, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
+
+        const now = ctx.currentTime;
+        // Two-tone barcode scanner warning beep: 550Hz for 140ms, pause, 400Hz for 180ms
+        playTone(550, now, 0.14, 'square');
+        playTone(400, now + 0.18, 0.18, 'square');
+    } catch (e) {
+        console.warn("Could not play POS beep sound:", e);
+    }
+};

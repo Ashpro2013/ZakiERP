@@ -7,6 +7,7 @@ public class TransactionGridSettings
     public bool ShowBarcode { get; set; } = true;
     public bool ShowItemName { get; set; } = true;
     public bool ShowArabicName { get; set; } = false;
+    public bool ShowStore { get; set; } = false;
     public bool ShowUnit { get; set; } = true;
     public bool ShowExRate { get; set; } = true;
     public bool ShowIncRate { get; set; } = false;
@@ -43,6 +44,7 @@ public class TransactionGridSettings
         ShowBarcode = other.ShowBarcode;
         ShowItemName = other.ShowItemName;
         ShowArabicName = other.ShowArabicName;
+        ShowStore = other.ShowStore;
         ShowUnit = other.ShowUnit;
         ShowExRate = other.ShowExRate;
         ShowIncRate = other.ShowIncRate;
@@ -69,6 +71,7 @@ public class TransactionGridSettings
         ShowBarcode = true;
         ShowItemName = true;
         ShowArabicName = false;
+        ShowStore = false;
         ShowUnit = true;
         ShowExRate = true;
         ShowIncRate = false;
@@ -95,6 +98,7 @@ public class TransactionGridSettings
         ShowBarcode = true;
         ShowItemName = true;
         ShowArabicName = true;
+        ShowStore = true;
         ShowUnit = true;
         ShowExRate = true;
         ShowIncRate = true;

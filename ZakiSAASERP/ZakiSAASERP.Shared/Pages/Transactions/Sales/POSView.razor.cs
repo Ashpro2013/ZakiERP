@@ -758,6 +758,11 @@ public partial class POSView : ITabAware, IDisposable
             }
             else
             {
+                if (posSettings.BeepOnBarcodeNotFound)
+                {
+                    await PlayErrorBeepAsync();
+                }
+
                 if (!allowCreatePrompt)
                 {
                     return;
@@ -807,6 +812,25 @@ public partial class POSView : ITabAware, IDisposable
         }
     }
 
+    private async Task PlayErrorBeepAsync()
+    {
+        try
+        {
+            await js.InvokeVoidAsync("playPosBeepSound");
+        }
+        catch
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    Console.Beep(550, 200);
+                }
+                catch { }
+            }
+        }
+    }
+
     private async Task ProcessMultiUnit(ItemMultiUnit multiUnit)
     {
         var existing = entTransactions.FirstOrDefault(x => x.FK_ItemId == multiUnit.FK_ItemId && x.FK_UnitId == multiUnit.FK_UnitId);
@@ -840,6 +864,7 @@ public partial class POSView : ITabAware, IDisposable
             }
             trans = TransactionHelper.GetTransactionAfterEdit(trans, posSettings.ShowIncRate);
             entTransactions.Add(trans);
+            entTransactions = entTransactions.OrderByDescending(x => x.SL).ToList();
             _selectedRow = trans;
         }
 
@@ -1099,12 +1124,12 @@ public partial class POSView : ITabAware, IDisposable
 
         if (!result.Canceled && result.Data is PaymentResult paymentResult)
         {
-            await SaveInvoiceClick("Cash", paymentResult.Tendered, paymentResult.Changes);
+            await SaveInvoiceClick("Cash", paymentResult.Tendered, paymentResult.Changes,false);
         }
         await FocusBarcodeInputAsync();
     }
 
-    private async Task SaveInvoiceClick(string paymentType = "Cash", decimal? tendered = null, decimal? changes = null)
+    private async Task SaveInvoiceClick(string paymentType = "Cash", decimal? tendered = null, decimal? changes = null,bool Print = true)
     {
         if (_isSaving) return;
 
@@ -1176,7 +1201,7 @@ public partial class POSView : ITabAware, IDisposable
                     catch { }
                 }
 
-                if (posSettings.AutoPrintBill)
+                if (posSettings.AutoPrintBill && Print)
                 {
                     await PrintBillClick(salesInvoice.Tendered, salesInvoice.Changes);
                 }

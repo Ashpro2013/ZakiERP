@@ -75,6 +75,7 @@ public class POSSettings
     public bool AutoFocusBarcode { get; set; } = true;
     public bool AutoPrintBill { get; set; } = true;
     public bool ReadonlyInvoiceNumber { get; set; } = true;
+    public bool BeepOnBarcodeNotFound { get; set; } = true;
     public string DefaultPaymentMode { get; set; } = "Cash"; // "Cash" or "Bank"
     public string GridRowDensity { get; set; } = "Dense"; // "Dense" or "Normal"
 
