@@ -518,7 +518,8 @@ INSERT INTO MenuDetails (Name, MenuCaption, ArabicCaption, ParentId, AssemblyNam
 ('SalesInvoiceRtnTitle', 'Sales Invoice Return', N'مرتجع فاتورة مبيعات', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.SalesInvoiceRtnView', 'SalesInvoiceRtnView', 5, 1, 0, 0, 0, 0),
 ('EnquiryRegistration', 'Enquiry Registration', N'تسجيل الاستفسارات', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.EnquiryRegistrationView', 'EnquiryRegistrationView', 6, 1, 0, 0, 0, 0),
 ('DeliveryNoteTitle', 'Delivery Note', N'إشعار تسليم', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteView', 'DeliveryNoteView', 7, 1, 0, 0, 0, 0),
-('Delivery Note Return', 'Delivery Note Return', N'مرتجع إشعار التسليم', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteRtnView', 'DeliveryNoteRtnView', 8, 1, 0, 0, 0, 0);
+('Delivery Note Return', 'Delivery Note Return', N'مرتجع إشعار التسليم', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteRtnView', 'DeliveryNoteRtnView', 8, 1, 0, 0, 0, 0),
+('POSView', 'POS', N'نقطة البيع', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.POSView', 'POSView', 9, 1, 0, 0, 0, 0);
 
 -- Purchase
 INSERT INTO MenuDetails (Name, MenuCaption, ArabicCaption, ParentId, AssemblyName, ClassName, Position, Active, IsFavorite, IsFavorite2, FilterOneOrder, FilterTwoOrder) VALUES 
@@ -656,7 +657,8 @@ INSERT INTO MenuDetails (Name, MenuCaption, ArabicCaption, ParentId, AssemblyNam
 ('ZATCA Pending', 'ZATCA Pending Invoices', N'فواتير زاتكا المعلقة', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.ZatcaPendingUploadView', 'ZatcaPendingUploadView', 7, 1, 0, 0, 0, 0),
 ('ProductImport', 'Product Import', N'استيراد المنتجات', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.ProductImportView', 'ProductImportView', 8, 1, 0, 0, 0, 0),
 ('ProductExport', 'Product Export', N'تصدير المنتجات', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.ProductExportView', 'ProductExportView', 9, 1, 0, 0, 0, 0),
-('PrintingBarcode', 'Printing Barcode', N'طباعة الباركود', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.PrintingBarcodeView', 'PrintingBarcodeView', 10, 1, 0, 0, 0, 0);
+('PrintingBarcode', 'Printing Barcode', N'طباعة الباركود', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.PrintingBarcodeView', 'PrintingBarcodeView', 10, 1, 0, 0, 0, 0),
+('DBBackup', 'Database Backup', N'نسخ احتياطي لقاعدة البيانات', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.DBBackupView', 'DBBackupView', 11, 1, 0, 0, 0, 0);
 
 End
 ";

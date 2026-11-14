@@ -142,7 +142,15 @@ public class CustomerMasterRepo(IDbContextProvider contextProvider, CodeSequence
 
         if (!string.IsNullOrWhiteSpace(pagination.search))
         {
-            query = query.Where(x => x.Name.Contains(pagination.search) || x.Code.Contains(pagination.search));
+            query = query.Where(x => x.Name!.Contains(pagination.search) 
+            || x.Code.Contains(pagination.search) 
+            || x.VatNo!.Contains(pagination.search)
+            || x.VatNoArabic!.Contains(pagination.search)
+            || x.Mobile!.Contains(pagination.search)
+            || x.MobileArabic!.Contains(pagination.search)
+            || x.PhoneArabic!.Contains(pagination.search)
+            || x.NameArabic!.Contains(pagination.search)
+            || x.Telephone!.Contains(pagination.search));
         }
 
         int count = await query.CountAsync();

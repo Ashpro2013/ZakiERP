@@ -41,8 +41,6 @@ public partial class POSView : ITabAware, IDisposable
     private bool _isActionInProgress = false;
     private bool _isFullScreen = false;
 
-    private string _currentDateTimeString = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
-    private Timer? _clockTimer;
     private bool _isSaving = false;
     string strQuantityFormat => PermanentSettingsData.QuantityFormat;
     string strCurencyFormat => PermanentSettingsData.CurrencyFormat;
@@ -72,7 +70,10 @@ public partial class POSView : ITabAware, IDisposable
 
             if (AppData.privileges is not null)
             {
-                privilege = AppData.privileges.FirstOrDefault(x => x.Caption == "SalesInvoiceTitle");
+                privilege = AppData.privileges.FirstOrDefault(x =>
+                    string.Equals(x.Caption, "POS", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Caption, "POSView", StringComparison.OrdinalIgnoreCase))
+                    ?? AppData.privileges.FirstOrDefault(x => string.Equals(x.Caption, "SalesInvoiceTitle", StringComparison.OrdinalIgnoreCase));
             }
 
             customerList = await api.GetCombofill("Customers", AppData.BranchId);
@@ -87,9 +88,6 @@ public partial class POSView : ITabAware, IDisposable
 
             await NewClick();
             await RefreshHeldInvoicesCountAsync();
-
-            // Start clock timer
-            _clockTimer = new Timer(UpdateClock, null, 0, 1000);
             StateHasChanged();
         }
         catch (Exception ex)
@@ -109,20 +107,12 @@ public partial class POSView : ITabAware, IDisposable
         _productPage = 1;
         InvokeAsync(StateHasChanged);
     }
-
-    private void UpdateClock(object? state)
-    {
-        _currentDateTimeString = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
-        InvokeAsync(StateHasChanged);
-    }
-
     public void Dispose()
     {
         if (PosSettingsService != null)
         {
             PosSettingsService.OnSettingsChanged -= HandleSettingsChanged;
         }
-        _clockTimer?.Dispose();
         try
         {
             _ = js.InvokeVoidAsync("unregisterPosShortcuts");
@@ -1636,12 +1626,8 @@ public partial class POSView : ITabAware, IDisposable
             hdr.Changes = changes ?? salesInvoice.Changes ?? 0m;
             hdr.BillType = salesInvoice.BillType; 
             hdr.BillTypeArabic = GetBillTypeArabic(salesInvoice.BillType ?? "Cash");
-            party = new Party
-            {
-                Name = salesInvoice.CustomerName,
-                CustomerId = salesInvoice.FK_CustomerId
-            };
-
+            var customer = await api.GetCustomerById(salesInvoice.FK_CustomerId);
+            party = customer.CopyTo<Party>();
             PrintParameterDTO dto = new PrintParameterDTO(pdto.hdr, pdto.dtls, hdr, transctions, party, AppData.CompanyDetails!, null);
             if (!AppData.IsMaui && !AppData.IsWindows)
             {

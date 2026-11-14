@@ -151,7 +151,7 @@
                                         <MudText Typo="Typo.caption" Style="word-break: break-all;">@lastBackupResult.Value.BackupPath</MudText>
                                     }
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(lastBackupResult.Value.BackupPath))
+                                @if (!string.IsNullOrWhiteSpace(lastBackupResult.Value.BackupPath) && AppData.IsWindows)
                                 {
                                     <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Surface" OnClick="() => FormFactor.OpenFolder(lastBackupResult.Value.BackupPath!)">
                                         @(AppData.IsArabic ? "عرض الملف" : "Show File")

@@ -1,6 +1,7 @@
-﻿using ZakiSAASERP.Models.User;
+using ZakiSAASERP.Models.User;
 using ZakiSAASERP.Models.ViewModel;
 using AshproStringExtension;
+using ZakiSAASERP.Interface.Others;
 
 namespace ZakiSAASERP.Repo.Others;
 
@@ -140,47 +141,65 @@ public class UserPrivilegeRepo(IDbContextProvider contextProvider) : IUserPrivil
     public async Task<UserPrivilegeDTO> GetAsync(int Id)
     {
         await using var db = contextProvider.CreateDbContext();
+        await MenuSeedHelper.EnsureSeedDataAsync(db);
+
+        // Pre-fetch all menus for fast in-memory lookup and parent resolution
+        var allDbMenus = await db.MenuDetails.AsNoTracking().ToListAsync();
+        var menusById = allDbMenus.ToDictionary(m => m.Id);
+
+        // Filter active menus that belong to a parent (exclude top-level root groupings like Masters, Transactions, etc.)
+        var allMenus = allDbMenus
+            .Where(x => x.Active && x.ParentId != null)
+            .OrderBy(x => menusById.TryGetValue(x.ParentId ?? 0, out var p) ? p.Position : 999)
+            .ThenBy(x => x.Position)
+            .ToList();
+
         if (Id > 0)
         {
-            var hdr = db.UserPrivilegeHdrs.AsNoTracking().FirstOrDefault(x => x.Id == Id);
-            var savedDtls = db.UserPrivilegeDtls.AsNoTracking().Include(y => y.MenuDetails).Where(x => x.FK_UserPrivilegeHdrId == Id).ToList();
-            var funcDtls = db.FunctionalPrivileges.AsNoTracking().Include(y => y.FunctionDetails).Where(x => x.FK_UserPrivilegeHdrId == Id).ToList();
-
-            // Fetch ALL active menu details
-            var allMenus = await db.MenuDetails.AsNoTracking().Where(x => x.Active && x.ParentId != null).ToListAsync();
+            var hdr = await db.UserPrivilegeHdrs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == Id);
+            var savedDtls = await db.UserPrivilegeDtls.AsNoTracking().Include(y => y.MenuDetails).Where(x => x.FK_UserPrivilegeHdrId == Id).ToListAsync();
+            var funcDtls = await db.FunctionalPrivileges.AsNoTracking().Include(y => y.FunctionDetails).Where(x => x.FK_UserPrivilegeHdrId == Id).ToListAsync();
 
             List<ExUserPrivilege> exUserPrevilages = new List<ExUserPrivilege>();
 
             foreach (var menu in allMenus)
             {
                 var existingPrivilege = savedDtls.FirstOrDefault(x => x.FK_MenuDetailsId == menu.Id);
+                var parentCaption = (menu.ParentId != null && menusById.TryGetValue(menu.ParentId.Value, out var parent))
+                    ? parent.MenuCaption
+                    : string.Empty;
+                var parentArabic = (menu.ParentId != null && menusById.TryGetValue(menu.ParentId.Value, out var pAr))
+                    ? pAr.ArabicCaption
+                    : string.Empty;
 
                 if (existingPrivilege != null)
                 {
                     // Use saved privilege
                     var exitem = existingPrivilege.CopyTo<ExUserPrivilege>();
                     exitem.MenuId = existingPrivilege.FK_MenuDetailsId;
-                    exitem.MenuCaption = existingPrivilege.MenuDetails?.MenuCaption!;
-                    // exitem.MenuTitle = (await db.MenuDetails.FirstOrDefaultAsync(x => x.Id == existingPrivilege.MenuDetails!.ParentId))!.MenuCaption;
-                    exitem.MenuTitle = (await db.MenuDetails.FirstOrDefaultAsync(x => x.Id == menu.ParentId))!.MenuCaption;
+                    exitem.MenuCaption = existingPrivilege.MenuDetails?.MenuCaption ?? menu.MenuCaption;
+                    exitem.MenuTitle = parentCaption;
+                    exitem.ArabicCaption = menu.ArabicCaption;
+                    exitem.ArabicTitle = parentArabic;
                     exUserPrevilages.Add(exitem);
                 }
                 else
                 {
                     // Create default privilege for new/missing menu
-                    ExUserPrivilege exitem = new ExUserPrivilege();
-                    exitem.MenuId = menu.Id;
-                    exitem.MenuCaption = menu.MenuCaption;
-                    exitem.MenuTitle = (await db.MenuDetails.FirstOrDefaultAsync(x => x.Id == menu.ParentId))!.MenuCaption;
-                    exitem.Visible = false;
-                    exitem.SaveData = false;
-                    exitem.EditData = false;
-                    exitem.DeleteData = false;
-
-                    // Important: Set FK relationships if needed for saving logic, though usually Handle in Save
-                    exitem.FK_UserPrivilegeHdrId = Id;
-                    exitem.FK_MenuDetailsId = menu.Id;
-
+                    ExUserPrivilege exitem = new ExUserPrivilege
+                    {
+                        MenuId = menu.Id,
+                        MenuCaption = menu.MenuCaption,
+                        MenuTitle = parentCaption,
+                        ArabicCaption = menu.ArabicCaption,
+                        ArabicTitle = parentArabic,
+                        Visible = false,
+                        SaveData = false,
+                        EditData = false,
+                        DeleteData = false,
+                        FK_UserPrivilegeHdrId = Id,
+                        FK_MenuDetailsId = menu.Id
+                    };
                     exUserPrevilages.Add(exitem);
                 }
             }
@@ -198,21 +217,33 @@ public class UserPrivilegeRepo(IDbContextProvider contextProvider) : IUserPrivil
         else
         {
             var hdr = new UserPrivilegeHdr();
-            var dtls = await db.MenuDetails.AsNoTracking().Where(x => x.Active && x.ParentId != null).ToListAsync();
             var funcDtls = await db.FunctionDetails.AsNoTracking().ToListAsync();
+
             List<ExUserPrivilege> exUserPrevilages = new List<ExUserPrivilege>();
-            foreach (var item in dtls)
+            foreach (var item in allMenus)
             {
-                ExUserPrivilege exitem = new ExUserPrivilege();
-                exitem.MenuId = item.Id;
-                exitem.MenuCaption = item.MenuCaption;
-                exitem.MenuTitle = (await db.MenuDetails.FirstOrDefaultAsync(x => x.Id == item.ParentId))!.MenuCaption;
-                exitem.Visible = false;
-                exitem.SaveData = false;
-                exitem.EditData = false;
-                exitem.DeleteData = false;
+                var parentCaption = (item.ParentId != null && menusById.TryGetValue(item.ParentId.Value, out var parent))
+                    ? parent.MenuCaption
+                    : string.Empty;
+                var parentArabic = (item.ParentId != null && menusById.TryGetValue(item.ParentId.Value, out var pAr))
+                    ? pAr.ArabicCaption
+                    : string.Empty;
+
+                ExUserPrivilege exitem = new ExUserPrivilege
+                {
+                    MenuId = item.Id,
+                    MenuCaption = item.MenuCaption,
+                    MenuTitle = parentCaption,
+                    ArabicCaption = item.ArabicCaption,
+                    ArabicTitle = parentArabic,
+                    Visible = false,
+                    SaveData = false,
+                    EditData = false,
+                    DeleteData = false
+                };
                 exUserPrevilages.Add(exitem);
             }
+
             List<ExFuncDetails> exFuncDetails = new List<ExFuncDetails>();
             int isl = 1;
             foreach (var item in funcDtls)
@@ -246,7 +277,7 @@ public class UserPrivilegeRepo(IDbContextProvider contextProvider) : IUserPrivil
 
             var privilegeId = user.PrevilageId;
 
-            var dtls = db.UserPrivilegeDtls.AsNoTracking().Include(x => x.MenuDetails).Where(x => x.FK_UserPrivilegeHdrId == privilegeId).ToList();
+            var dtls = await db.UserPrivilegeDtls.AsNoTracking().Include(x => x.MenuDetails).Where(x => x.FK_UserPrivilegeHdrId == privilegeId).ToListAsync();
             List<WebUserPrivilege> webUserPrivileges = new List<WebUserPrivilege>();
             foreach (var item in dtls)
             {

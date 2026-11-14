@@ -468,7 +468,8 @@ public class DatabaseSeedService(IDbContextProvider contextProvider) : IDatabase
         ('SalesInvoiceRtnTitle', 'Sales Invoice Return', 'مرتجع فاتورة مبيعات', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.SalesInvoiceRtnView', 'SalesInvoiceRtnView', 5, 1, 0, 0, 0, 0),
         ('EnquiryRegistration', 'Enquiry Registration', 'تسجيل الاستفسارات', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.EnquiryRegistrationView', 'EnquiryRegistrationView', 6, 1, 0, 0, 0, 0),
         ('DeliveryNoteTitle', 'Delivery Note', 'إشعار تسليم', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteView', 'DeliveryNoteView', 7, 1, 0, 0, 0, 0),
-        ('Delivery Note Return', 'Delivery Note Return', 'مرتجع إشعار التسليم', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteRtnView', 'DeliveryNoteRtnView', 8, 1, 0, 0, 0, 0);
+        ('Delivery Note Return', 'Delivery Note Return', 'مرتجع إشعار التسليم', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteRtnView', 'DeliveryNoteRtnView', 8, 1, 0, 0, 0, 0),
+        ('POSView', 'POS', 'نقطة البيع', (SELECT Id FROM MenuDetails WHERE Name='Sales' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Sales.POSView', 'POSView', 9, 1, 0, 0, 0, 0);
 
         INSERT INTO MenuDetails (Name, MenuCaption, ArabicCaption, ParentId, AssemblyName, ClassName, Position, Active, IsFavorite, IsFavorite2, FilterOneOrder, FilterTwoOrder) VALUES 
         ('PurchaseOrderTitle', 'Purchase Order', 'أمر شراء', (SELECT Id FROM MenuDetails WHERE Name='Purchase' AND ParentId=(SELECT Id FROM MenuDetails WHERE Name='Transactions')), 'ZakiSAASERP.Shared.Pages.Transactions.Purchase.PurchaseOrderView', 'PurchaseOrderView', 1, 1, 0, 0, 0, 0),
@@ -578,7 +579,8 @@ public class DatabaseSeedService(IDbContextProvider contextProvider) : IDatabase
         ('ZATCA Pending', 'ZATCA Pending Invoices', 'فواتير زاتكا المعلقة', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.ZatcaPendingUploadView', 'ZatcaPendingUploadView', 7, 1, 0, 0, 0, 0),
         ('ProductImport', 'Product Import', 'استيراد المنتجات', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.ProductImportView', 'ProductImportView', 8, 1, 0, 0, 0, 0),
         ('ProductExport', 'Product Export', 'تصدير المنتجات', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.ProductExportView', 'ProductExportView', 9, 1, 0, 0, 0, 0),
-        ('PrintingBarcode', 'Printing Barcode', 'طباعة الباركود', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.PrintingBarcodeView', 'PrintingBarcodeView', 10, 1, 0, 0, 0, 0);";
+        ('PrintingBarcode', 'Printing Barcode', 'طباعة الباركود', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.PrintingBarcodeView', 'PrintingBarcodeView', 10, 1, 0, 0, 0, 0),
+        ('DBBackup', 'Database Backup', 'نسخ احتياطي لقاعدة البيانات', (SELECT Id FROM MenuDetails WHERE Name='Settings'), 'ZakiSAASERP.Shared.Pages.Settings.DBBackupView', 'DBBackupView', 11, 1, 0, 0, 0, 0);";
     }
 
     private string GetTriggerSQL()

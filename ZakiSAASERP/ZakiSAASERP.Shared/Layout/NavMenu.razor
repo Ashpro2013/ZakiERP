@@ -17,7 +17,10 @@
         <MudNavLink Icon="@Icons.Material.Filled.Dashboard" OnClick="@(() => OnLinkClicked(0, Localizer("Dashboard"), "ZakiSAASERP.Shared.Pages.Home"))">@Localizer("Dashboard")</MudNavLink>
         if(!AppData.IsMauiApi)
         {
-            <MudNavLink Icon="@Icons.Material.Filled.PointOfSale" OnClick="@(() => OnLinkClicked(1000, Localizer("POS"), "ZakiSAASERP.Shared.Pages.Transactions.Sales.POSView"))">@Localizer("POS")</MudNavLink>
+            if (CheckPosVisibility())
+            {
+                <MudNavLink Icon="@Icons.Material.Filled.PointOfSale" OnClick="@(() => OnLinkClicked(posMenuId > 0 ? posMenuId : 1000, Localizer("POS"), "ZakiSAASERP.Shared.Pages.Transactions.Sales.POSView"))">@Localizer("POS")</MudNavLink>
+            }
         }
         @foreach (var group in GetTopLevelMenus())
         {
@@ -31,6 +34,7 @@
     public EventCallback<(int, string, string)> OnNavSelection { get; set; }
     private bool loading = true;
     private List<MenuDetails> menuItems = new();
+    private int posMenuId = 1000;
 
     protected override async Task OnInitializedAsync()
     {
@@ -69,6 +73,12 @@
 
                 AppData.menuList = new List<MenuDetails>(filteredMenus);
 
+                var posMenu = cachedMenus.FirstOrDefault(x => x.Name == "POSView" || x.ClassName == "POSView");
+                if (posMenu != null)
+                {
+                    posMenuId = posMenu.Id;
+                }
+
                 menuItems = ApplyVisibilityFilter(cachedMenus);
                 loading = false;
                 StateHasChanged();
@@ -96,6 +106,21 @@
     private async Task OnLinkClicked(int id, string name, string viewClass)
     {
         await OnNavSelection.InvokeAsync((id, name, viewClass));
+    }
+
+    private bool CheckPosVisibility()
+    {
+        if (AppData.privileges is not null && AppData.privileges.Any())
+        {
+            var match = AppData.privileges.FirstOrDefault(x =>
+                (posMenuId > 0 && x.FK_MenuDetailsId == posMenuId) ||
+                string.Equals(x.MenuDetails?.Name, "POSView", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(x.MenuDetails?.MenuCaption, "POS", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(x.Caption, "POS", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(x.Caption, "POSView", StringComparison.OrdinalIgnoreCase));
+            if (match is not null) return match.Visible;
+        }
+        return true;
     }
 
     private List<MenuDetails> ApplyVisibilityFilter(List<MenuDetails> menus)

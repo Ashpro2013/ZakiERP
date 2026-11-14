@@ -15,12 +15,6 @@
                     <NavMenuItem Menu="@child" AllMenus="@AllMenus" OnLinkClick="@OnLinkClick" />
                 }
             }
-            @if (AppData.IsMaui && AppData.IsWindows && (string.Equals(Menu.Name, "Settings", StringComparison.OrdinalIgnoreCase) || string.Equals(Menu.MenuCaption, "Settings", StringComparison.OrdinalIgnoreCase)))
-            {
-                <MudNavLink OnClick="@(() => OnLinkClick.InvokeAsync((9099, "DBBackup", "ZakiSAASERP.Shared.Pages.Settings.DBBackupView")))" Icon="@Icons.Material.Filled.Backup">
-                    @(AppData.IsArabic ? "نسخ احتياطي لقاعدة البيانات" : "DBBackup")
-                </MudNavLink>
-            }
         </MudNavGroup>
     }
     else
@@ -51,6 +45,13 @@
     }
     private bool CheckVisibility()
     {
+        // 0. Platform restriction for DBBackup (Windows Desktop Maui only)
+        if (string.Equals(Menu.Name, "DBBackup", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Menu.ClassName, "DBBackupView", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!(AppData.IsMaui && AppData.IsWindows)) return false;
+        }
+
         // 1. Global Visibility (MenuVisibility)
         // Assuming 'Active' property in MenuDetails reflects the MenuVisibility status from the DB/API
         if (!Menu.Active) return false;

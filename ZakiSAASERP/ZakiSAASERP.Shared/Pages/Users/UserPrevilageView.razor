@@ -29,7 +29,7 @@
                         <MudSwitch T="bool" ValueChanged="EditChecked" Label="@Localizer("Edit")" Color="Color.Info" />
                         <MudSwitch T="bool" ValueChanged="DeleteChecked" Label="@Localizer("Delete")" Color="Color.Error" />
                     </MudStack>
-                    <MudDataGrid Class="ma-2" T="ExUserPrivilege" Items="@userPrivilages" FixedHeader="true" Bordered="true" Dense="true" Height="500px" RowClick="@RowClicked">
+                    <MudDataGrid Class="ma-2" T="ExUserPrivilege" Items="@userPrivilages" Filterable="true" SortMode="SortMode.Multiple" FixedHeader="true" Bordered="true" Dense="true" Height="500px" RowClick="@RowClicked">
                         <Columns>
                             <TemplateColumn Title="@Localizer("Visible")" SortBy="x => x.Visible" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
                                 <CellTemplate>
@@ -38,8 +38,16 @@
                                     </div>
                                 </CellTemplate>
                             </TemplateColumn>
-                            <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name") />
-                            <PropertyColumn Property="x => x.MenuTitle" Title=@Localizer("Title") />
+                            <PropertyColumn Property="x => x.MenuCaption" Title=@Localizer("Menu Name")>
+                                <CellTemplate>
+                                    @(AppData.IsArabic && !string.IsNullOrWhiteSpace(context.Item.ArabicCaption) ? context.Item.ArabicCaption : Localizer(context.Item.MenuCaption))
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.MenuTitle" Title=@Localizer("Title")>
+                                <CellTemplate>
+                                    @(AppData.IsArabic && !string.IsNullOrWhiteSpace(context.Item.ArabicTitle) ? context.Item.ArabicTitle : Localizer(context.Item.MenuTitle))
+                                </CellTemplate>
+                            </PropertyColumn>
                             <TemplateColumn Title=@Localizer("Save") SortBy="x => x.SaveData" CellStyle="width: 80px; text-align: center;" HeaderStyle="width: 80px; text-align: center;">
                                 <CellTemplate>
                                     <div class="d-flex justify-center" @onclick:stopPropagation="true">

@@ -316,6 +316,6 @@ public class FormFactor : IFormFactor
                 });
             }
         }
-        catch { }
+        catch { throw; }
     }
 }

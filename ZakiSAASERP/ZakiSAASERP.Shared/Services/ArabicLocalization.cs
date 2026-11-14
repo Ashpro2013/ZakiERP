@@ -6,6 +6,9 @@ public static class ArabicLocalization
     {
         return key switch
         {
+            "POS" => AppData.IsArabic ? "نقطة البيع" : "POS",
+            "POSView" => AppData.IsArabic ? "نقطة البيع" : "POS",
+            "Database Backup" => AppData.IsArabic ? "نسخ احتياطي لقاعدة البيانات" : "Database Backup",
             "DBBackup" => AppData.IsArabic ? "نسخ احتياطي لقاعدة البيانات" : "DBBackup",
             "BackupNow" => AppData.IsArabic ? "نسخ احتياطي الآن" : "Backup Now",
             "BackupLocation" => AppData.IsArabic ? "مجلد النسخ الاحتياطي" : "Backup Location",

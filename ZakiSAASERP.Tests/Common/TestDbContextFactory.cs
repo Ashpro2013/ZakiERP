@@ -40,6 +40,14 @@ public class TestDbContextFactoryWrapper : IDisposable
         }
     }
 
+    public TenantDBContext CreateNewContext()
+    {
+        var options = new DbContextOptionsBuilder<TenantDBContext>()
+            .UseSqlite(_connection)
+            .Options;
+        return new TenantDBContext(options);
+    }
+
     public void Dispose()
     {
         DbContext.Dispose();

@@ -9,7 +9,7 @@ public class MenuVisibilityRepo(IDbContextProvider contextProvider) : IMenuVisib
     public async Task<MenuVisibilityDTO> GetMenuConfigurationAsync()
     {
         await using var db = contextProvider.CreateDbContext();
-        if (!await db.MenuDetails.AnyAsync(m => m.Name == "PrintingBarcode"))
+        if (!await db.MenuDetails.AnyAsync(m => m.Name == "POSView") || !await db.MenuDetails.AnyAsync(m => m.Name == "DBBackup"))
         {
             await ZakiSAASERP.Interface.Others.MenuSeedHelper.EnsureSeedDataAsync(db);
         }

@@ -72,6 +72,7 @@ public static class MenuSeedHelper
         ("EnquiryRegistration", "Enquiry Registration", "تسجيل الاستفسارات", "Sales", "ZakiSAASERP.Shared.Pages.Transactions.Sales.EnquiryRegistrationView", "EnquiryRegistrationView", 6),
         ("DeliveryNoteTitle", "Delivery Note", "إشعار تسليم", "Sales", "ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteView", "DeliveryNoteView", 7),
         ("Delivery Note Return", "Delivery Note Return", "مرتجع إشعار التسليم", "Sales", "ZakiSAASERP.Shared.Pages.Transactions.Sales.DeliveryNoteRtnView", "DeliveryNoteRtnView", 8),
+        ("POSView", "POS", "نقطة البيع", "Sales", "ZakiSAASERP.Shared.Pages.Transactions.Sales.POSView", "POSView", 9),
 
         // Purchase Transactions
         ("PurchaseOrderTitle", "Purchase Order", "أمر شراء", "Purchase", "ZakiSAASERP.Shared.Pages.Transactions.Purchase.PurchaseOrderView", "PurchaseOrderView", 1),
@@ -109,9 +110,64 @@ public static class MenuSeedHelper
         ("Rpt_Accounts", "Accounts Reports", "تقارير الحسابات", "Reports", null, "AccountBox", 7),
         ("Rpt_Enquiry", "Enquiry Reports", "تقارير الاستفسارات", "Reports", null, "Assignment", 8),
 
-        // Report Sub-items
-        ("PendingZatca", "Zatca Report", "تقرير الزكاة والضريبة (زاتكا)", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Transaction.ZatcaPendingView", "ZatcaPendingView", 1),
+        // Sales Reports
+        ("Sales Report", "Sales Report", "تقرير المبيعات", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.SalesReportsView", "SalesReportsView", 1),
+        ("Sales Details Report", "Sales Details Report", "تقرير تفاصيل المبيعات", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.SalesDetailsView", "SalesDetailsView", 2),
+        ("Customer Wise Sales Report", "Customer Wise Sales Report", "تقرير المبيعات حسب العميل", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.CustomerWiseSalesReportsView", "CustomerWiseSalesReportsView", 3),
+        ("Category Wise Report", "Category Wise Report", "تقرير حسب الفئة", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.CategoryWiseReportView", "CategoryWiseReportView", 4),
+        ("Sales Quotation Register", "Sales Quotation Register", "سجل عروض أسعار المبيعات", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.SalesQuotationRegisterView", "SalesQuotationRegisterView", 5),
+        ("Customer Wise Quotation Report", "Customer Wise Quotation Report", "تقرير عروض الأسعار حسب العميل", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.CustomerWiseQuotationReportView", "CustomerWiseQuotationReportView", 6),
+        ("Sales Order Register", "Sales Order Register", "سجل أوامر البيع", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.SalesOrderReportView", "SalesOrderReportView", 7),
+        ("Delivery Note Register", "Delivery Note Register", "سجل إشعارات التسليم", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.DeliveryNoteRegisterView", "DeliveryNoteRegisterView", 8),
+        ("Date Wise Profit Report", "Date Wise Profit Report", "تقرير الأرباح حسب التاريخ", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.DateWiseProfitReportView", "DateWiseProfitReportView", 9),
+        ("Proforma Invoice Report", "Proforma Invoice Report", "تقرير الفاتورة المبدئية", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.ProformaInvoiceReportView", "ProformaInvoiceReportView", 10),
+        ("Vat Report", "Vat Report", "تقرير ضريبة القيمة المضافة", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.VatReportView", "VatReportView", 11),
+        ("Sales Return Report", "Sales Return Report", "تقرير إرجاع المبيعات", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.SalesReturnReportView", "SalesReturnReportView", 12),
+        ("Sales Return Details Report", "Sales Return Details Report", "تقرير تفاصيل مرتجعات المبيعات", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.SalesReturnDetailsReportView", "SalesReturnDetailsReportView", 13),
         ("ShiftClosingReport", "Shift Closing Report", "تقرير إغلاق الوردية", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Sales.ShiftClosingReportView", "ShiftClosingReportView", 14),
+        ("PendingZatca", "Zatca Report", "تقرير الزكاة والضريبة (زاتكا)", "Rpt_Sales", "ZakiSAASERP.Shared.Pages.Reports.Transaction.ZatcaPendingView", "ZatcaPendingView", 15),
+
+        // Monitor Reports
+        ("Sales Monitor Report", "Sales Monitor Report", "تقرير مراقبة المبيعات", "Rpt_Monitor", "ZakiSAASERP.Shared.Pages.Reports.Transactions.SalesMonitorReport", "SalesMonitorReport", 1),
+        ("Purchase Monitor Report", "Purchase Monitor Report", "تقرير مراقبة المشتريات", "Rpt_Monitor", "ZakiSAASERP.Shared.Pages.Reports.Transactions.PurchaseMonitorReport", "PurchaseMonitorReport", 2),
+        ("Transaction Monitor Report", "Transaction Monitor Report", "تقرير مراقبة المعاملات", "Rpt_Monitor", "ZakiSAASERP.Shared.Pages.Reports.Transactions.TransactionMonitorReport", "TransactionMonitorReport", 3),
+
+        // Supplier Reports
+        ("Supplier Statement", "Supplier Statement", "كشف حساب المورد", "Rpt_Supplier", "ZakiSAASERP.Shared.Pages.Reports.Accounts.SupplierStatementReport", "SupplierStatementReport", 1),
+        ("Supplier Pending Invoices", "Supplier Pending Invoices", "فواتير الموردين المعلقة", "Rpt_Supplier", "ZakiSAASERP.Shared.Pages.Reports.Accounts.SupplierPendingInvoiceReports", "SupplierPendingInvoiceReports", 2),
+        ("Supplier Summary", "Supplier Summary", "ملخص الموردين", "Rpt_Supplier", "ZakiSAASERP.Shared.Pages.Reports.Accounts.SupplierSummaryReport", "SupplierSummaryReport", 3),
+        ("Supplier List", "Supplier List", "قائمة الموردين", "Rpt_Supplier", "ZakiSAASERP.Shared.Pages.Reports.Accounts.SupplierListReport", "SupplierListReport", 4),
+        ("Supplier Payment Report", "Supplier Payment Report", "تقرير مدفوعات الموردين", "Rpt_Supplier", "ZakiSAASERP.Shared.Pages.Reports.Accounts.SupplierPaymentReports", "SupplierPaymentReports", 5),
+
+        // Customer Reports
+        ("Customer Statement", "Customer Statement", "كشف حساب العميل", "Rpt_Customer", "ZakiSAASERP.Shared.Pages.Reports.Sales.CustomerStatementView", "CustomerStatementView", 1),
+        ("Customer Summary", "Customer Summary", "ملخص العملاء", "Rpt_Customer", "ZakiSAASERP.Shared.Pages.Reports.Accounts.CustomerSummaryReport", "CustomerSummaryReport", 2),
+        ("Customer Pending Invoice Report", "Customer Pending Invoice Report", "فواتير العملاء المعلقة", "Rpt_Customer", "ZakiSAASERP.Shared.Pages.Reports.Accounts.CustomerPendingInvoiceReports", "CustomerPendingInvoiceReports", 3),
+        ("Customer List", "Customer List", "قائمة العملاء", "Rpt_Customer", "ZakiSAASERP.Shared.Pages.Reports.Accounts.CustomerListReport", "CustomerListReport", 4),
+
+        // Purchase Reports
+        ("Purchase Summary", "Purchase Summary", "ملخص المشتريات", "Rpt_Purchase", "ZakiSAASERP.Shared.Pages.Reports.Purchase.PurchaseSummaryView", "PurchaseSummaryView", 1),
+        ("Purchase Details", "Purchase Details", "تفاصيل المشتريات", "Rpt_Purchase", "ZakiSAASERP.Shared.Pages.Reports.Purchase.PurchaseDetailsView", "PurchaseDetailsView", 2),
+        ("Purchase Order Report", "Purchase Order Report", "تقرير أوامر الشراء", "Rpt_Purchase", "ZakiSAASERP.Shared.Pages.Reports.Purchase.PurchaseOrderReportView", "PurchaseOrderReportView", 3),
+        ("Purchase Return Summary", "Purchase Return Summary", "ملخص إرجاع الشراء", "Rpt_Purchase", "ZakiSAASERP.Shared.Pages.Reports.Purchase.PurchaseReturnSummaryView", "PurchaseReturnSummaryView", 4),
+        ("Purchase Return Details", "Purchase Return Details", "تفاصيل إرجاع الشراء", "Rpt_Purchase", "ZakiSAASERP.Shared.Pages.Reports.Purchase.PurchaseReturnDetailsView", "PurchaseReturnDetailsView", 5),
+
+        // Inventory Reports
+        ("Stock Report", "Stock Report", "تقرير المخزون", "Rpt_Inventory", "ZakiSAASERP.Shared.Pages.Reports.Inventory.StockReportView", "StockReportView", 1),
+        ("Stock Transfer Report", "Stock Transfer Report", "تقرير نقل المخزون", "Rpt_Inventory", "ZakiSAASERP.Shared.Pages.Reports.Inventory.StockTransferReportView", "StockTransferReportView", 2),
+        ("Item Transaction History Report", "Item Transaction History Report", "تقرير سجل حركات الأصناف", "Rpt_Inventory", "ZakiSAASERP.Shared.Pages.Reports.Inventory.ItemTransactionHistoryReportView", "ItemTransactionHistoryReportView", 3),
+        ("Stock Adjustment Report", "Stock Adjustment Report", "تقرير تسوية المخزون", "Rpt_Inventory", "ZakiSAASERP.Shared.Pages.Reports.Inventory.StockAdjustmentView", "StockAdjustmentView", 4),
+
+        // Accounts Reports
+        ("Journal Entry Report", "Journal Entry Report", "تقرير قيود اليومية", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.JournalEntryReportView", "JournalEntryReportView", 1),
+        ("Trial Balance Report", "Trial Balance Report", "تقرير ميزان المراجعة", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.TrialBalanceView", "TrialBalanceView", 2),
+        ("Expense Report", "Expense Report", "تقرير المصروفات", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.ExpenseReportView", "ExpenseReportView", 3),
+        ("Profit And Loss Report", "Profit And Loss Report", "تقرير الأرباح والخسائر", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.ProfitAndLossReportView", "ProfitAndLossReportView", 4),
+        ("Balance Sheet Report", "Balance Sheet Report", "تقرير الميزانية العمومية", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.BalanceSheetReportView", "BalanceSheetReportView", 5),
+        ("Chart Of Account Report", "Chart Of Account Report", "تقرير دليل الحسابات", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.ChartOfAccountReportView", "ChartOfAccountReportView", 6),
+        ("LedgerReport", "Ledger Report", "تقرير دفتر الأستاذ", "Rpt_Accounts", "ZakiSAASERP.Shared.Pages.Reports.Accounts.LedgerReportView", "LedgerReportView", 7),
+
+        // Enquiry Reports
         ("EnquiryRegistrationReport", "Enquiry Registration Report", "تقرير تسجيل الاستفسارات", "Rpt_Enquiry", "ZakiSAASERP.Shared.Pages.Reports.Sales.EnquiryRegistrationReportView", "EnquiryRegistrationReportView", 1),
 
         // ================= SETTINGS =================
@@ -125,6 +181,7 @@ public static class MenuSeedHelper
         ("ProductImport", "Product Import", "استيراد المنتجات", "Settings", "ZakiSAASERP.Shared.Pages.Settings.ProductImportView", "ProductImportView", 8),
         ("ProductExport", "Product Export", "تصدير المنتجات", "Settings", "ZakiSAASERP.Shared.Pages.Settings.ProductExportView", "ProductExportView", 9),
         ("PrintingBarcode", "Printing Barcode", "طباعة الباركود", "Settings", "ZakiSAASERP.Shared.Pages.Settings.PrintingBarcodeView", "PrintingBarcodeView", 10),
+        ("DBBackup", "Database Backup", "نسخ احتياطي لقاعدة البيانات", "Settings", "ZakiSAASERP.Shared.Pages.Settings.DBBackupView", "DBBackupView", 11),
     };
 
     public static async Task EnsureSeedDataAsync(TenantDBContext context)
@@ -144,24 +201,36 @@ public static class MenuSeedHelper
 
     public static async Task EnsureMissingMenuDetailsAsync(TenantDBContext context)
     {
-        var existingMenus = await context.MenuDetails.ToListAsync();
-        var existingByName = existingMenus
-            .GroupBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-
-        bool anyAdded = false;
-
-        foreach (var item in AllSystemMenus)
+        bool addedAny;
+        do
         {
-            if (!existingByName.ContainsKey(item.Name))
+            addedAny = false;
+            var currentMenus = await context.MenuDetails.ToListAsync();
+            var currentByName = currentMenus
+                .GroupBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            var currentByClass = currentMenus
+                .Where(m => !string.IsNullOrEmpty(m.ClassName))
+                .GroupBy(m => m.ClassName!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in AllSystemMenus)
             {
+                if (currentByName.ContainsKey(item.Name))
+                    continue;
+
+                if (!string.IsNullOrEmpty(item.ClassName) && currentByClass.ContainsKey(item.ClassName))
+                    continue;
+
                 int? parentId = null;
                 if (!string.IsNullOrEmpty(item.ParentName))
                 {
-                    if (existingByName.TryGetValue(item.ParentName, out var parentMenu))
+                    if (!currentByName.TryGetValue(item.ParentName, out var parentMenu))
                     {
-                        parentId = parentMenu.Id;
+                        // Parent doesn't exist yet; defer to subsequent pass
+                        continue;
                     }
+                    parentId = parentMenu.Id;
                 }
 
                 var newMenu = new MenuDetails
@@ -177,15 +246,14 @@ public static class MenuSeedHelper
                 };
 
                 context.MenuDetails.Add(newMenu);
-                existingByName[item.Name] = newMenu;
-                anyAdded = true;
+                addedAny = true;
             }
-        }
 
-        if (anyAdded)
-        {
-            await context.SaveChangesAsync();
-        }
+            if (addedAny)
+            {
+                await context.SaveChangesAsync();
+            }
+        } while (addedAny);
     }
 
     public static async Task EnsureMissingVisibilitiesAsync(TenantDBContext context)

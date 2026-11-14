@@ -1,4 +1,5 @@
 using ZakiSAASERP.Models.Services;
+using ZakiSAASERP.Models.ViewModel;
 using ZakiSAASERP.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -20,6 +21,7 @@ public partial class DBBackupView : ComponentBase, ITabAware
     private (bool Success, string Message, string? BackupPath)? lastBackupResult;
     private List<BackupFileInfo> existingBackups = new();
     private string searchString = string.Empty;
+    private WebUserPrivilege? privilege;
 
     private IEnumerable<BackupFileInfo> FilteredBackups
     {
@@ -37,6 +39,13 @@ public partial class DBBackupView : ComponentBase, ITabAware
     protected override async Task OnInitializedAsync()
     {
         InitializeDatabaseInfo();
+
+        if (AppData.privileges is not null)
+        {
+            privilege = AppData.privileges.FirstOrDefault(x =>
+                string.Equals(x.Caption, "DBBackup", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(x.Caption, "Database Backup", StringComparison.OrdinalIgnoreCase));
+        }
 
         if (AppData.IsWindows)
         {
@@ -107,6 +116,12 @@ public partial class DBBackupView : ComponentBase, ITabAware
     private async Task PerformBackupAsync()
     {
         if (isBackingUp) return;
+
+        if (privilege is not null && !privilege.SaveData)
+        {
+            Snackbar.Add(AppData.IsArabic ? "ليس لديك صلاحية النسخ الاحتياطي" : "No backup privilege", Severity.Warning);
+            return;
+        }
 
         try
         {

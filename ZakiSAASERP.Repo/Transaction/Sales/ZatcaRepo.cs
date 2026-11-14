@@ -153,7 +153,7 @@ public class ZatcaRepo(IDbContextProvider _contextProvider, IZatcaUploadService 
             case 4:
 
                 firstCount = await GetDistinctInvoiceCountAsync(query, x =>
-                    x.DetailedStatus == "PASS" &&
+                    x.DetailedStatus == "CLEARED" &&
                     x.VoucherType == "Standard Invoice");
 
                 secondCount = await GetDistinctInvoiceCountAsync(query, x =>
@@ -204,7 +204,7 @@ public class ZatcaRepo(IDbContextProvider _contextProvider, IZatcaUploadService 
             case 7:
 
                 firstCount = await GetDistinctInvoiceCountAsync(query, x =>
-                    x.DetailedStatus == "PASS" &&
+                    x.DetailedStatus == "CLEARED" &&
                     x.VoucherType == "Standard Credit Note");
 
                 secondCount = await GetDistinctInvoiceCountAsync(query, x =>
@@ -247,7 +247,7 @@ public class ZatcaRepo(IDbContextProvider _contextProvider, IZatcaUploadService 
         {
             case 1:
                 filteredQuery = query.Where(x =>
-                    x.DetailedStatus == "PASS" &&
+                    x.DetailedStatus == "CLEARED" &&
                     x.VoucherType == "Standard Invoice");
                 break;
 
@@ -285,7 +285,7 @@ public class ZatcaRepo(IDbContextProvider _contextProvider, IZatcaUploadService 
 
             case 7:
                 filteredQuery = query.Where(x =>
-                    x.DetailedStatus == "PASS" &&
+                    x.DetailedStatus == "CLEARED" &&
                     x.VoucherType == "Standard Credit Invoice");
                 break;
 
